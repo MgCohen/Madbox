@@ -1,0 +1,98 @@
+using System.Threading.Tasks;
+using Xunit;
+
+namespace Scaffold.Analyzers.Tests;
+
+public sealed class NamingConventionAnalyzerTests
+{
+    [Fact]
+    public async Task Diagnostic_WhenPublicMethodStartsWithLowercase()
+    {
+        const string source = @"
+namespace Demo
+{
+    public class Processor
+    {
+        public void processData() { }
+    }
+}";
+
+        var diagnostics = await AnalyzerTestHarness.GetDiagnosticsByIdAsync(
+            source,
+            @"C:\Repo\Assets\Scripts\Infra\Processor.cs",
+            new NamingConventionAnalyzer(),
+            NamingConventionAnalyzer.DiagnosticIdPascal);
+
+        var diagnostic = Assert.Single(diagnostics);
+        Assert.Contains("processData", diagnostic.GetMessage());
+    }
+
+    [Fact]
+    public async Task NoDiagnostic_WhenMethodIsPrivateOrInternal()
+    {
+        const string source = @"
+namespace Demo
+{
+    public class Processor
+    {
+        private void processData() { }
+        internal void processInternal() { }
+    }
+}";
+
+        var diagnostics = await AnalyzerTestHarness.GetDiagnosticsByIdAsync(
+            source,
+            @"C:\Repo\Assets\Scripts\Infra\Processor.cs",
+            new NamingConventionAnalyzer(),
+            NamingConventionAnalyzer.DiagnosticIdPascal);
+
+        Assert.Empty(diagnostics);
+    }
+
+    [Fact]
+    public async Task OverrideMethodIsSkipped()
+    {
+        const string source = @"namespace Demo
+{
+    public class BaseType
+    {
+        public virtual void processData() { }
+    }
+
+    public class DerivedType : BaseType
+    {
+        public override void processData() { }
+    }
+}";
+
+        var diagnostics = await AnalyzerTestHarness.GetDiagnosticsByIdAsync(
+            source,
+            @"C:\Repo\Assets\Scripts\Infra\Processor.cs",
+            new NamingConventionAnalyzer(),
+            NamingConventionAnalyzer.DiagnosticIdPascal);
+
+        var diagnostic = Assert.Single(diagnostics);
+        Assert.Equal(4, diagnostic.Location.GetLineSpan().StartLinePosition.Line);
+    }
+
+    [Fact]
+    public async Task NoDiagnostic_ForOperatorOverload()
+    {
+        const string source = @"
+namespace Demo
+{
+    public class Number
+    {
+        public static Number operator +(Number left, Number right) => left;
+    }
+}";
+
+        var diagnostics = await AnalyzerTestHarness.GetDiagnosticsByIdAsync(
+            source,
+            @"C:\Repo\Assets\Scripts\Infra\Number.cs",
+            new NamingConventionAnalyzer(),
+            NamingConventionAnalyzer.DiagnosticIdPascal);
+
+        Assert.Empty(diagnostics);
+    }
+}

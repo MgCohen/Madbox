@@ -1,0 +1,60 @@
+root = true
+
+[*.cs]
+# Scaffold Analyzer Severity Configuration
+# Values: error | warning | suggestion | none
+# Set to "none" to disable a rule entirely.
+# Set to "error" to make a rule block compilation.
+
+dotnet_diagnostic.SCA0001.severity = warning   # No comments on methods
+dotnet_diagnostic.SCA0002.severity = warning   # Methods in order of usage
+dotnet_diagnostic.SCA0003.severity = warning   # No nested function calls
+dotnet_diagnostic.SCA0004.severity = warning   # Use curly brackets for methods
+dotnet_diagnostic.SCA0005.severity = warning   # Avoid line breaks in signatures
+dotnet_diagnostic.SCA0006.severity = warning   # Methods should be small
+scaffold.SCA0006.max_lines = 8                 # Max lines per method body (default: 8)
+dotnet_diagnostic.SCA0007.severity = warning   # Namespace matches folder structure
+scaffold.SCA0007.root_namespace = Madbox       # Optional explicit root namespace (otherwise RootNamespace/MSBuildProjectName)
+dotnet_diagnostic.SCA0008.severity = warning   # No _ or m_ prefixes on private fields
+dotnet_diagnostic.SCA0009.severity = warning   # Private fields must be camelCase
+dotnet_diagnostic.SCA0010.severity = warning   # Public members must be PascalCase
+dotnet_diagnostic.SCA0011.severity = none      # Prefer Unity's Awaitable over Task/ValueTask
+dotnet_diagnostic.SCA0012.severity = warning   # Public methods should start with invariant checks
+dotnet_diagnostic.SCA0013.severity = warning   # Serializable Unity models should use [SerializeField] backing fields
+dotnet_diagnostic.SCA0014.severity = warning   # Restrict static methods in non-static classes
+dotnet_diagnostic.SCA0015.severity = warning   # Extra types: own file if shared/public, else place after primary type
+dotnet_diagnostic.SCA0016.severity = warning   # Use TextMeshProUGUI instead of UnityEngine.UI.Text
+dotnet_diagnostic.SCA0017.severity = warning   # Public constructors should start with invariant checks
+dotnet_diagnostic.SCA0018.severity = warning   # MVVM classes should use module base types
+dotnet_diagnostic.SCA0019.severity = warning   # MVVM generator attributes require references
+dotnet_diagnostic.SCA0020.severity = warning   # Class member order
+dotnet_diagnostic.SCA0021.severity = warning   # MVVM descendants must use bind APIs
+dotnet_diagnostic.SCA0022.severity = warning   # Restrict cross-module runtime references
+dotnet_diagnostic.SCA0023.severity = warning   # Required module folders exist
+scaffold.SCA0023.required_folders = Contracts,Runtime,Tests
+scaffold.SCA0023.exempt_module_roots = Scaffold.Maps|Scaffold.Records|Scaffold.Types
+scaffold.SCA0023.exempt_requirements = Madbox.Bootstrap=Contracts,Madbox.MainMenu=Contracts,Scaffold.Maps=Contracts,Scaffold.Records=Contracts|Tests,Scaffold.Types=Contracts
+dotnet_diagnostic.SCA0024.severity = warning   # Module asmdef placement/name convention
+dotnet_diagnostic.SCA0025.severity = warning   # Boundary interfaces/types should live under Contracts
+dotnet_diagnostic.SCA0026.severity = warning   # Restrict same-layer dependency usage during initialization call chains
+scaffold.SCA0025.enforced_kinds = interface
+scaffold.SCA0025.exempt_module_roots = Scaffold.Records
+
+[Assets/Scripts/Infra/Model/**/*.cs]
+# MVVM split modules keep legacy public namespaces under Scaffold.MVVM.
+dotnet_diagnostic.SCA0007.severity = none
+
+[Assets/Scripts/Infra/ViewModel/**/*.cs]
+# MVVM split modules keep legacy public namespaces under Scaffold.MVVM.
+dotnet_diagnostic.SCA0007.severity = none
+
+[Assets/Scripts/Infra/View/**/*.cs]
+# MVVM split modules keep legacy public namespaces under Scaffold.MVVM.
+dotnet_diagnostic.SCA0007.severity = none
+
+[Assets/Scripts/App/Bootstrap/Tests/LayerInitializationOrchestratorTests.cs]
+dotnet_diagnostic.SCA0003.severity = none
+dotnet_diagnostic.SCA0005.severity = none
+dotnet_diagnostic.SCA0006.severity = none
+dotnet_diagnostic.SCA0020.severity = none
+

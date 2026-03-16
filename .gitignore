@@ -3,6 +3,7 @@
 /[Ll]ibrary/
 /[Ll]ogs/
 /[Tt]emp/
+/[Uu]ser[Ss]ettings/
 /[Oo]bj/
 /[Bb]uild/
 /[Bb]uilds/
@@ -51,6 +52,10 @@ ExportedObj/
 sysinfo.txt
 
 # /!\ DO NOT TOUCH THIS FILE UNLESS YOUR TOOL ASKED YOU TO /!\
+
+# .NET build artifacts (including analyzer projects)
+**/[Bb]in/
+**/[Oo]bj/
 
 # Builds
 *.apk

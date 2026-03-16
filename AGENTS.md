@@ -1,0 +1,102 @@
+﻿# Madbox - AI Agent Instructions
+
+This is the **primary context file** for all AI coding agents in this repository. Read it fully before making any changes. It takes precedence over any other instructions.
+
+## Project Summary
+
+Madbox is a modular Unity project (C#) with architecture boundaries enforced through documentation, explicit assembly/project dependencies, and custom Roslyn analyzers.
+
+## Tech Stack
+
+- **Engine**: Unity
+- **Language**: C#
+- **Architecture**: MVVM (Model-View-ViewModel)
+- **Code Enforcement**: Custom Roslyn Analyzers (`Analyzers/`)
+- **Code Generation**: Roslyn Source Generators (if introduced, place them under `Generators/`)
+- **Dependency Injection**: VContainer
+
+## Directory and Module Reference
+
+Directory layout, module relationships, and architectural structure are documented in [Architecture.md](Architecture.md). Use that file as the single source of truth for repository structure details.
+
+## Code Rules (Non-Negotiable)
+
+1. **Separation of Concerns**: Never couple core logic with Unity-specific presentation.
+2. **Modular Integrity**: Declare all dependencies explicitly via `.asmdef`/`.csproj`. Never bypass architectural boundaries.
+3. **No MonoBehaviours in Core**: MonoBehaviours are restricted to bootstrap and presentation layers only.
+4. **Mandatory Tests**: Every module must have tests.
+5. **Documentation**: Every module needs a `.md` file or folder under `Docs/`.
+6. **Plans go in `Plans/`**: All planning documents belong there.
+7. **New source generators go in `Generators/`**.
+8. **Analyzer compliance**: Fix all Roslyn analyzer warnings/errors before committing.
+9. **Bugfixes require regression tests**: Every bug fix must add or update an automated test that fails before the fix and passes after it.
+
+## How to Build
+
+- **Application**: Standard Unity Editor pipeline (`File > Build Settings`) or Unity CLI batch mode.
+- **Analyzers & Generators**: These are standard .NET projects. After modifying them, run `dotnet build -c Release` in their directory. The compiled DLL lands in `Analyzers/Output/` and is picked up by the IDE/language server via `Directory.Build.props` at the repo root. Unity does **not** run the analyzer - diagnostics surface directly in the IDE and to AI tooling.
+
+## How to Test
+
+- **Milestone quality gate (default)**: Run `.agents/scripts/validate-changes.cmd` from the repository root to execute EditMode tests, PlayMode tests, and analyzer checks in one command (always runs PowerShell with `-ExecutionPolicy Bypass`).
+- **Headless EditMode**: Run `.agents/scripts/run-editmode-tests.ps1` from the repository root for EditMode test execution. If your execution policy blocks scripts, invoke via `powershell -NoProfile -ExecutionPolicy Bypass -File ".\.agents\scripts\run-editmode-tests.ps1"`. The script prints a pass/fail report and deletes its temporary XML/log files before exiting.
+- **Headless PlayMode**: Run `.agents/scripts/run-playmode-tests.ps1` from the repository root for PlayMode test execution. If your execution policy blocks scripts, invoke via `powershell -NoProfile -ExecutionPolicy Bypass -File ".\.agents\scripts\run-playmode-tests.ps1"`. The script prints a pass/fail report and deletes its temporary XML/log files before exiting.
+- **Unity path resolution**: `run-editmode-tests.ps1` and `run-playmode-tests.ps1` resolve Unity in this order: `-UnityPath`, `UNITY_PATH`, then auto-detect based on `ProjectSettings/ProjectVersion.txt`.
+- **Analyzer diagnostics**: Run `.agents/scripts/check-analyzers.ps1` from the repository root to get deduplicated SCA diagnostics and blockers. If your execution policy blocks scripts, invoke via `powershell -NoProfile -ExecutionPolicy Bypass -File ".\.agents\scripts\check-analyzers.ps1"`. If no `.sln` exists yet at repo root, the script exits with `TOTAL:0` and a skip note.
+- **Script documentation**: See `Docs/Testing.md` for usage, behavior, parameters, and editing guidance.
+- **Test authoring guidance**: When creating or updating automated tests, read `Docs/AutomatedTesting.md` and follow it as the test design/playbook source of truth.
+
+## Workflows
+
+### Creating a New Module
+Use the `/create-module` workflow (`.agents/workflows/create-module.md`). Do **not** manually copy-paste folder structures.
+
+### Creating a Custom Analyzer Rule
+Use the `/create-custom-analyzer` workflow (`.agents/workflows/create-custom-analyzer.md`).
+
+### Checking Analyzer Diagnostics
+Use the `/check-analyzers` workflow (`.agents/workflows/check-analyzers.md`) to report diagnostics without making fixes.
+
+## Where to Put Plans
+
+### ExecPlans
+
+When writing complex features or significant refactors, use an ExecPlan (as described in `PLANS.md`) from design to implementation. Use `MILESTONE.md` for milestone plan structure when a milestone needs its own file.
+
+## Milestone Quality Loop
+
+For every milestone, follow this sequence before marking it complete:
+
+1. Check complexity first. If complex, write a mini milestone plan with concrete steps and sample inputs/outputs.
+2. If a bug is discovered or reported, add/update a regression test that reproduces it and verify the test fails before the fix.
+3. Implement the milestone or bug fix.
+4. Re-run the same regression test and verify it now passes.
+5. Run `.agents/scripts/validate-changes.cmd` as the required milestone quality gate.
+6. If the gate fails, fix all reported failures and diagnostics.
+7. Re-run `.agents/scripts/validate-changes.cmd` until the gate is clean.
+8. Commit milestone changes.
+
+## Where to Put Documentation
+
+All module documentation lives in `Docs/`. Every module **must** have a corresponding `.md` file or subfolder there. No exceptions.
+
+Use the module and directory structure defined in `Architecture.md` to derive documentation paths under `Docs/`.
+
+Documentation standards:
+
+- Module docs standard: `Docs/Standards/Module-Documentation-Standard.md`
+- Architecture docs standard: `Docs/Standards/Architecture-Documentation-Standard.md`
+
+Documentation must cover: purpose, public API/interface, usage examples, and any non-obvious design decisions. Keep it up to date as the module evolves.
+
+## Agent Behavior Guidelines
+
+- Read `Architecture.md` for module details before touching any code.
+- Read `PLANS.md` before authoring or executing any ExecPlan.
+- Read `MILESTONE.md` when writing milestone plan files referenced by an ExecPlan.
+- When creating or changing tests, read `Docs/AutomatedTesting.md` before implementation.
+- Always fix analyzer warnings before committing.
+- Prefer editing existing files over creating new ones.
+- Keep changes minimal and focused - no speculative abstractions or premature generalization.
+- Use existing modules as reference when unsure about patterns.
+
