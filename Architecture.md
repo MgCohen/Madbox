@@ -37,6 +37,7 @@ Top-level directories:
 - `Assets/`: Unity assets, scenes, prefabs, settings, and addressables data.
 - `Analyzers/`: Analyzer source and analyzer test projects.
 - `Docs/`: Documentation and standards.
+- `Research/`: Research artifacts (for example: code analysis, competitive research, and industry best practices).
 - `Plans/`: ExecPlans and milestone planning artifacts.
 - `.agents/`: AI workflows and validation/test/analyzer scripts.
 - `Packages/`: Unity package manifest/lock.
