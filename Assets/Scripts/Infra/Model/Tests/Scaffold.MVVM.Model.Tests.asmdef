@@ -1,0 +1,24 @@
+{
+    "name": "Scaffold.MVVM.Model.Tests",
+    "rootNamespace": "Scaffold.MVVM.Tests",
+    "references": [
+        "Scaffold.MVVM.Model",
+        "Scaffold.MVVM.Base.Contracts"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [
+        "CommunityToolkit.Mvvm.dll"
+    ],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": true,
+    "optionalUnityReferences": [
+        "TestAssemblies"
+    ]
+}

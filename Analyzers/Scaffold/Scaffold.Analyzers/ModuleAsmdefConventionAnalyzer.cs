@@ -78,7 +78,7 @@ namespace Scaffold.Analyzers
                 [".Editor"] = new[] { "Editor" }
             };
 
-            var folders = new[] { string.Empty, "Runtime" };
+            var folders = new[] { "Runtime" };
             foreach (var pair in suffixMap)
             {
                 if (assemblyName.EndsWith(pair.Key, StringComparison.OrdinalIgnoreCase))

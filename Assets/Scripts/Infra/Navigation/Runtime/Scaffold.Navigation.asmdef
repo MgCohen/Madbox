@@ -1,0 +1,20 @@
+{
+    "name": "Scaffold.Navigation.Runtime",
+    "rootNamespace": "Scaffold.Navigation",
+    "references": [
+        "Scaffold.Navigation.Contracts",
+        "Scaffold.Events.Contracts",
+        "GUID:69cc6723df1508c43a53a553fbf802b3",
+        "GUID:c72c3642ec330a340ad91bd6bf5d6bdc",
+        "GUID:b967d18ed9aae19488f12b55c25800dd"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

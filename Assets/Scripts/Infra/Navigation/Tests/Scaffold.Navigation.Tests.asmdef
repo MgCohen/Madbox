@@ -1,0 +1,29 @@
+{
+    "name": "Scaffold.Navigation.Tests",
+    "rootNamespace": "Scaffold.Navigation.Tests",
+    "references": [
+        "Scaffold.Navigation.Contracts",
+        "Scaffold.Navigation.Runtime",
+        "UnityEngine.TestRunner",
+        "UnityEditor.TestRunner",
+        "Scaffold.Events.Contracts",
+        "Scaffold.Events.Runtime",
+        "Scaffold.Types",
+        "Scaffold.Schemas"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "nunit.framework.dll"
+    ],
+    "autoReferenced": false,
+    "defineConstraints": [
+        "UNITY_INCLUDE_TESTS"
+    ],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

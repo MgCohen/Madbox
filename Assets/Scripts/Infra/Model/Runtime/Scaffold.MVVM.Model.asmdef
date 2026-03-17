@@ -1,0 +1,16 @@
+{
+    "name": "Scaffold.MVVM.Model",
+    "rootNamespace": "Scaffold.MVVM",
+    "references": [
+        "Scaffold.MVVM.Base.Contracts"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": true
+}

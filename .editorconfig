@@ -44,11 +44,15 @@ scaffold.SCA0025.exempt_module_roots = Scaffold.Records
 # MVVM split modules keep legacy public namespaces under Scaffold.MVVM.
 dotnet_diagnostic.SCA0007.severity = none
 
-[Assets/Scripts/Infra/ViewModel/**/*.cs]
+[Assets/Scripts/Infra/BaseMVVM/**/*.cs]
 # MVVM split modules keep legacy public namespaces under Scaffold.MVVM.
 dotnet_diagnostic.SCA0007.severity = none
 
-[Assets/Scripts/Infra/View/**/*.cs]
+[Assets/Scripts/Core/ViewModel/**/*.cs]
+# MVVM split modules keep legacy public namespaces under Scaffold.MVVM.
+dotnet_diagnostic.SCA0007.severity = none
+
+[Assets/Scripts/App/View/**/*.cs]
 # MVVM split modules keep legacy public namespaces under Scaffold.MVVM.
 dotnet_diagnostic.SCA0007.severity = none
 

@@ -1,3 +1,5 @@
+using System;
+using System.IO;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -128,6 +130,112 @@ namespace Scaffold.Navigation.Container
     }
 
     [Fact]
+    public async Task NoDiagnostic_WhenReferencedRuntimeModuleHasNoContractsFolder()
+    {
+        const string source = @"
+namespace Madbox.MainMenu
+{
+    public sealed class MenuPresenter { }
+}";
+
+        string workspace = CreateTempWorkspace();
+        try
+        {
+            var sourcePath = WriteSourceFile(
+                workspace,
+                "Assets/Scripts/App/MainMenu/Runtime/MenuPresenter.cs",
+                source);
+
+            WriteAsmdef(
+                workspace,
+                "Assets/Scripts/Meta/Gold/Runtime/Madbox.Meta.Gold.Runtime.asmdef",
+                "Madbox.Meta.Gold.Runtime");
+
+            var diagnostics = await AnalyzerTestHarness.GetDiagnosticsByIdAsync(
+                source,
+                sourcePath,
+                new RuntimeAssemblyBoundaryAnalyzer(),
+                RuntimeAssemblyBoundaryAnalyzer.DiagnosticId,
+                compilationAssemblyName: "Madbox.MainMenu.Runtime",
+                additionalAssemblyNames: new[] { "Madbox.Meta.Gold.Runtime" });
+
+            Assert.Empty(diagnostics);
+        }
+        finally
+        {
+            DeleteTempWorkspace(workspace);
+        }
+    }
+
+    [Fact]
+    public async Task Diagnostic_WhenReferencedRuntimeModuleHasContractsFolder()
+    {
+        const string source = @"
+namespace Madbox.MainMenu
+{
+    public sealed class MenuPresenter { }
+}";
+
+        string workspace = CreateTempWorkspace();
+        try
+        {
+            var sourcePath = WriteSourceFile(
+                workspace,
+                "Assets/Scripts/App/MainMenu/Runtime/MenuPresenter.cs",
+                source);
+
+            WriteAsmdef(
+                workspace,
+                "Assets/Scripts/Meta/Gold/Runtime/Madbox.Meta.Gold.Runtime.asmdef",
+                "Madbox.Meta.Gold.Runtime");
+            WriteAsmdef(
+                workspace,
+                "Assets/Scripts/Meta/Gold/Contracts/Madbox.Meta.Gold.Contracts.asmdef",
+                "Madbox.Meta.Gold.Contracts");
+
+            var diagnostics = await AnalyzerTestHarness.GetDiagnosticsByIdAsync(
+                source,
+                sourcePath,
+                new RuntimeAssemblyBoundaryAnalyzer(),
+                RuntimeAssemblyBoundaryAnalyzer.DiagnosticId,
+                compilationAssemblyName: "Madbox.MainMenu.Runtime",
+                additionalAssemblyNames: new[] { "Madbox.Meta.Gold.Runtime" });
+
+            var diagnostic = Assert.Single(diagnostics);
+            Assert.Contains("Madbox.MainMenu.Runtime", diagnostic.GetMessage());
+            Assert.Contains("Madbox.Meta.Gold.Runtime", diagnostic.GetMessage());
+        }
+        finally
+        {
+            DeleteTempWorkspace(workspace);
+        }
+    }
+
+    [Fact]
+    public async Task NoDiagnostic_WhenReferencedModuleIsConfiguredAsNoContractModule()
+    {
+        const string source = @"
+namespace Madbox.MainMenu
+{
+    public sealed class MenuPresenter { }
+}";
+
+        var diagnostics = await AnalyzerTestHarness.GetDiagnosticsByIdAsync(
+            source,
+            @"C:\Repo\Assets\Scripts\App\MainMenu\Runtime\MenuPresenter.cs",
+            new RuntimeAssemblyBoundaryAnalyzer(),
+            RuntimeAssemblyBoundaryAnalyzer.DiagnosticId,
+            analyzerOptions: new System.Collections.Generic.Dictionary<string, string>
+            {
+                ["scaffold.SCA0022.no_contract_modules"] = "Madbox.Meta.Gold"
+            },
+            compilationAssemblyName: "Madbox.MainMenu.Runtime",
+            additionalAssemblyNames: new[] { "Madbox.Meta.Gold.Runtime" });
+
+        Assert.Empty(diagnostics);
+    }
+
+    [Fact]
     public async Task NoDiagnostic_WhenExternalRuntimeAssemblyIsReferenced()
     {
         const string source = @"
@@ -145,5 +253,45 @@ namespace Madbox.MainMenu
             additionalAssemblyNames: new[] { "System.Runtime" });
 
         Assert.Empty(diagnostics);
+    }
+
+    private static string CreateTempWorkspace()
+    {
+        string workspace = Path.Combine(Path.GetTempPath(), "sca0022-tests-" + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(workspace);
+        return workspace;
+    }
+
+    private static string WriteSourceFile(string workspaceRoot, string relativePath, string source)
+    {
+        string path = Path.Combine(workspaceRoot, relativePath);
+        string? directory = Path.GetDirectoryName(path);
+        if (!string.IsNullOrWhiteSpace(directory))
+        {
+            Directory.CreateDirectory(directory);
+        }
+
+        File.WriteAllText(path, source);
+        return path;
+    }
+
+    private static void WriteAsmdef(string workspaceRoot, string relativePath, string asmdefName)
+    {
+        string path = Path.Combine(workspaceRoot, relativePath);
+        string? directory = Path.GetDirectoryName(path);
+        if (!string.IsNullOrWhiteSpace(directory))
+        {
+            Directory.CreateDirectory(directory);
+        }
+
+        File.WriteAllText(path, "{ \"name\": \"" + asmdefName + "\" }");
+    }
+
+    private static void DeleteTempWorkspace(string workspaceRoot)
+    {
+        if (Directory.Exists(workspaceRoot))
+        {
+            Directory.Delete(workspaceRoot, recursive: true);
+        }
     }
 }

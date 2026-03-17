@@ -13,6 +13,7 @@ namespace Scaffold.Analyzers
     public class NamespaceAnalyzer : DiagnosticAnalyzer
     {
         public const string DiagnosticId = "SCA0007";
+        public const string MultipleTopLevelNamespacesDiagnosticId = "SCA0027";
         private const string Category = "Design";
         private const string RootNamespaceKey = "scaffold.SCA0007.root_namespace";
         private const string BuildRootNamespaceKey = "build_property.RootNamespace";
@@ -27,7 +28,17 @@ namespace Scaffold.Analyzers
             isEnabledByDefault: true,
             description: "Namespaces must end with the feature/scope folder path and may use any root namespace. Special unity folders, the first domain folder, Runtime, and Implementation are omitted.");
 
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
+        private static readonly DiagnosticDescriptor MultipleTopLevelNamespacesRule = new DiagnosticDescriptor(
+            MultipleTopLevelNamespacesDiagnosticId,
+            "One top-level namespace per file",
+            "Error SCA0027: File has {0} top-level namespace declarations. Use a single top-level namespace per file",
+            Category,
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true,
+            description: "Each C# file under Assets/Scripts must contain exactly one top-level namespace declaration. IsExternalInit.cs is exempted.");
+
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics =>
+            ImmutableArray.Create(Rule, MultipleTopLevelNamespacesRule);
 
         public override void Initialize(AnalysisContext context)
         {
@@ -40,12 +51,19 @@ namespace Scaffold.Analyzers
         private void AnalyzeSyntaxTree(SyntaxTreeAnalysisContext context)
         {
             var options = context.Options.AnalyzerConfigOptionsProvider.GetOptions(context.Tree);
-            if (AnalyzerConfig.ShouldSuppress(options, DiagnosticId)) return;
+            var suppressNamespacePathRule = AnalyzerConfig.ShouldSuppress(options, DiagnosticId);
+            var suppressMultipleNamespaceRule = AnalyzerConfig.ShouldSuppress(options, MultipleTopLevelNamespacesDiagnosticId);
+            if (suppressNamespacePathRule && suppressMultipleNamespaceRule) return;
             var rule = AnalyzerConfig.GetEffectiveDescriptor(options, DiagnosticId, Rule);
+            var multipleNamespacesRule = AnalyzerConfig.GetEffectiveDescriptor(
+                options,
+                MultipleTopLevelNamespacesDiagnosticId,
+                MultipleTopLevelNamespacesRule);
 
             var filePath = context.Tree.FilePath;
             if (string.IsNullOrWhiteSpace(filePath)) return;
             if (IsGeneratedFile(filePath)) return;
+            if (IsNamespaceValidationExempt(filePath)) return;
 
             var relativeFolderSegments = GetAssetsScriptsFolderSegments(filePath);
             if (relativeFolderSegments == null) return;
@@ -55,24 +73,45 @@ namespace Scaffold.Analyzers
             var expectedNamespace = BuildExpectedNamespace(rootNamespace, requiredSuffixSegments);
 
             var root = context.Tree.GetRoot(context.CancellationToken);
-            var namespaceDeclarations = root.DescendantNodes().OfType<BaseNamespaceDeclarationSyntax>().ToList();
+            var namespaceDeclarations = root
+                .DescendantNodes()
+                .OfType<BaseNamespaceDeclarationSyntax>()
+                .Where(static ns => ns.Parent is CompilationUnitSyntax)
+                .ToList();
 
             if (namespaceDeclarations.Count == 0)
             {
-                var diagnostic = Diagnostic.Create(rule, root.GetLocation(), "<global>", expectedNamespace);
-                context.ReportDiagnostic(diagnostic);
+                if (!suppressNamespacePathRule)
+                {
+                    var diagnostic = Diagnostic.Create(rule, root.GetLocation(), "<global>", expectedNamespace);
+                    context.ReportDiagnostic(diagnostic);
+                }
                 return;
             }
 
-            var declaredNamespace = namespaceDeclarations[0].Name.ToString();
-            if (!MatchesExpectedNamespacePath(declaredNamespace, requiredSuffixSegments))
+            if (namespaceDeclarations.Count > 1 && !suppressMultipleNamespaceRule)
             {
                 var diagnostic = Diagnostic.Create(
-                    rule,
-                    namespaceDeclarations[0].Name.GetLocation(),
-                    declaredNamespace,
-                    expectedNamespace);
+                    multipleNamespacesRule,
+                    namespaceDeclarations[1].Name.GetLocation(),
+                    namespaceDeclarations.Count);
                 context.ReportDiagnostic(diagnostic);
+            }
+
+            if (suppressNamespacePathRule) return;
+
+            foreach (var namespaceDeclaration in namespaceDeclarations)
+            {
+                var declaredNamespace = namespaceDeclaration.Name.ToString();
+                if (!MatchesExpectedNamespacePath(declaredNamespace, requiredSuffixSegments))
+                {
+                    var diagnostic = Diagnostic.Create(
+                        rule,
+                        namespaceDeclaration.Name.GetLocation(),
+                        declaredNamespace,
+                        expectedNamespace);
+                    context.ReportDiagnostic(diagnostic);
+                }
             }
         }
 
@@ -184,6 +223,12 @@ namespace Scaffold.Analyzers
             if (fileName.EndsWith(".designer.cs", StringComparison.OrdinalIgnoreCase)) return true;
 
             return false;
+        }
+
+        private static bool IsNamespaceValidationExempt(string filePath)
+        {
+            var fileName = System.IO.Path.GetFileName(filePath);
+            return string.Equals(fileName, "IsExternalInit.cs", StringComparison.OrdinalIgnoreCase);
         }
     }
 }

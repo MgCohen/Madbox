@@ -1,0 +1,83 @@
+﻿using System.Linq.Expressions;
+using System.Collections.Specialized;
+using System.Collections.ObjectModel;
+using System.Collections;
+using Scaffold.Maps;
+using CommunityToolkit.Mvvm.ComponentModel;
+using UnityEngine;
+using Scaffold.Navigation.Contracts;
+using Scaffold.MVVM.Contracts;
+using System.ComponentModel;
+using System.Linq;
+using System.Collections.Generic;
+using System;
+namespace Scaffold.MVVM.Binding
+{
+    internal class BindSet<TSource, TTarget> : IBindSet<TSource, TTarget>
+    {
+        private readonly List<Converter<TSource, TTarget>> converters = new List<Converter<TSource, TTarget>>();
+        private readonly List<Adapter<TTarget>> adapters = new List<Adapter<TTarget>>();
+
+        public void RegisterConverter(Converter<TSource, TTarget> converter)
+        {
+            if (converter is null) { throw new ArgumentNullException(nameof(converter)); }
+            converters.Add(converter);
+        }
+
+        public void RegisterAdapter(Adapter<TTarget> adapter)
+        {
+            if (adapter is null) { throw new ArgumentNullException(nameof(adapter)); }
+            adapters.Add(adapter);
+        }
+
+        public bool TryConvert(TSource source, out TTarget target)
+        {
+            GuardTryConvertInput(source);
+            if (converters.Count == 0) { target = default; return false; }
+            foreach (var converter in converters)
+            {
+                if (TryApplyConverter(converter, source, out target)) { return true; }
+            }
+            target = default;
+            return false;
+        }
+
+        private bool TryApplyConverter(Converter<TSource, TTarget> converter, TSource source, out TTarget target)
+        {
+            if (!converter.CanConvert(source)) { target = default; return false; }
+            target = converter.Convert(source);
+            return true;
+        }
+
+        public bool TryAdapt(TTarget target, out TTarget newTarget)
+        {
+            GuardTryAdaptInput(target);
+            if (adapters.Count == 0) { newTarget = default; return false; }
+            foreach (var adapter in adapters)
+            {
+                if (TryApplyAdapter(adapter, target, out newTarget)) { return true; }
+            }
+            newTarget = default;
+            return false;
+        }
+
+        private bool TryApplyAdapter(Adapter<TTarget> adapter, TTarget target, out TTarget newTarget)
+        {
+            if (!adapter.CanAdapt(target)) { newTarget = default; return false; }
+            newTarget = adapter.Resolve(target);
+            return true;
+        }
+
+        private void GuardTryConvertInput(TSource source)
+        {
+        }
+
+        private void GuardTryAdaptInput(TTarget target)
+        {
+        }
+    }
+}
+
+
+
+

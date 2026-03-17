@@ -1,0 +1,22 @@
+{
+    "name": "Scaffold.MVVM.ViewModel",
+    "rootNamespace": "Scaffold.MVVM",
+    "references": [
+        "Scaffold.MVVM.ViewModel.Contracts",
+        "Scaffold.MVVM.Base.Contracts",
+        "Scaffold.Navigation.Contracts",
+        "Scaffold.Maps",
+        "Scaffold.Records"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
+
+

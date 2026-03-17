@@ -20,16 +20,21 @@ if ($TestTimeoutMinutes -gt 0) {
 }
 
 $scriptDirectory = Split-Path -Parent $PSCommandPath
+$checkScriptsAsmdefReferencesPath = Join-Path $scriptDirectory "check-scripts-asmdef-references.ps1"
 $checkCompilationPath = Join-Path $scriptDirectory "check-unity-compilation.ps1"
 $runEditModeTestsPath = Join-Path $scriptDirectory "run-editmode-tests.ps1"
 $runPlayModeTestsPath = Join-Path $scriptDirectory "run-playmode-tests.ps1"
 $checkAnalyzersPath = Join-Path $scriptDirectory "check-analyzers.ps1"
 
+if (-not (Test-Path $checkScriptsAsmdefReferencesPath)) { throw "Missing script: $checkScriptsAsmdefReferencesPath" }
 if (-not (Test-Path $checkCompilationPath)) { throw "Missing script: $checkCompilationPath" }
 if (-not (Test-Path $runEditModeTestsPath)) { throw "Missing script: $runEditModeTestsPath" }
 if (-not (Test-Path $runPlayModeTestsPath)) { throw "Missing script: $runPlayModeTestsPath" }
 if (-not (Test-Path $checkAnalyzersPath)) { throw "Missing script: $checkAnalyzersPath" }
 
+$asmdefAuditExitCode = 1
+$asmdefAuditTotal = -1
+$asmdefAuditIssues = @()
 $compilationExitCode = 1
 $editModeExitCode = 1
 $playModeExitCode = 1
@@ -39,7 +44,34 @@ $analyzerDiagnostics = @()
 
 Write-Host "Change validation started..."
 Write-Host ""
-Write-Host "[1/4] Running compilation precheck"
+Write-Host "[1/5] Running scripts asmdef reference audit"
+
+try {
+    $asmdefAuditOutput = & $checkScriptsAsmdefReferencesPath -ProjectPath $ProjectPath | ForEach-Object { "$_" }
+    $asmdefAuditExitCode = if (Test-Path variable:LASTEXITCODE) { [int]$LASTEXITCODE } else { 1 }
+} catch {
+    $asmdefAuditOutput = @(
+        "TOTAL:-1",
+        ("ISSUE:ScriptFailure|{0}|n/a|{1}" -f $checkScriptsAsmdefReferencesPath, $_.Exception.Message)
+    )
+    $asmdefAuditExitCode = 1
+}
+
+$asmdefAuditOutput |
+    Where-Object { $_ -notlike "ISSUE:*" } |
+    ForEach-Object { Write-Host $_ }
+
+$asmdefTotalLine = $asmdefAuditOutput | Where-Object { $_ -match "^TOTAL:-?\d+$" } | Select-Object -First 1
+if ($asmdefTotalLine -and $asmdefTotalLine -match "^TOTAL:(-?\d+)$") {
+    $asmdefAuditTotal = [int]$matches[1]
+} else {
+    $asmdefAuditTotal = -1
+}
+
+$asmdefAuditIssues = @($asmdefAuditOutput | Where-Object { $_ -like "ISSUE:*" })
+
+Write-Host ""
+Write-Host "[2/5] Running compilation precheck"
 
 $compilationArgs = @{
     ProjectPath = $ProjectPath
@@ -56,7 +88,7 @@ try {
 }
 
 Write-Host ""
-Write-Host "[2/4] Running EditMode tests"
+Write-Host "[3/5] Running EditMode tests"
 
 $editModeArgs = @{
     ProjectPath = $ProjectPath
@@ -79,7 +111,7 @@ if ($compilationExitCode -eq 0) {
 }
 
 Write-Host ""
-Write-Host "[3/4] Running PlayMode tests"
+Write-Host "[4/5] Running PlayMode tests"
 
 $playModeArgs = @{
     ProjectPath = $ProjectPath
@@ -102,7 +134,7 @@ if ($compilationExitCode -eq 0) {
 }
 
 Write-Host ""
-Write-Host "[4/4] Running analyzer check (includes analyzer unit tests)"
+Write-Host "[5/5] Running analyzer check (includes analyzer unit tests)"
 
 try {
     $analyzerOutput = & $checkAnalyzersPath -ProjectPath $ProjectPath -TimeoutMinutes $AnalyzerTimeoutMinutes -AnalyzerTestsTimeoutMinutes $AnalyzerTestsTimeoutMinutes | ForEach-Object { "$_" }
@@ -135,12 +167,14 @@ $compilationPassed = ($compilationExitCode -eq 0)
 $editModePassed = ($compilationPassed -and $editModeExitCode -eq 0)
 $playModePassed = ($compilationPassed -and $playModeExitCode -eq 0)
 $testsPassed = ($editModePassed -and $playModePassed)
+$asmdefAuditPassed = ($asmdefAuditExitCode -eq 0 -and $asmdefAuditTotal -eq 0 -and $asmdefAuditIssues.Count -eq 0)
+$validationGatePassed = ($asmdefAuditPassed -and $testsPassed)
 $analyzersPassed = ($analyzerTotal -eq 0 -and $analyzerBlockers.Count -eq 0)
 
 $finalExitCode = 0
-if (-not $testsPassed -and -not $analyzersPassed) {
+if (-not $validationGatePassed -and -not $analyzersPassed) {
     $finalExitCode = 3
-} elseif (-not $testsPassed) {
+} elseif (-not $validationGatePassed) {
     $finalExitCode = 1
 } elseif (-not $analyzersPassed) {
     $finalExitCode = 2
@@ -149,6 +183,11 @@ if (-not $testsPassed -and -not $analyzersPassed) {
 Write-Host ""
 Write-Host "Change Validation Summary"
 Write-Host "----------------------------"
+if ($asmdefAuditTotal -ge 0) {
+    Write-Host ("Scripts asmdef audit: {0} (TOTAL:{1})" -f ($(if ($asmdefAuditPassed) { "PASS" } else { "FAIL" }), $asmdefAuditTotal))
+} else {
+    Write-Host "Scripts asmdef audit: FAIL (could not parse TOTAL line)"
+}
 Write-Host ("Compilation: {0} (exit code {1})" -f ($(if ($compilationPassed) { "PASS" } else { "FAIL" }), $compilationExitCode))
 if ($testsPassed) {
     Write-Host "Tests: PASS"
@@ -185,6 +224,13 @@ if (-not $analyzersPassed) {
     foreach ($line in $analyzerBlockers) { Write-Host $line }
     foreach ($line in $analyzerDiagnostics) { Write-Host $line }
     Write-Host "AGENT_ANALYZER_DIAGNOSTICS_END"
+}
+
+if (-not $asmdefAuditPassed) {
+    Write-Host ""
+    Write-Host "AGENT_ASMDEF_AUDIT_BEGIN"
+    foreach ($line in $asmdefAuditIssues) { Write-Host $line }
+    Write-Host "AGENT_ASMDEF_AUDIT_END"
 }
 
 exit $finalExitCode

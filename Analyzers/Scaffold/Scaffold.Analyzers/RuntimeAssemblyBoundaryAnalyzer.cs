@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.IO;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -39,14 +41,17 @@ namespace Scaffold.Analyzers
             var assemblyName = context.Compilation.AssemblyName;
             if (string.IsNullOrWhiteSpace(assemblyName)) return;
             if (IsBootstrapAssembly(assemblyName)) return;
-            if (IsInfrastructureAssembly(assemblyName)) return;
+            if (ModuleConventions.IsInfrastructureAssembly(assemblyName)) return;
 
-            var currentModuleRoot = GetModuleRootName(assemblyName);
+            var currentModuleRoot = ModuleConventions.GetModuleRootName(assemblyName);
+            var moduleRootsWithoutContracts = ParseModuleRootsWithoutContracts(options);
+            string assetsScriptsRoot = TryGetAssetsScriptsRoot(context.Compilation);
             foreach (var reference in context.Compilation.ReferencedAssemblyNames)
             {
                 var referenceName = reference?.Name;
                 if (!IsRuntimeAssemblyName(referenceName)) continue;
                 if (IsSameModule(currentModuleRoot, referenceName)) continue;
+                if (ShouldSkipForNoContractsException(referenceName, assetsScriptsRoot, moduleRootsWithoutContracts)) continue;
 
                 var location = GetDiagnosticLocation(context.Compilation);
                 var diagnostic = Diagnostic.Create(rule, location, assemblyName, referenceName);
@@ -58,15 +63,6 @@ namespace Scaffold.Analyzers
         {
             return assemblyName.IndexOf(".Bootstrap", StringComparison.OrdinalIgnoreCase) >= 0 ||
                    assemblyName.EndsWith("Bootstrap", StringComparison.OrdinalIgnoreCase);
-        }
-
-        private static bool IsInfrastructureAssembly(string assemblyName)
-        {
-            return assemblyName.EndsWith(".Tests", StringComparison.OrdinalIgnoreCase) ||
-                   assemblyName.EndsWith(".PlayModeTests", StringComparison.OrdinalIgnoreCase) ||
-                   assemblyName.EndsWith(".Samples", StringComparison.OrdinalIgnoreCase) ||
-                   assemblyName.EndsWith(".Container", StringComparison.OrdinalIgnoreCase) ||
-                   assemblyName.EndsWith(".Editor", StringComparison.OrdinalIgnoreCase);
         }
 
         private static bool IsRuntimeAssemblyName(string assemblyName)
@@ -82,28 +78,112 @@ namespace Scaffold.Analyzers
                    assemblyName.StartsWith("Scaffold.", StringComparison.OrdinalIgnoreCase);
         }
 
-        private static string GetModuleRootName(string assemblyName)
-        {
-            var suffixes = new[]
-            {
-                ".Runtime",
-                ".Contracts",
-                ".Container",
-                ".Editor",
-                ".Samples",
-                ".Tests",
-                ".PlayModeTests"
-            };
-
-            var match = suffixes.FirstOrDefault(suffix => assemblyName.EndsWith(suffix, StringComparison.OrdinalIgnoreCase));
-            if (match == null) return assemblyName;
-            return assemblyName.Substring(0, assemblyName.Length - match.Length);
-        }
-
         private static bool IsSameModule(string currentModuleRoot, string referencedAssemblyName)
         {
-            var referencedRoot = GetModuleRootName(referencedAssemblyName);
+            var referencedRoot = ModuleConventions.GetModuleRootName(referencedAssemblyName);
             return string.Equals(currentModuleRoot, referencedRoot, StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static bool ShouldSkipForNoContractsException(string referencedAssemblyName, string assetsScriptsRoot, ISet<string> configuredModulesWithoutContracts)
+        {
+            var referencedModuleRoot = ModuleConventions.GetModuleRootName(referencedAssemblyName);
+            if (configuredModulesWithoutContracts.Contains(referencedModuleRoot))
+            {
+                return true;
+            }
+
+            if (string.IsNullOrWhiteSpace(assetsScriptsRoot))
+            {
+                return false;
+            }
+
+            if (!TryGetReferencedModuleDirectory(assetsScriptsRoot, referencedAssemblyName, out var referencedModuleDirectory))
+            {
+                return false;
+            }
+
+            return !HasContractsSurface(referencedModuleDirectory, referencedModuleRoot);
+        }
+
+        private static string TryGetAssetsScriptsRoot(Compilation compilation)
+        {
+            if (!ModuleConventions.TryGetModuleContext(compilation, out var moduleContext))
+            {
+                return string.Empty;
+            }
+
+            var moduleDirectory = moduleContext.ModuleDirectoryPath;
+            if (string.IsNullOrWhiteSpace(moduleDirectory))
+            {
+                return string.Empty;
+            }
+
+            var moduleInfo = new DirectoryInfo(moduleDirectory);
+            var assetsScripts = moduleInfo.Parent?.Parent;
+            if (assetsScripts == null)
+            {
+                return string.Empty;
+            }
+
+            return assetsScripts.FullName;
+        }
+
+        private static bool TryGetReferencedModuleDirectory(string assetsScriptsRoot, string referencedAssemblyName, out string moduleDirectoryPath)
+        {
+            moduleDirectoryPath = string.Empty;
+            if (!Directory.Exists(assetsScriptsRoot))
+            {
+                return false;
+            }
+
+            var runtimeAsmdefName = referencedAssemblyName + ".asmdef";
+            var runtimeAsmdefPath = Directory
+                .EnumerateFiles(assetsScriptsRoot, runtimeAsmdefName, SearchOption.AllDirectories)
+                .FirstOrDefault(path => path.Replace('\\', '/').IndexOf("/Runtime/", StringComparison.OrdinalIgnoreCase) >= 0);
+
+            if (string.IsNullOrWhiteSpace(runtimeAsmdefPath))
+            {
+                return false;
+            }
+
+            var runtimeDirectory = Path.GetDirectoryName(runtimeAsmdefPath);
+            if (string.IsNullOrWhiteSpace(runtimeDirectory))
+            {
+                return false;
+            }
+
+            var moduleDirectory = Directory.GetParent(runtimeDirectory);
+            moduleDirectoryPath = moduleDirectory?.FullName ?? runtimeDirectory;
+            return !string.IsNullOrWhiteSpace(moduleDirectoryPath);
+        }
+
+        private static bool HasContractsSurface(string moduleDirectoryPath, string moduleRootName)
+        {
+            var contractsFolderPath = Path.Combine(moduleDirectoryPath, "Contracts");
+            if (!Directory.Exists(contractsFolderPath))
+            {
+                return false;
+            }
+
+            var contractsAsmdefPath = Path.Combine(contractsFolderPath, moduleRootName + ".Contracts.asmdef");
+            if (File.Exists(contractsAsmdefPath))
+            {
+                return true;
+            }
+
+            return Directory.EnumerateFiles(contractsFolderPath, "*.asmdef", SearchOption.TopDirectoryOnly).Any();
+        }
+
+        private static ISet<string> ParseModuleRootsWithoutContracts(AnalyzerConfigOptions options)
+        {
+            const string key = "scaffold.SCA0022.no_contract_modules";
+            if (!options.TryGetValue(key, out var raw) || string.IsNullOrWhiteSpace(raw))
+            {
+                return new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            }
+
+            var entries = raw.Split(new[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries);
+            return new HashSet<string>(entries.Select(entry => entry.Trim()).Where(entry => !string.IsNullOrWhiteSpace(entry)), StringComparer.OrdinalIgnoreCase);
         }
 
         private static Location GetDiagnosticLocation(Compilation compilation)

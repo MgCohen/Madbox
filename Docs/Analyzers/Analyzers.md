@@ -356,6 +356,8 @@ Namespaces must end with the file's feature/scope folder path. Unity-specific se
 With the contracts-first module layout, files under top-level `Contracts/` are expected to include `.Contracts` in namespace suffixes.
 
 This rule applies only to files under `Assets/Scripts/` and skips generated files (e.g., `obj/`, `bin/`, `*.g.cs`).
+All top-level namespace declarations in a file are validated (not just the first declaration).
+`Assets/Scripts/Tools/Records/Runtime/IsExternalInit.cs` is explicitly exempted for C# record compatibility.
 
 Root namespace resolution order:
 1. `scaffold.SCA0007.root_namespace` from `.editorconfig` (explicit override)
@@ -386,6 +388,24 @@ namespace Scaffold.Navigation.Contracts { }
 ```ini
 # Optional explicit root override
 scaffold.SCA0007.root_namespace = Scaffold
+```
+
+---
+
+### SCA0027 - One Top-Level Namespace Per File
+
+Files under `Assets/Scripts/` must declare exactly one top-level namespace.
+This prevents sibling namespace declarations from bypassing namespace/folder conventions.
+
+`Assets/Scripts/Tools/Records/Runtime/IsExternalInit.cs` is explicitly exempted for C# record compatibility.
+
+```csharp
+// VIOLATION
+namespace Scaffold.Navigation.Contracts { }
+namespace Scaffold.Navigation { }
+
+// COMPLIANT
+namespace Scaffold.Navigation.Contracts { }
 ```
 
 ---
@@ -855,6 +875,10 @@ Assemblies must not reference another module's `*.Runtime` assembly unless they 
 This rule enforces contracts-first dependency direction:
 - Depend on `*.Contracts` across module boundaries.
 - Reserve `*.Runtime` references for bootstrap wiring and same-module internals.
+- Exception: if the referenced module has no top-level `Contracts/` folder (and no contracts asmdef), the runtime reference is allowed.
+
+Optional config for explicit exceptions when repository layout cannot be resolved:
+- `scaffold.SCA0022.no_contract_modules` (comma/semicolon list of module roots such as `Madbox.Legacy.Module;Scaffold.SomeTool`)
 
 ```csharp
 // VIOLATION context:
@@ -874,6 +898,13 @@ This rule enforces contracts-first dependency direction:
 // Assembly: Madbox.Bootstrap.Runtime
 // References: Madbox.Meta.Gold.Runtime
 // (bootstrap composition root)
+```
+
+```csharp
+// COMPLIANT context:
+// Assembly: Madbox.MainMenu.Runtime
+// References: Madbox.Meta.Gold.Runtime
+// Madbox.Meta.Gold has Runtime only (no top-level Contracts folder)
 ```
 
 ---
@@ -905,7 +936,7 @@ scaffold.SCA0023.exempt_requirements = Scaffold.Records=Contracts|Tests
 Each assembly must declare its `.asmdef` in the expected module-relative location and the asmdef `"name"` must match the compiled assembly name.
 
 Expected placement:
-- `<ModuleRoot>/<Assembly>.asmdef` (default modules)
+- `<ModuleRoot>/Runtime/<Assembly>.asmdef` (default modules)
 - `<ModuleRoot>/Contracts/<Assembly>.asmdef` (`*.Contracts`)
 - `<ModuleRoot>/Runtime/<Assembly>.asmdef` (`*.Runtime`)
 - `<ModuleRoot>/Tests/<Assembly>.asmdef` (`*.Tests`)

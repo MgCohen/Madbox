@@ -250,5 +250,127 @@ namespace Scaffold.Navigation
         var diagnostic = Assert.Single(diagnostics);
         Assert.Contains("<root>.Navigation.Contracts", diagnostic.GetMessage());
     }
+
+    [Fact]
+    public async Task Diagnostic_WhenSecondTopLevelNamespaceDoesNotMatchFolderPath()
+    {
+        const string source = @"
+namespace Scaffold.Navigation.Contracts
+{
+    public interface INavigation { }
+}
+
+namespace Scaffold.Navigation
+{
+    public class NavigationImpl { }
+}";
+
+        var diagnostics = await AnalyzerTestHarness.GetDiagnosticsByIdAsync(
+            source,
+            @"C:\Repo\Assets\Scripts\Infra\Navigation\Contracts\NavigationImpl.cs",
+            new NamespaceAnalyzer(),
+            NamespaceAnalyzer.DiagnosticId,
+            new Dictionary<string, string>());
+
+        var diagnostic = Assert.Single(diagnostics);
+        Assert.Contains("Scaffold.Navigation", diagnostic.GetMessage());
+        Assert.Contains("<root>.Navigation.Contracts", diagnostic.GetMessage());
+    }
+
+    [Fact]
+    public async Task Diagnostic_WhenFileContainsMultipleTopLevelNamespaces()
+    {
+        const string source = @"
+namespace Scaffold.Navigation.Contracts
+{
+    public interface INavigation { }
+}
+
+namespace Scaffold.Navigation.Contracts
+{
+    public interface IRoute { }
+}";
+
+        var diagnostics = await AnalyzerTestHarness.GetDiagnosticsByIdAsync(
+            source,
+            @"C:\Repo\Assets\Scripts\Infra\Navigation\Contracts\INavigation.cs",
+            new NamespaceAnalyzer(),
+            NamespaceAnalyzer.MultipleTopLevelNamespacesDiagnosticId,
+            new Dictionary<string, string>());
+
+        var diagnostic = Assert.Single(diagnostics);
+        Assert.Contains("2 top-level namespace declarations", diagnostic.GetMessage());
+    }
+
+    [Fact]
+    public async Task Diagnostic_WhenAnyTopLevelNamespaceDoesNotMatchExpectedSuffix()
+    {
+        const string source = @"
+namespace Scaffold.Navigation.Contracts
+{
+    public interface INavigation { }
+}
+
+namespace Wrong.Namespace
+{
+    public class NavigationImpl { }
+}";
+
+        var diagnostics = await AnalyzerTestHarness.GetDiagnosticsByIdAsync(
+            source,
+            @"C:\Repo\Assets\Scripts\Infra\Navigation\Contracts\NavigationImpl.cs",
+            new NamespaceAnalyzer(),
+            NamespaceAnalyzer.DiagnosticId,
+            new Dictionary<string, string>());
+
+        var diagnostic = Assert.Single(diagnostics);
+        Assert.Contains("Wrong.Namespace", diagnostic.GetMessage());
+    }
+
+    [Fact]
+    public async Task NoDiagnostic_ForIsExternalInitExemptFile()
+    {
+        const string source = @"
+namespace Madbox.Records
+{
+}
+
+namespace System.Runtime.CompilerServices
+{
+    public static class IsExternalInit { }
+}";
+
+        var diagnostics = await AnalyzerTestHarness.GetDiagnosticsByIdAsync(
+            source,
+            @"C:\Repo\Assets\Scripts\Tools\Records\Runtime\IsExternalInit.cs",
+            new NamespaceAnalyzer(),
+            NamespaceAnalyzer.DiagnosticId,
+            new Dictionary<string, string>());
+
+        Assert.Empty(diagnostics);
+    }
+
+    [Fact]
+    public async Task NoDiagnostic_ForIsExternalInitExemptFile_OnMultipleNamespaceRule()
+    {
+        const string source = @"
+namespace Madbox.Records
+{
+}
+
+namespace System.Runtime.CompilerServices
+{
+    public static class IsExternalInit { }
+}";
+
+        var diagnostics = await AnalyzerTestHarness.GetDiagnosticsByIdAsync(
+            source,
+            @"C:\Repo\Assets\Scripts\Tools\Records\Runtime\IsExternalInit.cs",
+            new NamespaceAnalyzer(),
+            NamespaceAnalyzer.MultipleTopLevelNamespacesDiagnosticId,
+            new Dictionary<string, string>());
+
+        Assert.Empty(diagnostics);
+    }
 }
 

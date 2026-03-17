@@ -1,0 +1,18 @@
+{
+    "name": "Scaffold.Scope.Runtime",
+    "rootNamespace": "Scaffold.Scope",
+    "references": [
+        "Scaffold.Scope.Contracts",
+        "VContainer",
+        "VContainer.Unity"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
