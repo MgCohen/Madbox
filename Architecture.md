@@ -123,7 +123,6 @@ Forbidden:
 - `Docs/Testing.md`
 - `Docs/AutomatedTesting.md`
 - `Docs/Standards/Architecture-Documentation-Standard.md`
-- `Docs/Standards/Contracts-First-Module-Organization.md`
 - `Docs/Standards/Module-Documentation-Standard.md`
 
 ## Architecture Controls

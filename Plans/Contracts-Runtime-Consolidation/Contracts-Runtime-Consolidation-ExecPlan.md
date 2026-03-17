@@ -94,7 +94,7 @@ Milestones 4 and 5 apply the same consolidation to `Core/ViewModel` and `App/Vie
 
 Milestone 6 updates analyzers and analyzer tests to support unified modules without contracts folders. Specifically, relax or redesign rules that currently require contracts-first topology, and codify the new boundary policy so diagnostics remain useful. Update `.editorconfig` defaults and exceptions to match the new convention.
 
-Milestone 7 performs a repository-wide reference sweep for stale `*.Contracts` references, updates docs in `Docs/Infra/*.md`, `Docs/Core/ViewModel.md`, `Docs/App/View.md`, and replaces `Docs/Standards/Contracts-First-Module-Organization.md` with a unified-assembly standard (or archives it with a replacement standard). Finish with full quality gate and capture evidence.
+Milestone 7 performs a repository-wide reference sweep for stale `*.Contracts` references, updates docs in `Docs/Infra/*.md`, `Docs/Core/ViewModel.md`, and `Docs/App/View.md`, and ensures standards documentation reflects the unified-assembly organization. Finish with full quality gate and capture evidence.
 
 ## Concrete Steps
 
