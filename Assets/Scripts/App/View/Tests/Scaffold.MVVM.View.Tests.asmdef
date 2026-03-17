@@ -5,7 +5,7 @@
                        "Scaffold.MVVM.View",
                        "Scaffold.MVVM.ViewModel",
                        "Scaffold.MVVM.Model",
-                       "Scaffold.MVVM.Base.Contracts",
+                       "Scaffold.MVVM.Base",
                        "Scaffold.Navigation"
                    ],
     "includePlatforms":  [

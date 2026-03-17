@@ -2,7 +2,7 @@
     "name":  "Scaffold.MVVM.Model",
     "rootNamespace":  "Scaffold.MVVM",
     "references":  [
-                       "Scaffold.MVVM.Base.Contracts"
+                       "Scaffold.MVVM.Base"
                    ],
     "includePlatforms":  [
 

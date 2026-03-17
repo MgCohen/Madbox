@@ -4,7 +4,7 @@
 
 - Purpose: Unity-free observable model base for MVVM state.
 - Location: `Assets/Scripts/Infra/Model/Contracts/` + `Assets/Scripts/Infra/Model/Runtime/`.
-- Depends on: `Scaffold.MVVM.Model` runtime depends on `Scaffold.MVVM.Base.Contracts`.
+- Depends on: `Scaffold.MVVM.Model` runtime depends on `Scaffold.MVVM.Base`.
 - Used by: `Scaffold.MVVM.ViewModel`, `Scaffold.MVVM.View`, and app/runtime modules that expose observable model state.
 - Runtime/Editor: runtime + EditMode tests.
 
@@ -27,7 +27,7 @@
 ## Setup / Integration
 
 1. Add assembly reference to `Scaffold.MVVM.Model` for runtime model base types.
-2. Add assembly reference to `Scaffold.MVVM.Base.Contracts` when consuming `Scaffold.MVVM.Binding` contract types directly.
+2. Add assembly reference to `Scaffold.MVVM.Base` when consuming `Scaffold.MVVM.Binding` contract types directly.
 3. Inherit model types from `Model`.
 4. Keep the module Unity-free (no `UnityEngine` references).
 5. Validate setup with model tests.
@@ -101,7 +101,7 @@ public partial class InventoryModel : Model, INestedObservableProperties
   - module remains Unity-free (`noEngineReferences=true`).
   - `Model` remains the base observable data abstraction for MVVM.
 - Allowed Dependencies:
-  - `Scaffold.MVVM.Model` runtime: `Scaffold.MVVM.Base.Contracts`.
+  - `Scaffold.MVVM.Model` runtime: `Scaffold.MVVM.Base`.
 - Forbidden Dependencies:
   - `UnityEngine`, app modules, and navigation/view modules.
 - Change Checklist:

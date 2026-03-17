@@ -2,7 +2,7 @@
     "name":  "Scaffold.MVVM.ViewModel",
     "rootNamespace":  "Scaffold.MVVM",
     "references":  [
-                       "Scaffold.MVVM.Base.Contracts",
+                       "Scaffold.MVVM.Base",
                        "Scaffold.Navigation",
                        "Scaffold.Maps",
                        "Scaffold.Records"

@@ -3,7 +3,7 @@
     "rootNamespace":  "Scaffold.MVVM",
     "references":  [
                        "Scaffold.MVVM.ViewModel",
-                       "Scaffold.MVVM.Base.Contracts",
+                       "Scaffold.MVVM.Base",
                        "Scaffold.Navigation",
                        "Scaffold.Types"
                    ],

@@ -3,7 +3,7 @@
     "rootNamespace":  "Scaffold.MVVM.Tests",
     "references":  [
                        "Scaffold.MVVM.Model",
-                       "Scaffold.MVVM.Base.Contracts"
+                       "Scaffold.MVVM.Base"
                    ],
     "includePlatforms":  [
                              "Editor"
