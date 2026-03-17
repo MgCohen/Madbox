@@ -73,7 +73,7 @@ namespace Madbox.App.Bootstrap.Tests
 
         private ScriptableObject CreateNavigationSettingsInstance()
         {
-            Type type = Type.GetType("Scaffold.Navigation.NavigationSettings, Scaffold.Navigation.Runtime");
+            Type type = Type.GetType("Scaffold.Navigation.NavigationSettings, Scaffold.Navigation");
             Assert.IsNotNull(type);
             ScriptableObject instance = ScriptableObject.CreateInstance(type);
             Assert.IsNotNull(instance);

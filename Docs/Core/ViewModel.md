@@ -4,13 +4,13 @@
 
 - Purpose: MVVM orchestration layer for bind registration, lifecycle reset, and navigation-aware context.
 - Location: `Assets/Scripts/Core/ViewModel/`.
-- Depends on: `Scaffold.MVVM.ViewModel.Contracts`, `Scaffold.MVVM.Base.Contracts`, `Scaffold.Navigation.Contracts`, `Scaffold.Maps`, `Scaffold.Records`.
+- Depends on: `Scaffold.MVVM.Base.Contracts`, `Scaffold.Navigation`, `Scaffold.Maps`, `Scaffold.Records`.
 - Used by: `Scaffold.MVVM.View` and app presentation controllers.
 - Runtime/Editor: runtime + EditMode tests.
 
 ## Responsibilities
 
-- Owns `IViewModel` and `ViewModel` contracts.
+- Owns `IViewModel` and `ViewModel` contracts (under `Runtime/Contracts/` and runtime implementation).
 - Owns binding contracts/implementations (`IBindedProperty`, `IBindedCollection`, `TreeBinding`, `BindingOptions`, related abstractions).
 - Owns bind lifecycle entry (`Bind(INavigation)`) and stale-binding cleanup behavior.
 - Does not own Unity `MonoBehaviour` view concerns.
@@ -27,7 +27,7 @@
 
 ## Setup / Integration
 
-1. Add references to `Scaffold.MVVM.ViewModel` and `Scaffold.Navigation.Contracts`.
+1. Add references to `Scaffold.MVVM.ViewModel` and `Scaffold.Navigation`.
 2. Inherit screen controllers from `ViewModel`.
 3. Call `Bind(INavigation)` at controller startup/bind entry.
 4. Register bindings in `Initialize()` or equivalent bind lifecycle methods.
@@ -122,7 +122,7 @@ public void OnNavigationContextChanged(INavigation navigation)
   - per-binding disposal affects only that registration.
   - strict vs lazy binding behavior remains explicit and test-covered.
 - Allowed Dependencies:
-  - `Scaffold.MVVM.Model`, `Scaffold.Navigation.Contracts`, `Scaffold.Maps`, `Scaffold.Records`.
+  - `Scaffold.MVVM.Model`, `Scaffold.Navigation`, `Scaffold.Maps`, `Scaffold.Records`.
 - Forbidden Dependencies:
   - Unity view lifecycle classes (`MonoBehaviour` view concerns).
 - Change Checklist:
@@ -146,3 +146,4 @@ public void OnNavigationContextChanged(INavigation navigation)
 - 2026-03-15: Reorganized from legacy combined MVVM doc and expanded to module standard.
 
 - 2026-03-16: Added coverage for close-without-navigation behavior and repeated bind initialization flow.
+- 2026-03-17: Consolidated `Scaffold.MVVM.ViewModel.Contracts` into `Scaffold.MVVM.ViewModel` and moved boundary types to `Runtime/Contracts/`.

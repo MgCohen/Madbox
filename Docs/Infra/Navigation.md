@@ -3,8 +3,8 @@
 ## TL;DR
 
 - Purpose: manage view-controller navigation stack and transitions.
-- Location: `Assets/Scripts/Infra/Navigation/Contracts/` + `Assets/Scripts/Infra/Navigation/Runtime/`.
-- Depends on: `Scaffold.Events.Contracts`, `Scaffold.Types`, `Scaffold.Records`, container abstractions.
+- Location: `Assets/Scripts/Infra/Navigation/Runtime/` (boundary types under `Runtime/Contracts/`).
+- Depends on: `Scaffold.Events`, `Scaffold.Types`, `Scaffold.Records`, container abstractions.
 - Used by: app screens and MVVM presentation flow.
 - Runtime/Editor: runtime + container integration.
 - Keywords: navigation stack, transitions, view config, middleware.
@@ -30,7 +30,7 @@
 
 ## Setup / Integration
 
-1. Reference `Scaffold.Navigation.Contracts` (and `Scaffold.Navigation.Runtime` for implementation/container wiring).
+1. Reference `Scaffold.Navigation` for contracts and implementation/container wiring.
 2. Configure `NavigationSettings` with controller/view mappings.
 3. Register `NavigationInstaller` in composition root.
 4. Open controllers through `INavigation`.
@@ -123,7 +123,7 @@ navigation.Return();
   - transitions maintain close/hide/open ordering.
   - controller-to-view mapping resolves through `ViewConfig`.
 - Allowed Dependencies:
-  - `Scaffold.Events.Contracts`, `Scaffold.Types`, `Scaffold.Records`, container abstractions.
+  - `Scaffold.Events`, `Scaffold.Types`, `Scaffold.Records`, container abstractions.
 - Forbidden Dependencies:
   - module-specific gameplay logic in navigation runtime.
 - Change Checklist:
@@ -147,3 +147,4 @@ navigation.Return();
 - 2026-03-15: Recovered stack semantics and transition/schema execution contracts.
 
 - 2026-03-16: Added constructor null-guard coverage and single-point `Return()` behavior verification.
+- 2026-03-17: Consolidated `Scaffold.Navigation.Contracts` + `Scaffold.Navigation.Runtime` into `Scaffold.Navigation` and moved boundary types to `Runtime/Contracts/`.

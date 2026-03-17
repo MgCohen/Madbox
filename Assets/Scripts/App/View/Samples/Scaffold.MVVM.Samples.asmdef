@@ -1,24 +1,31 @@
 {
-    "name": "Scaffold.MVVM.Samples",
-    "rootNamespace": "Scaffold.MVVM.Samples",
-    "references": [
-        "Scaffold.MVVM.Model",
-        "Scaffold.MVVM.Base.Contracts",
-        "Scaffold.MVVM.View.Contracts",
-        "Scaffold.MVVM.ViewModel",
-        "Scaffold.MVVM.ViewModel.Contracts",
-        "Scaffold.MVVM.View",
-        "Scaffold.Navigation.Contracts"
-    ],
-    "includePlatforms": [],
-    "excludePlatforms": [],
-    "allowUnsafeCode": false,
-    "overrideReferences": false,
-    "precompiledReferences": [],
-    "autoReferenced": true,
-    "defineConstraints": [],
-    "versionDefines": [],
-    "noEngineReferences": false
-}
+    "name":  "Scaffold.MVVM.Samples",
+    "rootNamespace":  "Scaffold.MVVM.Samples",
+    "references":  [
+                       "Scaffold.MVVM.Model",
+                       "Scaffold.MVVM.Base.Contracts",
+                       "Scaffold.MVVM.View",
+                       "Scaffold.MVVM.ViewModel",
+                       "Scaffold.Navigation"
+                   ],
+    "includePlatforms":  [
 
+                         ],
+    "excludePlatforms":  [
+
+                         ],
+    "allowUnsafeCode":  false,
+    "overrideReferences":  false,
+    "precompiledReferences":  [
+
+                              ],
+    "autoReferenced":  true,
+    "defineConstraints":  [
+
+                          ],
+    "versionDefines":  [
+
+                       ],
+    "noEngineReferences":  false
+}
 

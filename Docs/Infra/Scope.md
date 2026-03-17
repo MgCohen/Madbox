@@ -3,7 +3,7 @@
 ## TL;DR
 
 - Purpose: reusable startup scope orchestration and contracts shared by app bootstraps.
-- Location: `Assets/Scripts/Infra/Scope/Contracts/` and `Assets/Scripts/Infra/Scope/Runtime/`.
+- Location: `Assets/Scripts/Infra/Scope/Runtime/` (boundary types under `Runtime/Contracts/`).
 - Depends on: BCL + `VContainer`/`VContainer.Unity` in runtime assembly.
 - Used by: `Madbox.Bootstrap.Runtime` and runtime services that participate in startup initialization.
 - Runtime/Editor: runtime contracts + reusable runtime scope orchestration.
@@ -54,5 +54,5 @@ dotnet test "Analyzers/Scaffold/Scaffold.Analyzers.Tests/Scaffold.Analyzers.Test
 
 ## Changelog
 
-- 2026-03-16: Added initialization contracts module for layer-serial async bootstrap startup and analyzer exception attributes.
+- 2026-03-17: Consolidated `Scaffold.Scope.Contracts` + `Scaffold.Scope.Runtime` into `Scaffold.Scope` and moved boundary types to `Runtime/Contracts/`.
 - 2026-03-16: Renamed module to Scope and moved shared `LayeredScope`/`ScopeInitializer` orchestration from App Bootstrap to Infra Scope runtime.

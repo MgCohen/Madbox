@@ -1,19 +1,30 @@
 {
-    "name": "Scaffold.Events.Tests",
-    "rootNamespace": "Scaffold.Events.Tests",
-    "references": [
-        "Scaffold.Events.Contracts",
-        "Scaffold.Events.Runtime"
-    ],
-    "includePlatforms": ["Editor"],
-    "excludePlatforms": [],
-    "allowUnsafeCode": false,
-    "overrideReferences": false,
-    "precompiledReferences": [],
-    "autoReferenced": false,
-    "defineConstraints": [],
-    "versionDefines": [],
-    "noEngineReferences": false,
-    "optionalUnityReferences": ["TestAssemblies"]
+    "name":  "Scaffold.Events.Tests",
+    "rootNamespace":  "Scaffold.Events.Tests",
+    "references":  [
+                       "Scaffold.Events"
+                   ],
+    "includePlatforms":  [
+                             "Editor"
+                         ],
+    "excludePlatforms":  [
+
+                         ],
+    "allowUnsafeCode":  false,
+    "overrideReferences":  false,
+    "precompiledReferences":  [
+
+                              ],
+    "autoReferenced":  false,
+    "defineConstraints":  [
+
+                          ],
+    "versionDefines":  [
+
+                       ],
+    "noEngineReferences":  false,
+    "optionalUnityReferences":  [
+                                    "TestAssemblies"
+                                ]
 }
 

@@ -4,7 +4,7 @@
 
 - Purpose: compose runtime scopes and open the first app screen.
 - Location: `Assets/Scripts/App/Bootstrap/Runtime/`.
-- Depends on: `Madbox.MainMenu.Runtime`, `Madbox.Level.Contracts`, `Madbox.Level.Runtime`, `Madbox.Gold.Contracts`, `Madbox.Gold.Runtime`, `Madbox.GameEngine.Contracts`, `Madbox.GameEngine.Runtime`, `Scaffold.Navigation.Contracts`, `Scaffold.Navigation.Runtime`, `Scaffold.Navigation.Container`, `Scaffold.Events.Container`, `Scaffold.Scope.Contracts`, `Scaffold.Scope.Runtime`.
+- Depends on: `Madbox.MainMenu.Runtime`, `Madbox.Level.Contracts`, `Madbox.Level.Runtime`, `Madbox.Gold.Contracts`, `Madbox.Gold.Runtime`, `Madbox.GameEngine.Contracts`, `Madbox.GameEngine.Runtime`, `Scaffold.Navigation`, `Scaffold.Navigation.Container`, `Scaffold.Events.Container`, `Scaffold.Scope`.
 - Used by: scene startup.
 - Runtime/Editor: runtime only.
 - Keywords: bootstrap, composition root, vcontainer, startup flow.
@@ -26,7 +26,7 @@
 
 1. Add `BootstrapScope` to the startup scene.
 2. Assign navigation settings and `viewHolder` in inspector.
-3. Ensure runtime + contract assemblies are present in asmdef references (`Madbox.MainMenu.Runtime`, `Madbox.Level.Contracts`/`Runtime`, `Madbox.Gold.Contracts`/`Runtime`, `Madbox.GameEngine.Contracts`/`Runtime`, `Scaffold.Scope.Contracts`, `Scaffold.Scope.Runtime`).
+3. Ensure required assemblies are present in asmdef references (`Madbox.MainMenu.Runtime`, `Madbox.Level.Contracts`/`Runtime`, `Madbox.Gold.Contracts`/`Runtime`, `Madbox.GameEngine.Contracts`/`Runtime`, `Scaffold.Scope`, `Scaffold.Navigation`).
 4. Press Play and confirm main menu opens only after layer initialization completes.
 
 ## How to Use
@@ -60,7 +60,7 @@ sequenceDiagram
 
 ## Best Practices
 
-- Keep the reusable startup lifecycle in Infra Scope (`Scaffold.Scope.Runtime`).
+- Keep the reusable startup lifecycle in Infra Scope (`Scaffold.Scope`).
 - Keep app-specific layer installers and first-screen behavior in `BootstrapScope`.
 - Register only module-owned services per layer.
 - Add new layers with one additional layer-initialization line in bootstrap startup orchestration.
@@ -94,7 +94,7 @@ sequenceDiagram
   - startup ordering remains infra -> meta -> core/app with awaited layer barriers.
   - first screen is opened through navigation, not direct view activation.
 - Allowed Dependencies:
-  - `Madbox.MainMenu.Runtime`, `Madbox.Level.Contracts`/`Runtime`, `Madbox.Gold.Contracts`/`Runtime`, `Madbox.GameEngine.Contracts`/`Runtime`, `Scaffold.Navigation.Contracts`/`Runtime`/`Container`, `Scaffold.Events.Container`, `Scaffold.Scope.Contracts`/`Runtime`, `VContainer`.
+  - `Madbox.MainMenu.Runtime`, `Madbox.Level.Contracts`/`Runtime`, `Madbox.Gold.Contracts`/`Runtime`, `Madbox.GameEngine.Contracts`/`Runtime`, `Scaffold.Navigation`/`Container`, `Scaffold.Events.Container`, `Scaffold.Scope`, `VContainer`.
 - Forbidden Dependencies:
   - gameplay rules and domain state mutation in bootstrap.
 - Change Checklist:
@@ -117,4 +117,4 @@ sequenceDiagram
 
 - 2026-03-16: Expanded bootstrap validation coverage for missing serialized fields (`navigationSettings`, `viewHolder`, `levelIds`) and valid configuration path.
 - 2026-03-16: Added layer-serial async initialization barriers via `IAsyncLayerInitializable` and fail-fast startup behavior before opening Main Menu.
-- 2026-03-16: Refactored Bootstrap to project-specific composition only; moved generic layered startup orchestration to `Scaffold.Scope.Runtime`.
+- 2026-03-16: Refactored Bootstrap to project-specific composition only; moved generic layered startup orchestration to `Scaffold.Scope`.

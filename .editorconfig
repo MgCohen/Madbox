@@ -31,9 +31,9 @@ dotnet_diagnostic.SCA0020.severity = warning   # Class member order
 dotnet_diagnostic.SCA0021.severity = warning   # MVVM descendants must use bind APIs
 dotnet_diagnostic.SCA0022.severity = warning   # Restrict cross-module runtime references
 dotnet_diagnostic.SCA0023.severity = warning   # Required module folders exist
-scaffold.SCA0023.required_folders = Contracts,Runtime,Tests
+scaffold.SCA0023.required_folders = Runtime,Tests
 scaffold.SCA0023.exempt_module_roots = Scaffold.Maps|Scaffold.Records|Scaffold.Types
-scaffold.SCA0023.exempt_requirements = Madbox.Bootstrap=Contracts,Madbox.MainMenu=Contracts,Scaffold.Maps=Contracts,Scaffold.Records=Contracts|Tests,Scaffold.Types=Contracts
+scaffold.SCA0023.exempt_requirements = Scaffold.Records=Tests
 dotnet_diagnostic.SCA0024.severity = warning   # Module asmdef placement/name convention
 dotnet_diagnostic.SCA0025.severity = warning   # Boundary interfaces/types should live under Contracts
 dotnet_diagnostic.SCA0026.severity = warning   # Restrict same-layer dependency usage during initialization call chains

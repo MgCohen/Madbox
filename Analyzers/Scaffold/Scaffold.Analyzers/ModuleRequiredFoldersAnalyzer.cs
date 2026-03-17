@@ -24,7 +24,7 @@ namespace Scaffold.Analyzers
             Category,
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
-            description: "Modules must contain required top-level folders (default: Contracts, Runtime, Tests). Use analyzer config exceptions for intentional deviations.");
+            description: "Modules must contain required top-level folders (default: Runtime, Tests). Use analyzer config exceptions for intentional deviations.");
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
 
@@ -81,7 +81,7 @@ namespace Scaffold.Analyzers
         {
             if (!options.TryGetValue(RequiredFoldersKey, out var raw) || string.IsNullOrWhiteSpace(raw))
             {
-                return new[] { "Contracts", "Runtime", "Tests" };
+                return new[] { "Runtime", "Tests" };
             }
 
             var parsed = raw.Split(new[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries)
@@ -90,7 +90,7 @@ namespace Scaffold.Analyzers
                 .Distinct(StringComparer.OrdinalIgnoreCase)
                 .ToArray();
 
-            return parsed.Length == 0 ? new[] { "Contracts", "Runtime", "Tests" } : parsed;
+            return parsed.Length == 0 ? new[] { "Runtime", "Tests" } : parsed;
         }
 
         private static HashSet<string> ParseSet(AnalyzerConfigOptions options, string key)

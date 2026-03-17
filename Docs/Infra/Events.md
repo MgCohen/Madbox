@@ -3,7 +3,7 @@
 ## TL;DR
 
 - Purpose: in-process typed event bus for module decoupling.
-- Location: `Assets/Scripts/Infra/Events/Contracts/` + `Assets/Scripts/Infra/Events/Runtime/`.
+- Location: `Assets/Scripts/Infra/Events/Runtime/` (boundary types under `Runtime/Contracts/`).
 - Depends on: `Scaffold.Records` and container abstractions.
 - Used by: navigation, MVVM-adjacent flows, app orchestration.
 - Runtime/Editor: runtime + container integration.
@@ -29,7 +29,7 @@
 
 ## Setup / Integration
 
-1. Reference `Scaffold.Events.Contracts` in consuming asmdef.
+1. Reference `Scaffold.Events` in consuming asmdef.
 2. Register `EventsInstaller` in composition root.
 3. Inject `IEventBus` where publish/subscribe is needed.
 
@@ -128,3 +128,4 @@ bus.Raise(new PlayerDiedEvent());
 - 2026-03-15: Recovered internal dispatch/unsubscribe behavior contracts.
 
 - 2026-03-16: Added negative-path coverage for null event raise and null open-type handler registration.
+- 2026-03-17: Consolidated `Scaffold.Events.Contracts` + `Scaffold.Events.Runtime` into `Scaffold.Events` and moved boundary types to `Runtime/Contracts/`.

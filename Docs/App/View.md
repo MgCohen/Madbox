@@ -4,7 +4,7 @@
 
 - Purpose: Unity-facing MVVM view layer for typed view binding and view-event routing.
 - Location: `Assets/Scripts/App/View/`.
-- Depends on: `Scaffold.MVVM.View.Contracts`, `Scaffold.MVVM.ViewModel`, `Scaffold.MVVM.ViewModel.Contracts`, `Scaffold.MVVM.Base.Contracts`, `Scaffold.Navigation.Contracts`, `Scaffold.Types`.
+- Depends on: `Scaffold.MVVM.ViewModel`, `Scaffold.MVVM.Base.Contracts`, `Scaffold.Navigation`, `Scaffold.Types`.
 - Used by: app presentation modules and screen implementations.
 - Runtime/Editor: runtime + samples + EditMode tests.
 
@@ -115,7 +115,7 @@ view.Bind(new DifferentViewModel());
   - bind lifecycle clears stale view bindings on rebind.
   - `ViewEvents` bubbling is type-specific and transform-ancestry based.
 - Allowed Dependencies:
-  - `Scaffold.MVVM.ViewModel`, `Scaffold.MVVM.Model`, `Scaffold.Navigation.Contracts`, `Scaffold.Types`.
+  - `Scaffold.MVVM.ViewModel`, `Scaffold.MVVM.Model`, `Scaffold.Navigation`, `Scaffold.Types`.
 - Forbidden Dependencies:
   - feature-specific app/domain business rules in view runtime base classes.
 - Change Checklist:
@@ -140,3 +140,4 @@ view.Bind(new DifferentViewModel());
 - 2026-03-15: Reorganized from legacy combined MVVM doc and expanded to module standard.
 
 - 2026-03-16: Added targeted event-ledger negative-path coverage for null transform registration input.
+- 2026-03-17: Consolidated `Scaffold.MVVM.View.Contracts` into `Scaffold.MVVM.View` and moved boundary types to `Runtime/Contracts/`.
