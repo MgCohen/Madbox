@@ -1,9 +1,9 @@
 # Battle Research and Specs
 
 Date: 2026-03-17
-Scope: Battle runtime architecture boundaries, based on `Research/battle architecture.png`
+Scope: Battle runtime architecture boundaries, based on `Research/Battle/battle architecture.png`
 
-![Battle Architecture](../battle%20architecture.png)
+![Battle Architecture](./battle%20architecture.png)
 
 ## 1. Understanding from the Battle Image
 

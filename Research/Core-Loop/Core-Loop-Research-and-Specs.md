@@ -1,9 +1,9 @@
 # Core Loop Research and Specs
 
 Date: 2026-03-17
-Scope: App-level game loop and screen/controller orchestration based on `Research/basic game loop.png`
+Scope: App-level game loop and screen/controller orchestration based on `Research/Core-Loop/basic game loop.png`
 
-![Basic Game Loop](../basic%20game%20loop.png)
+![Basic Game Loop](./basic%20game%20loop.png)
 
 Related documents:
 

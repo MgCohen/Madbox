@@ -1,10 +1,10 @@
 # Backend Research and Specs
 
 Date: 2026-03-17
-Scope: Backend initialization and unified request/response flow based on `Research/backend-initialization.png` and `Research/backend-request-flow.png`
+Scope: Backend initialization and unified request/response flow based on `Research/Backend/backend-initialization.png` and `Research/Backend/backend-request-flow.png`
 
-![Backend Initialization](../backend-initialization.png)
-![Backend Request Flow](../backend-request-flow.png)
+![Backend Initialization](./backend-initialization.png)
+![Backend Request Flow](./backend-request-flow.png)
 
 Related documents:
 
