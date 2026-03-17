@@ -1,19 +1,30 @@
 {
-    "name": "Madbox.Bootstrap.Tests",
-    "rootNamespace": "Madbox.Bootstrap.Tests",
-    "references": [
-        "Madbox.Bootstrap.Runtime"
-    ],
-    "includePlatforms": ["Editor"],
-    "excludePlatforms": [],
-    "allowUnsafeCode": false,
-    "overrideReferences": false,
-    "precompiledReferences": [],
-    "autoReferenced": false,
-    "defineConstraints": [],
-    "versionDefines": [],
-    "noEngineReferences": false,
-    "optionalUnityReferences": ["TestAssemblies"]
-}
+    "name":  "Madbox.Bootstrap.Tests",
+    "rootNamespace":  "Madbox.Bootstrap.Tests",
+    "references":  [
+                       "Madbox.Bootstrap.Runtime"
+                   ],
+    "includePlatforms":  [
+                             "Editor"
+                         ],
+    "excludePlatforms":  [
 
+                         ],
+    "allowUnsafeCode":  false,
+    "overrideReferences":  false,
+    "precompiledReferences":  [
+
+                              ],
+    "autoReferenced":  false,
+    "defineConstraints":  [
+
+                          ],
+    "versionDefines":  [
+
+                       ],
+    "noEngineReferences":  false,
+    "optionalUnityReferences":  [
+                                    "TestAssemblies"
+                                ]
+}
 

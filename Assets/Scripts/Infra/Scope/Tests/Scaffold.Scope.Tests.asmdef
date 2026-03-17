@@ -1,22 +1,30 @@
 {
-    "name": "Scaffold.Scope.Tests",
-    "rootNamespace": "Scaffold.Scope.Tests",
-    "references": [
-        "Scaffold.Scope.Contracts",
-        "Scaffold.Scope.Runtime"
-    ],
-    "includePlatforms": [
-        "Editor"
-    ],
-    "excludePlatforms": [],
-    "allowUnsafeCode": false,
-    "overrideReferences": false,
-    "precompiledReferences": [],
-    "autoReferenced": false,
-    "defineConstraints": [],
-    "versionDefines": [],
-    "noEngineReferences": true,
-    "optionalUnityReferences": [
-        "TestAssemblies"
-    ]
+    "name":  "Scaffold.Scope.Tests",
+    "rootNamespace":  "Scaffold.Scope.Tests",
+    "references":  [
+                       "Scaffold.Scope"
+                   ],
+    "includePlatforms":  [
+                             "Editor"
+                         ],
+    "excludePlatforms":  [
+
+                         ],
+    "allowUnsafeCode":  false,
+    "overrideReferences":  false,
+    "precompiledReferences":  [
+
+                              ],
+    "autoReferenced":  false,
+    "defineConstraints":  [
+
+                          ],
+    "versionDefines":  [
+
+                       ],
+    "noEngineReferences":  true,
+    "optionalUnityReferences":  [
+                                    "TestAssemblies"
+                                ]
 }
+

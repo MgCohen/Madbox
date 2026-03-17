@@ -1,8 +1,7 @@
 {
-    "name": "Scaffold.Scope.Runtime",
+    "name": "Scaffold.Scope",
     "rootNamespace": "Scaffold.Scope",
     "references": [
-        "Scaffold.Scope.Contracts",
         "VContainer",
         "VContainer.Unity"
     ],

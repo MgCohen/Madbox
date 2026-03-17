@@ -19,11 +19,11 @@ namespace Scaffold.Analyzers
         private static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(
             DiagnosticId,
             "Boundary interfaces/types must live under Contracts",
-            "Error SCA0025: Public boundary type '{0}' must be declared under a top-level 'Contracts/' folder",
+            "Error SCA0025: Public boundary type '{0}' must be declared under a 'Contracts/' path segment",
             Category,
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
-            description: "Public boundary interfaces/types should live in Contracts folders to keep module boundaries explicit. Configure enforced kinds and exceptions via analyzer config.");
+            description: "Public boundary interfaces/types should live in a Contracts path segment to keep module boundaries explicit. Configure enforced kinds and exceptions via analyzer config.");
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
 

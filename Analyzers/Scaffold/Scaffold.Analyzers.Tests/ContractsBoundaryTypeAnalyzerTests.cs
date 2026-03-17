@@ -48,6 +48,26 @@ namespace Scaffold.Navigation.Contracts
     }
 
     [Fact]
+    public async Task NoDiagnostic_WhenPublicInterfaceIsInsideNestedContractsFolder()
+    {
+        const string source = @"
+namespace Scaffold.Navigation.Contracts
+{
+    public interface INavigation { }
+}";
+
+        var diagnostics = await AnalyzerTestHarness.GetDiagnosticsByIdAsync(
+            source,
+            @"C:\Repo\Assets\Scripts\Infra\Navigation\Runtime\Contracts\INavigation.cs",
+            new ContractsBoundaryTypeAnalyzer(),
+            ContractsBoundaryTypeAnalyzer.DiagnosticId,
+            new Dictionary<string, string>(),
+            compilationAssemblyName: "Scaffold.Navigation");
+
+        Assert.Empty(diagnostics);
+    }
+
+    [Fact]
     public async Task NoDiagnostic_WhenAssemblyRootIsConfiguredAsExempt()
     {
         const string source = @"

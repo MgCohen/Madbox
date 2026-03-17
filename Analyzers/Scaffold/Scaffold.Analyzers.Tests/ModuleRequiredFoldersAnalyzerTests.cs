@@ -9,27 +9,27 @@ namespace Scaffold.Analyzers.Tests;
 public sealed class ModuleRequiredFoldersAnalyzerTests
 {
     [Fact]
-    public async Task Diagnostic_WhenRequiredContractsFolderIsMissing()
+    public async Task Diagnostic_WhenRequiredRuntimeFolderIsMissing()
     {
         var workspace = CreateTempWorkspace();
         try
         {
-            var runtimeFile = Path.Combine(workspace, "Assets", "Scripts", "Tools", "Records", "Runtime", "RecordUtility.cs");
-            Directory.CreateDirectory(Path.GetDirectoryName(runtimeFile)!);
-            await File.WriteAllTextAsync(runtimeFile, "namespace Scaffold.Records { public class RecordUtility { } }");
-            Directory.CreateDirectory(Path.Combine(workspace, "Assets", "Scripts", "Tools", "Records", "Runtime"));
+            var contractsFile = Path.Combine(workspace, "Assets", "Scripts", "Tools", "Records", "Contracts", "RecordUtility.cs");
+            Directory.CreateDirectory(Path.GetDirectoryName(contractsFile)!);
+            await File.WriteAllTextAsync(contractsFile, "namespace Scaffold.Records { public class RecordUtility { } }");
+            Directory.CreateDirectory(Path.Combine(workspace, "Assets", "Scripts", "Tools", "Records", "Contracts"));
             Directory.CreateDirectory(Path.Combine(workspace, "Assets", "Scripts", "Tools", "Records", "Tests"));
 
             var diagnostics = await AnalyzerTestHarness.GetDiagnosticsByIdAsync(
                 "namespace Scaffold.Records { public class RecordUtility { } }",
-                runtimeFile,
+                contractsFile,
                 new ModuleRequiredFoldersAnalyzer(),
                 ModuleRequiredFoldersAnalyzer.DiagnosticId,
                 new Dictionary<string, string>(),
                 compilationAssemblyName: "Scaffold.Records");
 
             var diagnostic = Assert.Single(diagnostics);
-            Assert.Contains("Contracts", diagnostic.GetMessage());
+            Assert.Contains("Runtime", diagnostic.GetMessage());
         }
         finally
         {
@@ -43,20 +43,20 @@ public sealed class ModuleRequiredFoldersAnalyzerTests
         var workspace = CreateTempWorkspace();
         try
         {
-            var runtimeFile = Path.Combine(workspace, "Assets", "Scripts", "Tools", "Records", "Runtime", "RecordUtility.cs");
-            Directory.CreateDirectory(Path.GetDirectoryName(runtimeFile)!);
-            await File.WriteAllTextAsync(runtimeFile, "namespace Scaffold.Records { public class RecordUtility { } }");
-            Directory.CreateDirectory(Path.Combine(workspace, "Assets", "Scripts", "Tools", "Records", "Runtime"));
+            var contractsFile = Path.Combine(workspace, "Assets", "Scripts", "Tools", "Records", "Contracts", "RecordUtility.cs");
+            Directory.CreateDirectory(Path.GetDirectoryName(contractsFile)!);
+            await File.WriteAllTextAsync(contractsFile, "namespace Scaffold.Records { public class RecordUtility { } }");
+            Directory.CreateDirectory(Path.Combine(workspace, "Assets", "Scripts", "Tools", "Records", "Contracts"));
             Directory.CreateDirectory(Path.Combine(workspace, "Assets", "Scripts", "Tools", "Records", "Tests"));
 
             var options = new Dictionary<string, string>
             {
-                ["scaffold.SCA0023.exempt_requirements"] = "Scaffold.Records=Contracts|Tests"
+                ["scaffold.SCA0023.exempt_requirements"] = "Scaffold.Records=Runtime"
             };
 
             var diagnostics = await AnalyzerTestHarness.GetDiagnosticsByIdAsync(
                 "namespace Scaffold.Records { public class RecordUtility { } }",
-                runtimeFile,
+                contractsFile,
                 new ModuleRequiredFoldersAnalyzer(),
                 ModuleRequiredFoldersAnalyzer.DiagnosticId,
                 options,

@@ -17,11 +17,11 @@ namespace Scaffold.Analyzers
         private static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(
             DiagnosticId,
             "Restrict cross-module runtime assembly references",
-            "Error SCA0022: Assembly '{0}' references runtime assembly '{1}'. Non-bootstrap modules must depend on '*.Contracts' and avoid cross-module '*.Runtime' references.",
+            "Error SCA0022: Assembly '{0}' references runtime assembly '{1}'. Non-bootstrap modules must avoid cross-module '*.Runtime' references.",
             Category,
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
-            description: "Only composition root assemblies should reference foreign runtime assemblies. Other modules should depend on contracts assemblies.");
+            description: "Only composition root assemblies should reference foreign runtime assemblies. Unified module assemblies are allowed when no separate runtime assembly exists.");
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
 

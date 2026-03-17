@@ -1,12 +1,12 @@
-# Scaffold.MVVM.Base.Contracts
+# Scaffold.MVVM.Base
 
 ## TL;DR
 
 - Purpose: shared MVVM contract primitives reused by Model, ViewModel, and View modules.
-- Location: `Assets/Scripts/Infra/BaseMVVM/Contracts/`.
+- Location: `Assets/Scripts/Infra/BaseMVVM/Runtime/`.
 - Depends on: none.
 - Used by: `Scaffold.MVVM.Model`, `Scaffold.MVVM.ViewModel`, `Scaffold.MVVM.View`, related tests/samples.
-- Runtime/Editor: contracts-only assembly (`Scaffold.MVVM.Base.Contracts`).
+- Runtime/Editor: contracts-only assembly (`Scaffold.MVVM.Base`).
 
 ## Responsibilities
 
@@ -33,7 +33,7 @@
 
 ## Setup / Integration
 
-1. Add asmdef reference to `Scaffold.MVVM.Base.Contracts`.
+1. Add asmdef reference to `Scaffold.MVVM.Base`.
 2. Use `Scaffold.MVVM.Binding` and `Scaffold.MVVM.Contracts` types directly from this module.
 3. Keep the module boundary-safe: no runtime orchestration code and no Unity scene logic.
 

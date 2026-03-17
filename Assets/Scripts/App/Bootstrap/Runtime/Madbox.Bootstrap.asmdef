@@ -1,24 +1,33 @@
 {
-    "name": "Madbox.Bootstrap.Runtime",
-    "rootNamespace": "Madbox.Bootstrap",
-    "references": [
-        "Scaffold.Navigation.Contracts",
-        "Scaffold.Scope.Contracts",
-        "Scaffold.Scope.Runtime",
-        "Scaffold.MVVM.Model",
-        "Scaffold.MVVM.ViewModel",
-        "Scaffold.Navigation.Runtime",
-        "VContainer",
-        "Scaffold.Events.Container",
-        "Scaffold.Navigation.Container"
-    ],
-    "includePlatforms": [],
-    "excludePlatforms": [],
-    "allowUnsafeCode": false,
-    "overrideReferences": false,
-    "precompiledReferences": [],
-    "autoReferenced": true,
-    "defineConstraints": [],
-    "versionDefines": [],
-    "noEngineReferences": false
+    "name":  "Madbox.Bootstrap.Runtime",
+    "rootNamespace":  "Madbox.Bootstrap",
+    "references":  [
+                       "Scaffold.Navigation",
+                       "Scaffold.Scope",
+                       "Scaffold.MVVM.Model",
+                       "Scaffold.MVVM.ViewModel",
+                       "VContainer",
+                       "Scaffold.Events.Container",
+                       "Scaffold.Navigation.Container"
+                   ],
+    "includePlatforms":  [
+
+                         ],
+    "excludePlatforms":  [
+
+                         ],
+    "allowUnsafeCode":  false,
+    "overrideReferences":  false,
+    "precompiledReferences":  [
+
+                              ],
+    "autoReferenced":  true,
+    "defineConstraints":  [
+
+                          ],
+    "versionDefines":  [
+
+                       ],
+    "noEngineReferences":  false
 }
+

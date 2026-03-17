@@ -1,19 +1,29 @@
 {
-    "name": "Scaffold.Navigation.Container",
-    "rootNamespace": "Scaffold.Navigation.Container",
-    "references": [
-        "Scaffold.Navigation.Contracts",
-        "Scaffold.Navigation.Runtime",
-        "VContainer",
-        "VContainer.Unity"
-    ],
-    "includePlatforms": [],
-    "excludePlatforms": [],
-    "allowUnsafeCode": false,
-    "overrideReferences": false,
-    "precompiledReferences": [],
-    "autoReferenced": true,
-    "defineConstraints": [],
-    "versionDefines": [],
-    "noEngineReferences": false
+    "name":  "Scaffold.Navigation.Container",
+    "rootNamespace":  "Scaffold.Navigation.Container",
+    "references":  [
+                       "Scaffold.Navigation",
+                       "VContainer",
+                       "VContainer.Unity"
+                   ],
+    "includePlatforms":  [
+
+                         ],
+    "excludePlatforms":  [
+
+                         ],
+    "allowUnsafeCode":  false,
+    "overrideReferences":  false,
+    "precompiledReferences":  [
+
+                              ],
+    "autoReferenced":  true,
+    "defineConstraints":  [
+
+                          ],
+    "versionDefines":  [
+
+                       ],
+    "noEngineReferences":  false
 }
+

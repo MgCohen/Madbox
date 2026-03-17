@@ -58,10 +58,10 @@ Top-level directories:
 - `Core`
   - `Scaffold.MVVM.ViewModel`, `Scaffold.MVVM.ViewModel.Tests`
 - `Infra`
-  - Events: `Scaffold.Events.Contracts`, `Scaffold.Events.Runtime`, `Scaffold.Events.Container`, `Scaffold.Events.Samples`, `Scaffold.Events.Tests`
+  - Events: `Scaffold.Events`, `Scaffold.Events.Container`, `Scaffold.Events.Samples`, `Scaffold.Events.Tests`
   - Model: `Scaffold.MVVM.Model`, `Scaffold.MVVM.Model.Tests`
-  - Navigation: `Scaffold.Navigation.Contracts`, `Scaffold.Navigation.Runtime`, `Scaffold.Navigation.Container`, `Scaffold.Navigation.Samples`, `Scaffold.Navigation.Tests`
-  - Scope: `Scaffold.Scope.Contracts`, `Scaffold.Scope.Runtime`, `Scaffold.Scope.Tests`
+  - Navigation: `Scaffold.Navigation`, `Scaffold.Navigation.Container`, `Scaffold.Navigation.Samples`, `Scaffold.Navigation.Tests`
+  - Scope: `Scaffold.Scope`, `Scaffold.Scope.Tests`
 - `Tools`
   - Maps: `Scaffold.Maps`, `Scaffold.Maps.Samples`, `Scaffold.Maps.Tests`
   - Records: `Scaffold.Records`, `Scaffold.Records.Samples`, `Scaffold.Records.Tests`
@@ -70,13 +70,12 @@ Top-level directories:
 Primary production dependency direction:
 
 - `Scaffold.MVVM.Model` <- `Scaffold.MVVM.ViewModel` <- `Scaffold.MVVM.View` <- `Madbox.Bootstrap.Runtime`
-- `Scaffold.Navigation.Contracts` <- `Scaffold.MVVM.ViewModel` / `Scaffold.MVVM.View` / `Madbox.Bootstrap.Runtime`
-- `Scaffold.Navigation.Runtime` <- `Madbox.Bootstrap.Runtime`
-- `Scaffold.Scope.Contracts` <- `Scaffold.Scope.Runtime` <- `Madbox.Bootstrap.Runtime`
-- `Scaffold.Events.Contracts` <- `Scaffold.Events.Runtime` <- `Scaffold.Events.Container` <- `Madbox.Bootstrap.Runtime`
+- `Scaffold.Navigation` <- `Scaffold.MVVM.ViewModel` / `Scaffold.MVVM.View` / `Madbox.Bootstrap.Runtime`
+- `Scaffold.Scope` <- `Madbox.Bootstrap.Runtime`
+- `Scaffold.Events` <- `Scaffold.Navigation` / `Scaffold.Events.Container` <- `Madbox.Bootstrap.Runtime`
 - `Scaffold.Records` <- `Scaffold.Maps` <- `Scaffold.MVVM.ViewModel`
-- `Scaffold.Types` <- `Scaffold.MVVM.View` and `Scaffold.Navigation.Runtime`
-- `Scaffold.Schemas` (package assembly from `com.scaffold.schemas`) <- `Scaffold.Navigation.Runtime`
+- `Scaffold.Types` <- `Scaffold.MVVM.View` and `Scaffold.Navigation`
+- `Scaffold.Schemas` (package assembly from `com.scaffold.schemas`) <- `Scaffold.Navigation`
 - `VContainer` / `VContainer.Unity` are consumed by `Scaffold.Scope.*`, `Scaffold.Navigation.Container`, `Scaffold.Events.Container`, and `Madbox.Bootstrap.Runtime`
 
 Notes:
@@ -124,7 +123,6 @@ Forbidden:
 - `Docs/Testing.md`
 - `Docs/AutomatedTesting.md`
 - `Docs/Standards/Architecture-Documentation-Standard.md`
-- `Docs/Standards/Contracts-First-Module-Organization.md`
 - `Docs/Standards/Module-Documentation-Standard.md`
 
 ## Architecture Controls

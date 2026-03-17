@@ -1,28 +1,32 @@
 {
-    "name": "Scaffold.MVVM.ViewModel.Tests",
-    "rootNamespace": "Scaffold.MVVM.Tests",
-    "references": [
-        "Scaffold.MVVM.ViewModel",
-        "Scaffold.MVVM.ViewModel.Contracts",
-        "Scaffold.MVVM.Base.Contracts",
-        "Scaffold.Navigation.Contracts"
-    ],
-    "includePlatforms": [
-        "Editor"
-    ],
-    "excludePlatforms": [],
-    "allowUnsafeCode": false,
-    "overrideReferences": false,
-    "precompiledReferences": [
-        "CommunityToolkit.Mvvm.dll"
-    ],
-    "autoReferenced": false,
-    "defineConstraints": [],
-    "versionDefines": [],
-    "noEngineReferences": false,
-    "optionalUnityReferences": [
-        "TestAssemblies"
-    ]
-}
+    "name":  "Scaffold.MVVM.ViewModel.Tests",
+    "rootNamespace":  "Scaffold.MVVM.Tests",
+    "references":  [
+                       "Scaffold.MVVM.ViewModel",
+                       "Scaffold.MVVM.Base",
+                       "Scaffold.Navigation"
+                   ],
+    "includePlatforms":  [
+                             "Editor"
+                         ],
+    "excludePlatforms":  [
 
+                         ],
+    "allowUnsafeCode":  false,
+    "overrideReferences":  false,
+    "precompiledReferences":  [
+                                  "CommunityToolkit.Mvvm.dll"
+                              ],
+    "autoReferenced":  false,
+    "defineConstraints":  [
+
+                          ],
+    "versionDefines":  [
+
+                       ],
+    "noEngineReferences":  false,
+    "optionalUnityReferences":  [
+                                    "TestAssemblies"
+                                ]
+}
 

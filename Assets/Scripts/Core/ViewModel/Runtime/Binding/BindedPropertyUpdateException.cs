@@ -14,7 +14,7 @@ using System;
 
 namespace Scaffold.MVVM.Binding
 {
-    public sealed class BindedPropertyUpdateException<TSource, TTarget> : Exception
+    internal sealed class BindedPropertyUpdateException<TSource, TTarget> : Exception
     {
         public BindedPropertyUpdateException(string message, Exception innerException) : base(message, innerException)
         {
