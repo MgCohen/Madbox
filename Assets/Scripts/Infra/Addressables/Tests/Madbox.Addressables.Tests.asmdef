@@ -3,6 +3,8 @@
     "rootNamespace": "Madbox.Addressables.Tests",
     "references": [
         "Madbox.Addressables",
+        "Madbox.Scope",
+        "VContainer",
         "Unity.Addressables"
     ],
     "includePlatforms": [

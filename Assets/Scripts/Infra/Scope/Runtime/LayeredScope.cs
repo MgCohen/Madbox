@@ -84,9 +84,20 @@ namespace Madbox.Scope
         private async Task<LifetimeScope> CreateAndInitializeLayerScopeAsync(LifetimeScope parentScope, ILayerInstaller installer, CancellationToken cancellationToken)
         {
             if (installer == null) { throw new InvalidOperationException("Layer installer cannot be null."); }
-            LifetimeScope layerScope = parentScope.CreateChild(builder => installer.Install(builder));
+            LifetimeScope layerScope = CreateLayerScope(parentScope, installer);
             await scopeInitializer.InitializeScopeAsync(layerScope, cancellationToken);
             return layerScope;
+        }
+
+        private LifetimeScope CreateLayerScope(LifetimeScope parentScope, ILayerInstaller installer)
+        {
+            return parentScope.CreateChild(builder => InstallLayer(builder, installer));
+        }
+
+        private void InstallLayer(IContainerBuilder builder, ILayerInstaller installer)
+        {
+            scopeInitializer.ApplyDelegatedChildRegistrations(builder);
+            installer.Install(builder);
         }
 
         protected abstract void ValidateBootstrapState();

@@ -12,10 +12,26 @@ namespace Madbox.Scope
     public sealed class ScopeInitializer
     {
         private readonly HashSet<IAsyncLayerInitializable> initialized = new HashSet<IAsyncLayerInitializable>();
+        private readonly List<DelegatedChildRegistration> delegatedChildRegistrations = new List<DelegatedChildRegistration>();
+        private readonly object sync = new object();
 
         public void Reset()
         {
-            initialized.Clear();
+            lock (sync)
+            {
+                initialized.Clear();
+                delegatedChildRegistrations.Clear();
+            }
+        }
+
+        public void ApplyDelegatedChildRegistrations(IContainerBuilder builder)
+        {
+            if (builder == null) { throw new ArgumentNullException(nameof(builder)); }
+            IReadOnlyList<DelegatedChildRegistration> snapshot = TakeRegistrationsSnapshotAndPrune();
+            foreach (DelegatedChildRegistration registration in snapshot)
+            {
+                registration.ApplyTo(builder);
+            }
         }
 
         public async Task InitializeScopeAsync(LifetimeScope scope, CancellationToken cancellationToken)
@@ -23,15 +39,16 @@ namespace Madbox.Scope
             EnsureNotCanceled(cancellationToken);
             IReadOnlyList<IAsyncLayerInitializable> resolved = ResolveInitializersFromScope(scope);
             IReadOnlyList<IAsyncLayerInitializable> pending = FilterPendingInitializers(resolved);
-            await InitializePendingAsync(pending, cancellationToken);
+            IObjectResolver resolver = scope == null ? null : scope.Container;
+            await InitializePendingAsync(pending, resolver, cancellationToken);
             RememberInitialized(pending);
         }
 
-        public async Task InitializeInitializersAsync(IReadOnlyList<IAsyncLayerInitializable> initializers, CancellationToken cancellationToken)
+        public async Task InitializeInitializersAsync(IReadOnlyList<IAsyncLayerInitializable> initializers, IObjectResolver resolver, CancellationToken cancellationToken)
         {
             EnsureNotCanceled(cancellationToken);
             IReadOnlyList<IAsyncLayerInitializable> pending = FilterPendingInitializers(initializers);
-            await InitializePendingAsync(pending, cancellationToken);
+            await InitializePendingAsync(pending, resolver, cancellationToken);
             RememberInitialized(pending);
         }
 
@@ -73,23 +90,24 @@ namespace Madbox.Scope
             pending.Add(initializer);
         }
 
-        private async Task InitializePendingAsync(IReadOnlyList<IAsyncLayerInitializable> pending, CancellationToken cancellationToken)
+        private async Task InitializePendingAsync(IReadOnlyList<IAsyncLayerInitializable> pending, IObjectResolver resolver, CancellationToken cancellationToken)
         {
             if (pending.Count == 0) { return; }
-            Task[] tasks = BuildInitializationTasks(pending, cancellationToken);
+            Task[] tasks = BuildInitializationTasks(pending, resolver, cancellationToken);
             await Task.WhenAll(tasks);
         }
 
-        private Task[] BuildInitializationTasks(IReadOnlyList<IAsyncLayerInitializable> pending, CancellationToken cancellationToken)
+        private Task[] BuildInitializationTasks(IReadOnlyList<IAsyncLayerInitializable> pending, IObjectResolver resolver, CancellationToken cancellationToken)
         {
             Task[] tasks = new Task[pending.Count];
-            for (int i = 0; i < pending.Count; i++) { tasks[i] = InitializeServiceAsync(pending[i], cancellationToken); }
+            LayerInitializationContext context = new LayerInitializationContext(RegisterDelegatedChildRegistration);
+            for (int i = 0; i < pending.Count; i++) { tasks[i] = InitializeServiceAsync(context, pending[i], resolver, cancellationToken); }
             return tasks;
         }
 
-        private async Task InitializeServiceAsync(IAsyncLayerInitializable initializer, CancellationToken cancellationToken)
+        private async Task InitializeServiceAsync(ILayerInitializationContext context, IAsyncLayerInitializable initializer, IObjectResolver resolver, CancellationToken cancellationToken)
         {
-            try { await initializer.InitializeAsync(cancellationToken); }
+            try { await initializer.InitializeAsync(context, resolver, cancellationToken); }
             catch (Exception exception) { throw CreateInitializationFailure(initializer, exception); }
         }
 
@@ -102,6 +120,25 @@ namespace Madbox.Scope
         private void RememberInitialized(IReadOnlyList<IAsyncLayerInitializable> initializers)
         {
             foreach (IAsyncLayerInitializable initializer in initializers) { initialized.Add(initializer); }
+        }
+
+        private void RegisterDelegatedChildRegistration(DelegatedChildRegistration registration)
+        {
+            lock (sync)
+            {
+                delegatedChildRegistrations.Add(registration);
+            }
+        }
+
+        private IReadOnlyList<DelegatedChildRegistration> TakeRegistrationsSnapshotAndPrune()
+        {
+            lock (sync)
+            {
+                if (delegatedChildRegistrations.Count == 0) { return Array.Empty<DelegatedChildRegistration>(); }
+                List<DelegatedChildRegistration> snapshot = delegatedChildRegistrations.ToList();
+                delegatedChildRegistrations.RemoveAll(static registration => registration.Policy == ChildScopeDelegationPolicy.NextChildOnly);
+                return snapshot;
+            }
         }
     }
 }

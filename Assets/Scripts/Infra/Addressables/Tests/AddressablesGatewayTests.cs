@@ -4,8 +4,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using NUnit.Framework;
 using Madbox.Addressables.Contracts;
+using Madbox.Scope.Contracts;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
+using VContainer;
 
 namespace Madbox.Addressables.Tests
 {
@@ -155,8 +157,9 @@ namespace Madbox.Addressables.Tests
         {
             RecordingGateway gateway = new RecordingGateway();
             AddressablesLayerInitializer initializer = new AddressablesLayerInitializer(gateway);
+            NoopInitializationContext context = new NoopInitializationContext();
 
-            initializer.InitializeAsync(CancellationToken.None).GetAwaiter().GetResult();
+            initializer.InitializeAsync(context, null, CancellationToken.None).GetAwaiter().GetResult();
 
             Assert.AreEqual(1, gateway.InitializeCalls);
         }
@@ -479,6 +482,17 @@ namespace Madbox.Addressables.Tests
         private sealed class TestAsset : ScriptableObject
         {
             public string AssetId;
+        }
+
+        private sealed class NoopInitializationContext : ILayerInitializationContext
+        {
+            public void RegisterTypeForChild(Type serviceType, Type implementationType, Lifetime lifetime, ChildScopeDelegationPolicy policy = ChildScopeDelegationPolicy.NextChildOnly)
+            {
+            }
+
+            public void RegisterInstanceForChild(Type serviceType, object instance, Lifetime lifetime, ChildScopeDelegationPolicy policy = ChildScopeDelegationPolicy.NextChildOnly)
+            {
+            }
         }
     }
 }
