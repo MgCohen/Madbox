@@ -3,7 +3,10 @@
     "rootNamespace": "Madbox.Levels.Tests",
     "references": [
         "Madbox.Levels",
-        "Scaffold.Records"
+        "Scaffold.Records",
+        "Madbox.Levels.Authoring",
+        "Madbox.Addressables",
+        "Unity.Addressables"
     ],
     "includePlatforms": [
         "Editor"
@@ -15,7 +18,7 @@
     "autoReferenced": false,
     "defineConstraints": [],
     "versionDefines": [],
-    "noEngineReferences": true,
+    "noEngineReferences": false,
     "optionalUnityReferences": [
         "TestAssemblies"
     ]

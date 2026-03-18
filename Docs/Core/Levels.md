@@ -2,19 +2,21 @@
 
 ## TL;DR
 - Purpose: Defines level/domain data used by runtime modules (battle and enemies).
-- Location: `Assets/Scripts/Core/Levels/Runtime/`.
-- Depends on: `Scaffold.Records`.
+- Location: `Assets/Scripts/Core/Levels/Runtime/` and `Assets/Scripts/Core/Levels/Authoring/`.
+- Depends on: `Scaffold.Records` (runtime), `Madbox.Addressables` + Unity Addressables (authoring/runtime loading bridge).
 - Used by: `Madbox.Battle`, `Madbox.Enemies`, and tests in `Madbox.Levels.Tests`.
-- Runtime/Editor: pure runtime C# module with EditMode tests.
-- Keywords: level definition, enemy definition, behavior definition, game rules.
+- Runtime/Editor: pure runtime C# domain + Unity-facing authoring assets/custom editor under same module family.
+- Keywords: level definition, enemy definition, behavior definition, game rules, scriptableobject, addressables.
 
 ## Responsibilities
 - Owns: value records (`LevelId`, `EntityId`) and level/enemy definitions.
 - Owns: enemy behavior definition contracts (`EnemyBehaviorDefinition`, contact/movement definitions).
 - Owns: level game-rule definitions and constructor guard invariants.
+- Owns: module-local authoring assets (`EnemyDefinitionSO`, `LevelDefinitionSO`, `LevelCatalogSO`) and `ToDomain` mapping.
+- Owns: module-local editor tooling for polymorphic behavior-rule authoring (`EnemyDefinitionSOEditor`).
 - Does not own: runtime mutation/state ticking (battle/enemies runtime modules).
 - Does not own: event routing, command execution, or wallet/reward operations.
-- Boundaries: pure C# domain/data only, no Unity-facing implementation.
+- Boundaries: runtime definitions remain pure C#; Unity-facing authoring stays in `Core/Levels/Authoring` and `Core/Levels/Editor`.
 
 ## Public API
 | Symbol | Purpose | Inputs | Outputs | Failure behavior |
@@ -28,12 +30,14 @@
 
 ## Setup / Integration
 1. Add asmdef dependency to `Madbox.Levels` from consumer module.
+2. Add asmdef dependency to `Madbox.Levels.Authoring` for systems that need authored SO loading/mapping.
 2. Build `EnemyDefinition` + `LevelEnemyDefinition` entries.
 3. Build `LevelDefinition` with optional explicit `GameRules` (or rely on defaults).
 4. Pass `LevelDefinition` into runtime modules (`Game`, `EnemyService`).
 5. Quick check: run analyzer script and ensure no boundary violations.
 - Common mistake: passing duplicate enemy type ids in one level.
 - Common mistake: assuming rules can be null/empty; constructor enforces non-empty normalized list.
+- Common mistake: loading all levels/enemies upfront instead of on-demand through addressable handles.
 
 ## How to Use
 1. Define enemy archetypes and their behavior definitions.
@@ -130,7 +134,9 @@ powershell -NoProfile -ExecutionPolicy Bypass -File ".\.agents\scripts\check-ana
 - `Docs/AutomatedTesting.md`
 - `Docs/Core/Battle.md`
 - `Docs/Core/Enemies.md`
+- `Docs/Infra/Addressables.md`
 
 ## Changelog
 - 2026-03-18: Rewrote module doc to match Module Documentation Standard section order and constraints.
 - 2026-03-18: Updated content for rules/behaviors subfolder organization and level-driven game rules.
+- 2026-03-18: Added module-local authoring/editor structure (`Core/Levels/Authoring` + `Core/Levels/Editor`) and on-demand Addressables note.

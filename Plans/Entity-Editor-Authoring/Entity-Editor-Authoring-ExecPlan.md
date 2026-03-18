@@ -14,11 +14,11 @@ A working outcome is visible when a developer creates `EnemyDefinitionSO` and `L
 
 - [x] (2026-03-18 15:11Z) Gathered architecture, planning, testing, and research context (`Architecture.md`, `PLANS.md`, `MILESTONE.md`, entity/layer/addressables research, core module docs) and captured scope constraints from user.
 - [x] (2026-03-18 15:11Z) Authored initial ExecPlan for editor authoring with Addressables integration, battle-rule coverage, and record-to-class migration strategy.
-- [ ] Execute Milestone 1: migrate authoring-facing record types in `Madbox.Levels` to plain serializable classes and update dependent tests.
-- [ ] Execute Milestone 2: create Unity-facing authoring module (ScriptableObjects with in-asset mapping methods) for enemy/level/gold/level-list content.
-- [ ] Execute Milestone 3: add baseline enemy MonoBehaviour authoring stub and prefab hookup path (no gameplay behavior logic).
-- [ ] Execute Milestone 4: wire Addressables labels/keys/usages for authored assets and add validation tests.
-- [ ] Execute Milestone 5: update docs and run milestone quality gate (`.agents/scripts/validate-changes.cmd`) until clean.
+- [x] (2026-03-18 16:20Z) Execute Milestone 1: finalized serialization scope; kept `LevelId`/`EntityId` and core behavior definitions unchanged in `Madbox.Levels`, with authoring assets owning serialized primitive/reference fields and domain mapping.
+- [x] (2026-03-18 16:20Z) Execute Milestone 2: created module-local authoring under `Assets/Scripts/Core/Levels/Authoring` with ScriptableObjects and in-asset mapping (`ToDomain`) for enemy/level/gold and level catalog assets.
+- [x] (2026-03-18 16:20Z) Execute Milestone 3: added baseline `EnemyAuthoringReference` MonoBehaviour stub for prefab linkage only.
+- [x] (2026-03-18 16:20Z) Execute Milestone 4: integrated on-demand Addressables level loading via `LevelCatalogSO` and `AddressableLevelDefinitionProvider` using `IAddressablesGateway`.
+- [x] (2026-03-18 16:20Z) Execute Milestone 5: added authoring tests/docs, updated `Architecture.md`, and passed `.agents/scripts/validate-changes.cmd` with analyzers `TOTAL:0`.
 
 ## Surprises & Discoveries
 
@@ -33,12 +33,12 @@ A working outcome is visible when a developer creates `EnemyDefinitionSO` and `L
 
 ## Decision Log
 
-- Decision: Unity editor authoring assets will live in a Unity-facing module under `Assets/Scripts/App/Authoring/` rather than in core domain modules.
-  Rationale: Preserves architecture invariants that core logic remains pure C# and avoids Unity API coupling in `Core/*`.
+- Decision: Unity authoring assets live under module-owned `Assets/Scripts/Core/Levels/Authoring/`, with shared `Core/Levels/Editor` and `Core/Levels/Tests`.
+  Rationale: Keeps feature ownership local to Levels while preserving pure runtime boundaries in `Core/Levels/Runtime`.
   Date/Author: 2026-03-18 / Codex.
 
-- Decision: Record types used in the editor-authoring path will be migrated to plain serializable classes instead of introducing adapters/wrappers.
-  Rationale: Matches user requirement, simplifies Inspector serialization, and avoids maintaining duplicate representations.
+- Decision: Keep `LevelId` and `EntityId` as record value objects in core domain, and serialize primitive authoring fields in SOs instead of serializing those record types directly.
+  Rationale: Preserves domain utility/value semantics while avoiding unnecessary type migration in core.
   Date/Author: 2026-03-18 / Codex.
 
 - Decision: Include battle-related level rule authoring support in scope (especially win/lose rule configuration), but do not expand runtime battle mechanics.
@@ -67,7 +67,12 @@ A working outcome is visible when a developer creates `EnemyDefinitionSO` and `L
 
 ## Outcomes & Retrospective
 
-Initial plan drafted. Implementation has not started yet, so no runtime outcomes are recorded yet. This section will be updated after each milestone with concrete shipped behavior, validation evidence, and any scope adjustments.
+Implemented the editor-authoring foundation in a new App-facing module with working SO-to-domain mapping, custom `[SerializeReference]` authoring UI for enemy behavior rules, baseline prefab reference MonoBehaviour, and on-demand addressable level loading by id.
+
+Validation evidence:
+
+- `run-editmode-tests.ps1 -AssemblyNames "Madbox.Levels.Tests"`: 13/13 passed (includes authoring tests after merge).
+- `.agents/scripts/validate-changes.cmd`: compilation PASS, EditMode PASS (152/152), PlayMode PASS (2/2), analyzers `TOTAL:0`.
 
 ## Context and Orientation
 
@@ -104,7 +109,6 @@ In scope:
 
 - `EnemyDefinitionSO`, `LevelDefinitionSO`, optional `GoldConfigSO`, and a level-list/config asset.
 - Mapping from SO assets to `Madbox.Levels` domain objects including game rules used by battle.
-- Record-to-class migration for authoring-facing level domain types.
 - Addressables usage where runtime dynamic loading is needed.
 - Tests, docs, analyzer compliance, and milestone quality gate.
 
@@ -116,7 +120,7 @@ Out of scope:
 
 ## Plan of Work
 
-Milestone 1 establishes serialization-friendly domain types without changing battle semantics. Convert authoring-facing record types in `Madbox.Levels` to serializable classes and preserve existing constructor guards/invariants. Update all callsites/tests affected by equality/value semantics changes.
+Milestone 1 establishes serialization boundaries without changing core domain value objects. Keep `Madbox.Levels` records/classes intact and serialize authoring-native fields inside ScriptableObjects, then map to domain definitions through `ToDomain`.
 
 Milestone 2 introduces a Unity-facing authoring module using the create-module workflow. Add ScriptableObject definitions for enemies, levels, optional gold config, and level list/config. Mapping logic is owned directly by authoring assets (`ToDomain` on root SOs), while `LevelEnemyEntrySO` remains a simple serializable entry object without independent mapping API. `EnemyDefinitionSO` includes a `[SerializeReference]` list for polymorphic rule authoring.
 
@@ -130,20 +134,20 @@ Milestone 5 completes documentation and quality gates: update module docs under 
 
 All commands run from repository root: `C:\Unity\Madbox`.
 
-1. Create/prepare authoring module structure via workflow guidance:
+1. Create/prepare module-local authoring structure via workflow guidance:
 
     - `Get-Content -Raw ".\.agents\workflows\create-module.md"`
-    - Create `Assets/Scripts/App/Authoring/{Runtime,Container,Tests}` and corresponding `.asmdef` files.
+    - Create `Assets/Scripts/Core/Levels/Authoring`, `Assets/Scripts/Core/Levels/Editor`, and shared tests under `Assets/Scripts/Core/Levels/Tests`.
 
-2. Implement Milestone 1 record-to-class migration in `Assets/Scripts/Core/Levels/Runtime/` and update dependent tests:
+2. Implement Milestone 1 serialization-boundary alignment and confirm no core record migration is required:
 
     - `powershell -NoProfile -ExecutionPolicy Bypass -File ".\.agents\scripts\run-editmode-tests.ps1" -AssemblyNames "Madbox.Levels.Tests,Madbox.Battle.Tests,Madbox.Enemies.Tests"`
 
-3. Implement Milestone 2 authoring ScriptableObjects and in-asset mapping logic in `Assets/Scripts/App/Authoring/Runtime/`:
+3. Implement Milestone 2 authoring ScriptableObjects and in-asset mapping logic in `Assets/Scripts/Core/Levels/Authoring/`:
 
-    - `powershell -NoProfile -ExecutionPolicy Bypass -File ".\.agents\scripts\run-editmode-tests.ps1" -AssemblyNames "Madbox.Authoring.Tests"`
+    - `powershell -NoProfile -ExecutionPolicy Bypass -File ".\.agents\scripts\run-editmode-tests.ps1" -AssemblyNames "Madbox.Levels.Tests"`
 
-4. Add Milestone 2 custom editor support for `EnemyDefinitionSO` `[SerializeReference]` rule authoring in `Assets/Scripts/App/Authoring/Editor/`:
+4. Add Milestone 2 custom editor support for `EnemyDefinitionSO` `[SerializeReference]` rule authoring in `Assets/Scripts/Core/Levels/Editor/`:
 
     - Validate in Inspector that adding/removing/changing concrete rule entries is deterministic and persists after domain reload.
 
@@ -153,7 +157,7 @@ All commands run from repository root: `C:\Unity\Madbox`.
 
 6. Implement Milestone 4 Addressables integration updates and tests:
 
-    - `powershell -NoProfile -ExecutionPolicy Bypass -File ".\.agents\scripts\run-editmode-tests.ps1" -AssemblyNames "Madbox.Addressables.Tests,Madbox.Authoring.Tests"`
+    - `powershell -NoProfile -ExecutionPolicy Bypass -File ".\.agents\scripts\run-editmode-tests.ps1" -AssemblyNames "Madbox.Addressables.Tests,Madbox.Levels.Tests"`
     - Verify one level-session flow loads only selected content and releases all non-resident handles when session ends.
 
 7. Run full quality gate for each milestone completion:
@@ -166,7 +170,7 @@ Expected success signal after milestone completion is repository scripts finishi
 
 Acceptance is behavior-based and must be observable.
 
-1. Authoring assets can be created from Unity Create menu for enemy, level, and config assets, and fields are editable in Inspector without wrapper/adaptor indirection for migrated types.
+1. Authoring assets can be created from Unity Create menu for enemy, level, and config assets, and fields are editable in Inspector without forcing core id/value-object migrations.
 
 2. `LevelDefinitionSO` can represent enemy entries and battle completion rule inputs (including at least enemy-eliminated win and time-limit/player-defeat loss options), and `LevelDefinitionSO.ToDomain()` produces valid `LevelDefinition` objects consumed by battle runtime.
 
@@ -181,7 +185,6 @@ Acceptance is behavior-based and must be observable.
 
 7. Automated tests cover:
 
-- record-to-class migration behavior/invariants in `Madbox.Levels.Tests`.
 - SO-to-domain mapping (including rule mapping) in new authoring tests.
 - Addressables integration touchpoints and handle lifecycle where changed, including proof that only selected level/session assets are loaded and then released.
 
@@ -211,15 +214,15 @@ Planned authored asset shape (high-level):
 Planned code ownership shape (high-level):
 
     Assets/Scripts/Core/Levels/Runtime/*          # pure domain classes used by battle/enemies
-    Assets/Scripts/App/Authoring/Runtime/*        # Unity ScriptableObjects + in-asset mapping + baseline MonoBehaviour stub
-    Assets/Scripts/App/Authoring/Editor/*         # custom inspectors/property drawers for serialize-reference authoring
-    Assets/Scripts/App/Authoring/Tests/*          # authoring and mapping EditMode tests
+    Assets/Scripts/Core/Levels/Authoring/*        # Unity ScriptableObjects + in-asset mapping + baseline MonoBehaviour stub
+    Assets/Scripts/Core/Levels/Editor/*           # custom inspectors/property drawers for serialize-reference authoring
+    Assets/Scripts/Core/Levels/Tests/*            # shared levels+authoring EditMode tests
 
 ## Interfaces and Dependencies
 
 Target interfaces/types that must exist by plan completion:
 
-In `Assets/Scripts/App/Authoring/Runtime/`:
+In `Assets/Scripts/Core/Levels/Authoring/`:
 
     [CreateAssetMenu(menuName = "Madbox/Authoring/Enemy Definition")]
     public class EnemyDefinitionSO : ScriptableObject
@@ -249,20 +252,10 @@ In `Assets/Scripts/App/Authoring/Runtime/`:
 
 In `Assets/Scripts/Core/Levels/Runtime/`:
 
-    [Serializable]
-    public class LevelId { ... }
-
-    [Serializable]
-    public class EntityId { ... }
-
-    [Serializable]
-    public abstract class EnemyBehaviorDefinition { ... }
-
-    [Serializable]
-    public class MovementBehaviorDefinition : EnemyBehaviorDefinition { ... }
-
-    [Serializable]
-    public class ContactAttackBehaviorDefinition : EnemyBehaviorDefinition { ... }
+    // Existing domain IDs/behavior definitions remain authoritative and are consumed by ToDomain mapping.
+    public record LevelId(string Value);
+    public record EntityId(string Value);
+    public abstract record EnemyBehaviorDefinition;
 
 Dependency rules to preserve:
 
@@ -274,3 +267,4 @@ Dependency rules to preserve:
 Revision Note (2026-03-18): Initial plan created to enable editor authoring for entities/levels/gold with Addressables integration, include battle-rule authoring inputs, and migrate authoring-facing records to serializable classes per user direction.
 Revision Note (2026-03-18): Updated plan to keep mapping in root ScriptableObjects instead of `ILevelDefinitionMapper`, model `LevelEnemyEntrySO` as a plain serializable entry class without independent mapping API, and add `[SerializeReference]` rule authoring with custom editor support on `EnemyDefinitionSO`.
 Revision Note (2026-03-18): Tightened Addressables scope to on-demand selected-level/session loading with explicit handle-release validation to avoid loading all content into memory.
+Revision Note (2026-03-18): Synced plan to implementation: preserved core id/value records, completed authoring module delivery, and recorded clean validation evidence.
