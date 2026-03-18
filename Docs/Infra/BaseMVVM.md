@@ -34,7 +34,7 @@
 ## Setup / Integration
 
 1. Add asmdef reference to `Scaffold.MVVM.Base`.
-2. Use `Scaffold.MVVM.Binding` and `Scaffold.MVVM.Contracts` types directly from this module.
+2. Use `Scaffold.MVVM.Binding` types from this module.
 3. Keep the module boundary-safe: no runtime orchestration code and no Unity scene logic.
 
 ## Testing

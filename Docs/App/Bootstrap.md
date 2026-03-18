@@ -4,7 +4,7 @@
 
 - Purpose: compose runtime scopes and open the first app screen.
 - Location: `Assets/Scripts/App/Bootstrap/Runtime/`.
-- Depends on: `Madbox.MainMenu.Runtime`, `Madbox.Level.Contracts`, `Madbox.Level.Runtime`, `Madbox.Gold.Contracts`, `Madbox.Gold.Runtime`, `Madbox.GameEngine.Contracts`, `Madbox.GameEngine.Runtime`, `Scaffold.Navigation`, `Scaffold.Navigation.Container`, `Scaffold.Events.Container`, `Scaffold.Scope`.
+- Depends on: `Scaffold.Navigation`, `Scaffold.Navigation.Container`, `Scaffold.Events.Container`, `Scaffold.Scope`, `Scaffold.MVVM.Model`, `Scaffold.MVVM.ViewModel`, `VContainer`.
 - Used by: scene startup.
 - Runtime/Editor: runtime only.
 - Keywords: bootstrap, composition root, vcontainer, startup flow.
@@ -26,7 +26,7 @@
 
 1. Add `BootstrapScope` to the startup scene.
 2. Assign navigation settings and `viewHolder` in inspector.
-3. Ensure required assemblies are present in asmdef references (`Madbox.MainMenu.Runtime`, `Madbox.Level.Contracts`/`Runtime`, `Madbox.Gold.Contracts`/`Runtime`, `Madbox.GameEngine.Contracts`/`Runtime`, `Scaffold.Scope`, `Scaffold.Navigation`).
+3. Ensure required assemblies are present in asmdef references (`Scaffold.Navigation`, `Scaffold.Navigation.Container`, `Scaffold.Events.Container`, `Scaffold.Scope`, `Scaffold.MVVM.Model`, `Scaffold.MVVM.ViewModel`, `VContainer`).
 4. Press Play and confirm main menu opens only after layer initialization completes.
 
 ## How to Use
@@ -94,7 +94,7 @@ sequenceDiagram
   - startup ordering remains infra -> meta -> core/app with awaited layer barriers.
   - first screen is opened through navigation, not direct view activation.
 - Allowed Dependencies:
-  - `Madbox.MainMenu.Runtime`, `Madbox.Level.Contracts`/`Runtime`, `Madbox.Gold.Contracts`/`Runtime`, `Madbox.GameEngine.Contracts`/`Runtime`, `Scaffold.Navigation`/`Container`, `Scaffold.Events.Container`, `Scaffold.Scope`, `VContainer`.
+  - `Scaffold.Navigation`, `Scaffold.Navigation.Container`, `Scaffold.Events.Container`, `Scaffold.Scope`, `Scaffold.MVVM.Model`, `Scaffold.MVVM.ViewModel`, `VContainer`.
 - Forbidden Dependencies:
   - gameplay rules and domain state mutation in bootstrap.
 - Change Checklist:

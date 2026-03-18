@@ -63,7 +63,7 @@ Example in repo:
 Create test assemblies per module in a local `Tests/` folder next to the module:
 
 1. Add `ModuleName.Tests.asmdef`.
-2. Reference only the module under test and required contracts.
+2. Reference only the module under test and required boundary/runtime dependencies.
 3. Add `"optionalUnityReferences": ["TestAssemblies"]`.
 4. For EditMode tests, set `"includePlatforms": ["Editor"]`.
 5. For PlayMode tests, use no `includePlatforms` restriction unless required.
@@ -170,7 +170,7 @@ Use these definitions consistently:
 - `TestsPer1kLoC`: `([Test] + [UnityTest]) / (runtime LOC / 1000)`.
 - `TestCodeRatio`: `test LOC / runtime LOC`.
 - `ApiCoverage`: `public API symbols with direct tests / total public API symbols`.
-  - For this repository, "public API symbols" means module-facing contracts in `Contracts/` and stable public runtime surface intended for consumers.
+  - For this repository, "public API symbols" means module-facing boundary APIs (for example interfaces/types under `Runtime/Contracts/`) and stable public runtime surface intended for consumers.
   - "direct tests" means at least one test that asserts behavior of that symbol, not only incidental coverage through another path.
 
 ### Suggested Thresholds (Initial)
@@ -181,7 +181,7 @@ Use these as health targets, then tune with real data:
 - `BranchCoverage`: `>= 60%` for Core/Meta/Infra modules, `>= 50%` for App/Tooling modules.
 - `TestsPer1kLoC`: warning under `8`; target `10+` for complex modules.
 - `TestCodeRatio`: warning under `0.5`; target `0.7+` for complex modules.
-- `ApiCoverage`: `>= 90%` for contracts in Core/Meta/Infra, `>= 80%` elsewhere.
+- `ApiCoverage`: `>= 90%` for boundary APIs in Core/Meta/Infra, `>= 80%` elsewhere.
 - `RegressionCoverage`: `100%` of production bugs must map to a permanent regression test.
 
 ### Per-Module Quality Check (Scorecard)
