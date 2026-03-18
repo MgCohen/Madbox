@@ -3,6 +3,8 @@
     "rootNamespace": "Madbox.Addressables",
     "references": [
         "Madbox.Scope",
+        "Scaffold.Types",
+        "VContainer",
         "Unity.Addressables",
         "Unity.ResourceManager"
     ],

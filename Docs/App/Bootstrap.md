@@ -32,7 +32,7 @@
 ## How to Use
 
 1. Keep `BootstrapScope` as the concrete project bootstrap derived from Infra `LayeredScope`.
-2. Keep module registration separated by layer (infra -> meta -> core/app) and initialize each layer completely before the next.
+2. Keep module registration separated by layer (asset -> infra -> meta -> core/app) and initialize each layer completely before the next.
 3. Open initial screen through `INavigation` from bootstrap, not from random behaviors.
 
 ## Examples
@@ -48,6 +48,8 @@ sequenceDiagram
   participant Menu as MainMenuViewController
 
   Scene->>Boot: Awake/Start
+  Boot->>DI: Create asset scope
+  Boot->>DI: Await all asset IAsyncLayerInitializable
   Boot->>DI: Create infra scope
   Boot->>DI: Await all infra IAsyncLayerInitializable
   Boot->>DI: Create meta scope
@@ -64,6 +66,7 @@ sequenceDiagram
 - Keep app-specific layer installers and first-screen behavior in `BootstrapScope`.
 - Register only module-owned services per layer.
 - Add new layers with one additional layer-initialization line in bootstrap startup orchestration.
+- Keep Addressables startup and preload injection in asset layer so infra services can resolve preloaded assets from DI.
 - Fail fast on missing serialized configuration.
 - Keep startup deterministic and idempotent.
 
@@ -91,7 +94,7 @@ sequenceDiagram
 ## AI Agent Context
 
 - Invariants:
-  - startup ordering remains infra -> meta -> core/app with awaited layer barriers.
+  - startup ordering remains asset -> infra -> meta -> core/app with awaited layer barriers.
   - first screen is opened through navigation, not direct view activation.
 - Allowed Dependencies:
   - `Scaffold.Navigation`, `Scaffold.Navigation.Container`, `Scaffold.Events.Container`, `Madbox.Scope`, `Scaffold.MVVM.Model`, `Scaffold.MVVM.ViewModel`, `VContainer`, `Madbox.Addressables.Container`.
@@ -117,4 +120,5 @@ sequenceDiagram
 
 - 2026-03-16: Expanded bootstrap validation coverage for missing serialized fields (`navigationSettings`, `viewHolder`, `levelIds`) and valid configuration path.
 - 2026-03-16: Added layer-serial async initialization barriers via `IAsyncLayerInitializable` and fail-fast startup behavior before opening Main Menu.
+- 2026-03-18: Introduced asset-first startup layer (`BootstrapAssetInstaller`) before infra and documented Addressables preload availability for downstream scopes.
 - 2026-03-16: Refactored Bootstrap to project-specific composition only; moved generic layered startup orchestration to `Madbox.Scope`.

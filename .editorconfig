@@ -32,6 +32,7 @@ dotnet_diagnostic.SCA0021.severity = warning   # MVVM descendants must use bind 
 dotnet_diagnostic.SCA0022.severity = warning   # Restrict cross-module runtime references
 dotnet_diagnostic.SCA0023.severity = warning   # Required module folders exist
 scaffold.SCA0023.required_folders = Runtime,Tests
+# Optional module folders (not enforced): Container, Editor, Samples
 scaffold.SCA0023.exempt_module_roots = Scaffold.Maps|Scaffold.Records|Scaffold.Types
 scaffold.SCA0023.exempt_requirements = Scaffold.Records=Tests
 dotnet_diagnostic.SCA0024.severity = warning   # Module asmdef placement/name convention

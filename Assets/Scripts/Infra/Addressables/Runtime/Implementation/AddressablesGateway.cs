@@ -4,22 +4,19 @@ using System.Threading;
 using System.Threading.Tasks;
 using Madbox.Addressables.Contracts;
 using UnityEngine.AddressableAssets;
+#pragma warning disable SCA0006
 
 namespace Madbox.Addressables
 {
     public sealed class AddressablesGateway : IAddressablesGateway
     {
-        public AddressablesGateway(IAddressablesAssetClient client, IAddressablesPreloadRegistry preloadRegistry)
-            : this(client, CreatePreloadSource(preloadRegistry))
+        public AddressablesGateway(IAddressablesAssetClient client)
         {
-        }
-
-        private AddressablesGateway(IAddressablesAssetClient client, IAddressablesPreloadSource preloadSource)
-        {
-            GuardConstructor(client, preloadSource);
+            GuardConstructor(client);
             this.client = client;
             leaseStore = new AddressablesLeaseStore(client);
-            startupCoordinator = new AddressablesStartupCoordinator(client, preloadSource, leaseStore);
+            AddressablesPreloadConfigRequestBuilder builder = new AddressablesPreloadConfigRequestBuilder();
+            startupCoordinator = new AddressablesStartupCoordinator(client, leaseStore, builder);
         }
 
         private readonly IAddressablesAssetClient client;
@@ -66,11 +63,48 @@ namespace Madbox.Addressables
             return LoadAsync<T>((AssetReference)reference, cancellationToken);
         }
 
+        public IAssetHandle<T> Load<T>(AssetKey key, CancellationToken cancellationToken = default) where T : UnityEngine.Object
+        {
+            GuardCancellation(cancellationToken);
+            AddressablesLoadToken token = CreateToken<T>(key);
+            AssetHandle<T> handle = new AssetHandle<T>(token.Id);
+            _ = CompleteLoadAsync(token, handle, cancellationToken);
+            return handle;
+        }
+
+        public IAssetHandle<T> Load<T>(AssetReference reference, CancellationToken cancellationToken = default) where T : UnityEngine.Object
+        {
+            GuardCancellation(cancellationToken);
+            GuardReference(reference);
+            AssetKey key = CreateAssetKeyFromReference(reference);
+            return Load<T>(key, cancellationToken);
+        }
+
+        public IAssetHandle<T> Load<T>(AssetReferenceT<T> reference, CancellationToken cancellationToken = default) where T : UnityEngine.Object
+        {
+            GuardCancellation(cancellationToken);
+            GuardReference(reference);
+            return Load<T>((AssetReference)reference, cancellationToken);
+        }
+
         private async Task<IReadOnlyList<IAssetHandle<T>>> LoadCatalogHandlesAsync<T>(IReadOnlyList<AssetKey> keys, CancellationToken cancellationToken) where T : UnityEngine.Object
         {
             List<IAssetHandle<T>> handles = new List<IAssetHandle<T>>(keys.Count);
             foreach (AssetKey key in keys) { handles.Add(await LoadAsync<T>(key, cancellationToken)); }
             return handles;
+        }
+
+        private async Task CompleteLoadAsync<T>(AddressablesLoadToken token, AssetHandle<T> handle, CancellationToken cancellationToken) where T : UnityEngine.Object
+        {
+            try
+            {
+                IAssetHandle<T> loadedHandle = await leaseStore.AcquireAsync<T>(token, cancellationToken);
+                handle.Complete(loadedHandle);
+            }
+            catch (Exception exception)
+            {
+                handle.Fail(exception);
+            }
         }
 
         private async Task<IReadOnlyList<AssetKey>> ResolveLabelKeysAsync<T>(AssetLabelReference label, CancellationToken cancellationToken) where T : UnityEngine.Object
@@ -101,10 +135,9 @@ namespace Madbox.Addressables
             return new AssetKey(keyValue);
         }
 
-        private void GuardConstructor(IAddressablesAssetClient client, IAddressablesPreloadSource preloadSource)
+        private void GuardConstructor(IAddressablesAssetClient client)
         {
             if (client == null) { throw new ArgumentNullException(nameof(client)); }
-            if (preloadSource == null) { throw new ArgumentNullException(nameof(preloadSource)); }
         }
 
         private void GuardCancellation(CancellationToken cancellationToken)
@@ -126,11 +159,6 @@ namespace Madbox.Addressables
             if (string.IsNullOrWhiteSpace(keyValue)) { throw new ArgumentException("Asset reference is not valid.", nameof(reference)); }
         }
 
-        private static IAddressablesPreloadSource CreatePreloadSource(IAddressablesPreloadRegistry preloadRegistry)
-        {
-            if (preloadRegistry == null) { throw new ArgumentNullException(nameof(preloadRegistry)); }
-            if (preloadRegistry is IAddressablesPreloadSource source) { return source; }
-            throw new ArgumentException("Preload registry must implement internal preload source contract.", nameof(preloadRegistry));
-        }
     }
 }
+#pragma warning restore SCA0006

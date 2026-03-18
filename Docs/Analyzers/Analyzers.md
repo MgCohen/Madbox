@@ -928,6 +928,11 @@ Defaults:
 - `Runtime`
 - `Tests`
 
+Optional (not required by default):
+- `Container`
+- `Editor`
+- `Samples`
+
 Config:
 - `scaffold.SCA0023.required_folders` (comma/semicolon list)
 - `scaffold.SCA0023.exempt_module_roots` (skip entire module roots, e.g. `Scaffold.Records`)
@@ -952,9 +957,10 @@ Expected placement:
 - `<ModuleRoot>/Samples/<Assembly>.asmdef` (`*.Samples`)
 - `<ModuleRoot>/Container/<Assembly>.asmdef` (`*.Container`)
 - `<ModuleRoot>/Editor/<Assembly>.asmdef` (`*.Editor`)
-- Optional legacy placement still recognized:
-  - `<ModuleRoot>/Contracts/<Assembly>.asmdef` (`*.Contracts`)
-  - `<ModuleRoot>/Runtime/<Assembly>.asmdef` (`*.Runtime`)
+
+Notes:
+- Main module assemblies belong under `Runtime/` (never module root).
+- Top-level `Contracts` asmdef placement is not part of this convention.
 
 Config:
 - `scaffold.SCA0024.exempt_assemblies` (comma/semicolon list)
@@ -963,7 +969,7 @@ Config:
 
 ### SCA0025 - Boundary Interfaces/Types Must Live Under Contracts
 
-Public boundary declarations should live in top-level `Contracts/` folders.
+Public boundary declarations should live under a `Contracts/` path segment (recommended: `Runtime/Contracts/`).
 
 Default enforced kinds:
 - `interface`

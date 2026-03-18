@@ -2,7 +2,8 @@
     "name":  "Madbox.Scope.Tests",
     "rootNamespace":  "Madbox.Scope.Tests",
     "references":  [
-                       "Madbox.Scope"
+                       "Madbox.Scope",
+                       "VContainer"
                    ],
     "includePlatforms":  [
                              "Editor"
