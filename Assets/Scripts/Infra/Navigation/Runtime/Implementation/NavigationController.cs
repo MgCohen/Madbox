@@ -144,13 +144,18 @@ namespace Scaffold.Navigation
             var substack = stack.GetAllStackedScreens((p) => p != point);
             foreach (var oPoint in substack)
             {
-                stack.RemoveFromStack(oPoint);
-                if (oPoint?.View != null)
-                {
-                    oPoint.View.Close();
-                }
-                oPoint.Dispose();
+                RemoveAndDisposePoint(oPoint);
             }
+        }
+
+        private void RemoveAndDisposePoint(NavigationPoint point)
+        {
+            stack.RemoveFromStack(point);
+            if (point?.View != null)
+            {
+                point.View.Close();
+            }
+            point.Dispose();
         }
     }
 }

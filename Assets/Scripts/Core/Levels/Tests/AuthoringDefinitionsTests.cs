@@ -181,6 +181,31 @@ namespace Madbox.Levels.Tests
             public System.Threading.Tasks.Task<IAssetHandle<T>> LoadAsync<T>(AssetReferenceT<T> reference, CancellationToken cancellationToken = default)
                 where T : UnityEngine.Object
             {
+                IAssetHandle<T> handle = CreateHandle(reference);
+                return System.Threading.Tasks.Task.FromResult(handle);
+            }
+
+            public IAssetHandle<T> Load<T>(AssetKey key, CancellationToken cancellationToken = default)
+                where T : UnityEngine.Object
+            {
+                throw new NotSupportedException();
+            }
+
+            public IAssetHandle<T> Load<T>(AssetReference reference, CancellationToken cancellationToken = default)
+                where T : UnityEngine.Object
+            {
+                throw new NotSupportedException();
+            }
+
+            public IAssetHandle<T> Load<T>(AssetReferenceT<T> reference, CancellationToken cancellationToken = default)
+                where T : UnityEngine.Object
+            {
+                return CreateHandle(reference);
+            }
+
+            private IAssetHandle<T> CreateHandle<T>(AssetReferenceT<T> reference)
+                where T : UnityEngine.Object
+            {
                 LoadCount++;
                 if (reference is AssetReferenceT<LevelDefinitionSO> levelReference)
                 {
@@ -188,7 +213,7 @@ namespace Madbox.Levels.Tests
                 }
 
                 IAssetHandle<T> handle = new TestHandle<T>(ScriptableObject.CreateInstance<LevelDefinitionSO>() as T);
-                return System.Threading.Tasks.Task.FromResult(handle);
+                return handle;
             }
         }
 
@@ -209,6 +234,23 @@ namespace Madbox.Levels.Tests
             public T Asset { get; }
 
             public bool IsReleased { get; private set; }
+
+            public AssetHandleState State
+            {
+                get
+                {
+                    if (IsReleased)
+                    {
+                        return AssetHandleState.Released;
+                    }
+
+                    return AssetHandleState.Ready;
+                }
+            }
+
+            public bool IsReady => !IsReleased;
+
+            public System.Threading.Tasks.Task WhenReady => System.Threading.Tasks.Task.CompletedTask;
 
             public void Release()
             {

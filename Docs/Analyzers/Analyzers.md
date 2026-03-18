@@ -21,7 +21,7 @@
 |---|---|---|---|---|
 | `Scaffold.Analyzers.dll` | Analyzer distribution artifact | analyzer source + build pipeline | Roslyn diagnostics surfaced in IDE/build | missing artifact means no diagnostics in consumers |
 | `AnalyzerConfig` | Central config reader and descriptor override helper | `.editorconfig` values + analyzer options | effective rule descriptors/config values | invalid values fall back to defaults |
-| `SCA0001`-`SCA0030` descriptors | Rule contracts consumed by IDE/build tooling | C# syntax/semantic model | diagnostics with code fixes/remediation guidance | suppressed/disabled severities skip reporting |
+| `SCA0001`-`SCA0031` descriptors | Rule contracts consumed by IDE/build tooling | C# syntax/semantic model | diagnostics with code fixes/remediation guidance | suppressed/disabled severities skip reporting |
 
 ## Setup / Integration
 
@@ -189,7 +189,7 @@ When you see `SCAxxxx` in diagnostics:
 
 Active rule IDs in this repository:
 
-- `SCA0001`-`SCA0030` (SCA0027 + SCA0028 + SCA0029 + SCA0030 active)
+- `SCA0001`-`SCA0031` (SCA0027 + SCA0028 + SCA0029 + SCA0030 + SCA0031 active)
 
 ---
 ## Rules Reference
@@ -556,6 +556,7 @@ dotnet_diagnostic.SCA0026.severity = warning
 dotnet_diagnostic.SCA0028.severity = warning
 dotnet_diagnostic.SCA0029.severity = warning
 dotnet_diagnostic.SCA0030.severity = warning
+dotnet_diagnostic.SCA0031.severity = warning
 ```
 
 ---
@@ -1107,6 +1108,33 @@ public void Run()
 }
 
 private void NormalizeState() { }
+```
+
+---
+
+### SCA0031 - Runtime Code Must Not Use `#pragma warning disable`
+
+In `Runtime/` paths under `Assets/Scripts/`, `#pragma warning disable` is forbidden.
+This prevents silent suppression of compiler/analyzer diagnostics in production code.
+
+This rule skips:
+- files under `Tests/` and `Samples/`
+- generated/build paths (`obj/`, `bin/`, `*.g.cs`)
+
+```csharp
+// VIOLATION
+#pragma warning disable CS0168
+public sealed class Game
+{
+    public void Run() { }
+}
+#pragma warning restore CS0168
+
+// COMPLIANT (fix issue instead of suppression)
+public sealed class Game
+{
+    public void Run() { }
+}
 ```
 
 Valid severity values: `error`, `warning`, `suggestion`, `info`, `hidden`, `silent`, `none`.
