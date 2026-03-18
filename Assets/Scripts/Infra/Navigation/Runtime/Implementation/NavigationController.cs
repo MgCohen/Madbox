@@ -6,22 +6,24 @@ using System.Threading.Tasks;
 using System.Linq;
 using System.Collections.Generic;
 using System;
+using Madbox.Addressables.Contracts;
 using Scaffold.Navigation.Contracts;
 namespace Scaffold.Navigation
 {
     public class NavigationController : INavigation
     {
-        public NavigationController(IEventBus events, NavigationSettings settings, Transform viewHolder, IEnumerable<INavigationMiddleware> middlewares)
+        public NavigationController(IEventBus events, NavigationSettings settings, Transform viewHolder, IEnumerable<INavigationMiddleware> middlewares, IAddressablesGateway addressablesGateway)
         {
             if (events is null) { throw new System.ArgumentNullException(nameof(events)); }
             if (settings is null) { throw new System.ArgumentNullException(nameof(settings)); }
             if (viewHolder is null) { throw new System.ArgumentNullException(nameof(viewHolder)); }
             if (middlewares is null) { throw new System.ArgumentNullException(nameof(middlewares)); }
+            if (addressablesGateway is null) { throw new System.ArgumentNullException(nameof(addressablesGateway)); }
             this.settings = settings;
             this.viewHolder = viewHolder;
 
             stack = new NavigationStack();
-            provider = new NavigationProvider(settings, viewHolder);
+            provider = new NavigationProvider(settings, viewHolder, addressablesGateway);
             transitions = new NavigationTransitions(events);
             middleware = new NavigationMiddleware(middlewares);
         }
@@ -100,12 +102,11 @@ namespace Scaffold.Navigation
 
         private void ForceClosePoint(NavigationPoint point)
         {
-            point.View.Close();
-            if (!point.IsSceneView)
+            if (point?.View != null)
             {
-                GameObject.Destroy(point.View.gameObject);
-                point.Dispose();
+                point.View.Close();
             }
+            point.Dispose();
         }
 
         private void GoTo(NavigationPoint point, bool closeCurrent, NavigationOptions options)
@@ -144,7 +145,11 @@ namespace Scaffold.Navigation
             foreach (var oPoint in substack)
             {
                 stack.RemoveFromStack(oPoint);
-                oPoint.View.Close();
+                if (oPoint?.View != null)
+                {
+                    oPoint.View.Close();
+                }
+                oPoint.Dispose();
             }
         }
     }

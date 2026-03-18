@@ -1,32 +1,29 @@
 {
-    "name":  "Scaffold.Navigation.Tests",
-    "rootNamespace":  "Scaffold.Navigation.Tests",
-    "references":  [
-                       "Scaffold.Navigation",
-                       "UnityEngine.TestRunner",
-                       "UnityEditor.TestRunner",
-                       "Scaffold.Events",
-                       "Scaffold.Types",
-                       "Scaffold.Schemas"
-                   ],
-    "includePlatforms":  [
-                             "Editor"
-                         ],
-    "excludePlatforms":  [
-
-                         ],
-    "allowUnsafeCode":  false,
-    "overrideReferences":  true,
-    "precompiledReferences":  [
-                                  "nunit.framework.dll"
-                              ],
-    "autoReferenced":  false,
-    "defineConstraints":  [
-                              "UNITY_INCLUDE_TESTS"
-                          ],
-    "versionDefines":  [
-
-                       ],
-    "noEngineReferences":  false
+    "name": "Scaffold.Navigation.Tests",
+    "rootNamespace": "Scaffold.Navigation.Tests",
+    "references": [
+        "Scaffold.Navigation",
+        "Madbox.Addressables",
+        "Unity.Addressables",
+        "UnityEngine.TestRunner",
+        "UnityEditor.TestRunner",
+        "Scaffold.Events",
+        "Scaffold.Types",
+        "Scaffold.Schemas"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "nunit.framework.dll"
+    ],
+    "autoReferenced": false,
+    "defineConstraints": [
+        "UNITY_INCLUDE_TESTS"
+    ],
+    "versionDefines": [],
+    "noEngineReferences": false
 }
-

@@ -1,77 +1,140 @@
-﻿using UnityEngine;
-using Scaffold.Types;
-using Scaffold.Events.Contracts;
-using Scaffold.Events;
-using System.Threading.Tasks;
-using System.Linq;
-using System.Collections.Generic;
 using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using Madbox.Addressables.Contracts;
 using Scaffold.Navigation.Contracts;
+using UnityEngine;
+
 namespace Scaffold.Navigation
 {
-
     internal class NavigationProvider
     {
-        public NavigationProvider(NavigationSettings settings, Transform viewHolder)
+        public NavigationProvider(NavigationSettings settings, Transform viewHolder, IAddressablesGateway addressables)
         {
-            if (settings is null) { throw new ArgumentNullException(nameof(settings)); }
-            if (viewHolder is null) { throw new ArgumentNullException(nameof(viewHolder)); }
+            GuardConstructor(settings, viewHolder, addressables);
             this.settings = settings;
             this.viewHolder = viewHolder;
+            this.addressables = addressables;
+            instanceBuffer = new NavigationViewInstanceBuffer(viewHolder);
             FetchContextViews();
         }
 
-        private Transform viewHolder;
-        private NavigationSettings settings;
-        private Dictionary<Type, IView> contextViews = new Dictionary<Type, IView>();
+        private readonly Transform viewHolder;
+        private readonly NavigationSettings settings;
+        private readonly IAddressablesGateway addressables;
+        private readonly NavigationViewInstanceBuffer instanceBuffer;
+        private readonly Dictionary<Type, IView> contextViews = new Dictionary<Type, IView>();
+
+        public NavigationPoint GetNavigationPoint<TController>(TController controller, NavigationOptions options) where TController : IViewController
+        {
+            GuardController(controller);
+            ViewConfig config = settings.GetViewConfig(typeof(TController));
+            NavigationOptions resolved = ValidateNavigationOptions(options, config);
+            return GetNavigationPoint(config, controller, resolved);
+        }
+
+        private NavigationPoint GetNavigationPoint(ViewConfig config, IViewController controller, NavigationOptions options)
+        {
+            if (TryGetContextView(config.ViewType, out IView contextView))
+            {
+                return new NavigationPoint(contextView, controller, config, true, options);
+            }
+            return CreateAssetPoint(config, controller, options);
+        }
+
+        private NavigationPoint CreateAssetPoint(ViewConfig config, IViewController controller, NavigationOptions options)
+        {
+            if (instanceBuffer.TryTake(config, out IView cachedView))
+            {
+                return new NavigationPoint(cachedView, controller, config, false, options, ReturnToBuffer);
+            }
+            IAssetHandle<GameObject> handle = addressables.Load<GameObject>(config.Asset);
+            NavigationPoint point = new NavigationPoint(controller, config, false, options, disposedPoint =>
+            {
+                if (handle != null)
+                {
+                    handle.Release();
+                    handle = null;
+                }
+                ReturnToBuffer(disposedPoint);
+            });
+            _ = MaterializePointAsync(point, () => handle, () => handle = null);
+            return point;
+        }
+
+        private async Task MaterializePointAsync(NavigationPoint point, Func<IAssetHandle<GameObject>> getHandle, Action clearHandle)
+        {
+            try
+            {
+                IAssetHandle<GameObject> handle = getHandle();
+                if (point == null || point.Disposed || handle == null) { return; }
+                await handle.WhenReady;
+                handle = getHandle();
+                if (point.Disposed || handle == null) { return; }
+                GameObject instance = CreateInstance(handle);
+                IView view = ResolveView(instance);
+                point.CompleteReady(view);
+            }
+            catch (Exception exception)
+            {
+                point?.FailReady(exception);
+            }
+            finally
+            {
+                IAssetHandle<GameObject> handle = getHandle();
+                if (handle != null)
+                {
+                    handle.Release();
+                    clearHandle();
+                }
+            }
+        }
+
+
+        private GameObject CreateInstance(IAssetHandle<GameObject> prefabHandle)
+        {
+            return GameObject.Instantiate(prefabHandle.Asset, viewHolder);
+        }
+
+        private IView ResolveView(GameObject instance)
+        {
+            IView view = instance.GetComponent<IView>();
+            if (view == null) { return ThrowMissingView(instance); }
+            instance.SetActive(false);
+            return view;
+        }
+
+        private IView ThrowMissingView(GameObject instance)
+        {
+            UnityEngine.Object.Destroy(instance);
+            throw new InvalidOperationException($"Addressable view '{instance.name}' does not implement {nameof(IView)}.");
+        }
+
+        private void ReturnToBuffer(NavigationPoint point)
+        {
+            if (point == null || point.IsSceneView || point.View == null) { return; }
+            instanceBuffer.Return(point.Config, point.View);
+        }
 
         private void FetchContextViews()
         {
-            var views = viewHolder.GetComponentsInChildren<IView>(true);
-            foreach (var view in views)
+            IView[] views = viewHolder.GetComponentsInChildren<IView>(true);
+            foreach (IView view in views)
             {
                 contextViews[view.GetType()] = view;
                 view.gameObject.SetActive(false);
             }
         }
 
-        public NavigationPoint GetNavigationPoint<TController>(TController controller, NavigationOptions options) where TController : IViewController
-        {
-            ViewConfig config = settings.GetViewConfig(typeof(TController));
-            options = ValidateNavigationOptions(options, config);
-            return GetNavigationPoint(config, controller, options);
-        }
-
-        private NavigationPoint GetNavigationPoint(ViewConfig config, IViewController controller, NavigationOptions options)
-        {
-            if (TryGetContextView(config.ViewType, out IView view))
-            {
-                return new NavigationPoint(view, controller, config, true, options);
-            }
-            return GetAssetNavigationPoint(config, controller, options);
-        }
-
-        private NavigationPoint GetAssetNavigationPoint(ViewConfig config, IViewController controller, NavigationOptions options)
-        {
-            if (TryGetAssetScreen(config, out IView view))
-            {
-                return new NavigationPoint(view, controller, config, false, options);
-            }
-            return null;
-        }
-
         private NavigationOptions ValidateNavigationOptions(NavigationOptions options, ViewConfig config)
         {
-            if (options == null)
-            {
-                options = ResolveDefaultOptions(config);
-            }
-            return options;
+            if (options != null) { return options; }
+            return ResolveDefaultOptions(config);
         }
 
         private NavigationOptions ResolveDefaultOptions(ViewConfig config)
         {
-            if (config.TryGetSchema<NavigationOptionsSchema>(out var schema))
+            if (config.TryGetSchema<NavigationOptionsSchema>(out NavigationOptionsSchema schema))
             {
                 return schema.Options;
             }
@@ -80,7 +143,7 @@ namespace Scaffold.Navigation
 
         private bool TryGetContextView(Type screenType, out IView screen)
         {
-            if (screenType != null && contextViews.TryGetValue(screenType, out var screenInstance))
+            if (screenType != null && contextViews.TryGetValue(screenType, out IView screenInstance))
             {
                 screen = screenInstance;
                 return true;
@@ -89,14 +152,16 @@ namespace Scaffold.Navigation
             return false;
         }
 
-        private bool TryGetAssetScreen(ViewConfig config, out IView screen)
+        private void GuardController(IViewController controller)
         {
-            screen = GameObject.Instantiate(config.ViewAsset, viewHolder).GetComponent<IView>();
-            screen.gameObject.SetActive(false);
-            return screen != null;
+            if (controller == null) { throw new ArgumentNullException(nameof(controller)); }
         }
 
+        private void GuardConstructor(NavigationSettings settings, Transform viewHolder, IAddressablesGateway addressables)
+        {
+            if (settings == null) { throw new ArgumentNullException(nameof(settings)); }
+            if (viewHolder == null) { throw new ArgumentNullException(nameof(viewHolder)); }
+            if (addressables == null) { throw new ArgumentNullException(nameof(addressables)); }
+        }
     }
 }
-
-

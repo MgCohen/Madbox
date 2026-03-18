@@ -4,7 +4,7 @@
 
 - Purpose: manage view-controller navigation stack and transitions.
 - Location: `Assets/Scripts/Infra/Navigation/Runtime/` (boundary types under `Runtime/Contracts/`).
-- Depends on: `Scaffold.Events`, `Scaffold.Types`, `Scaffold.Records`, container abstractions.
+- Depends on: `Scaffold.Events`, `Scaffold.Types`, `Scaffold.Records`, `Madbox.Addressables`, container abstractions.
 - Used by: app screens and MVVM presentation flow.
 - Runtime/Editor: runtime + container integration.
 - Keywords: navigation stack, transitions, view config, middleware.
@@ -15,6 +15,7 @@
 - Owns view-controller stack behavior (`NavigationStack`, `NavigationPoint`).
 - Owns transition orchestration (`NavigationTransitions` and schemas).
 - Owns DI integration (`NavigationInstaller`, `NavigationInjection`).
+- Owns non-context view runtime loading via Addressables gateway, resident prefab-handle usage, and instance buffer/cache lifecycle.
 - Does not own app-specific business decisions or domain mutation logic.
 
 ## Public API
@@ -27,19 +28,20 @@
 | `IViewController` | Controller lifecycle contract | `Bind(INavigation)` etc. | bound controller behavior | n/a |
 | `IView` | View lifecycle contract | bind/open/hide/focus/close/order | runtime view behavior | state-specific operations may no-op |
 | `NavigationInstaller` | Registers navigation services | container registry | navigation runtime wiring | fails when required contracts are unavailable |
+| `ViewConfig.Asset` | Addressable prefab reference for non-context views | `AssetReference` | prefab load source | throws when missing at runtime |
 
 ## Setup / Integration
 
 1. Reference `Scaffold.Navigation` for contracts and implementation/container wiring.
-2. Configure `NavigationSettings` with controller/view mappings.
-3. Register `NavigationInstaller` in composition root.
+2. Configure `NavigationSettings` with controller/view mappings and `ViewConfig.Asset` references.
+3. Register `NavigationInstaller` in composition root (it does not own preload policy).
 4. Open controllers through `INavigation`.
 
 ## How to Use
 
 1. Implement controller type (`IViewController` or MVVM `ViewModel` descendant).
 2. Implement view type (`IView` or MVVM view base).
-3. Add `ViewConfig` mapping for controller/view.
+3. Add `ViewConfig` mapping for controller/view and assign addressable prefab reference.
 4. Open/close/return with `INavigation`.
 
 ## Behavior Contracts
@@ -55,7 +57,11 @@
 
 - `NavigationTransitions.DoTransition(from, to, closeCurrent)` enqueues transitions and executes them serially.
 - Default ordering is: close or hide `from` first, then open/focus `to`.
-- `ViewConfig` resolution uses `NavigationSettings` mapping and may reuse context views under `viewHolder` before asset instantiation.
+- `ViewConfig` resolution uses `NavigationSettings` mapping and may reuse context views under `viewHolder` before non-context view instantiation.
+- Non-context flow treats loaded addressable as prefab source, not persistent instance.
+- Prefab handles are loaded once per config and kept resident for navigation lifetime flow.
+- Closed non-context view instances are returned to an internal instance buffer/cache and reused on next open when available.
+- Transition processing waits for target point readiness before open/focus sequences run.
 - Schema handlers:
 - `TransitionViewSchema.Handler=Default` uses built-in close/hide/open flow.
 - `TransitionViewSchema.Handler=Code` calls `IViewTransitionHandler.DoTransition(...)`.
@@ -101,6 +107,8 @@ navigation.Return();
 ## Anti-Patterns
 
 - Instantiating and toggling views directly outside navigation.
+- Putting preload policy in navigation/container wiring.
+- Treating loaded prefab handle as live UI instance state.
 - Hiding navigation side effects in unrelated service layers.
 - Mixing domain business rules into transition handlers.
 
@@ -114,6 +122,7 @@ navigation.Return();
 ```
 
 - Expected: all tests pass with zero failures.
+- Addressable path coverage: tests verify context path no-load behavior, delayed readiness handling, and non-context view instance reuse from buffer/cache.
 - Bugfix rule: add/update regression test first, verify fail-before/fix/pass-after.
 
 ## AI Agent Context
@@ -123,7 +132,7 @@ navigation.Return();
   - transitions maintain close/hide/open ordering.
   - controller-to-view mapping resolves through `ViewConfig`.
 - Allowed Dependencies:
-  - `Scaffold.Events`, `Scaffold.Types`, `Scaffold.Records`, container abstractions.
+  - `Scaffold.Events`, `Scaffold.Types`, `Scaffold.Records`, `Madbox.Addressables`, container abstractions.
 - Forbidden Dependencies:
   - module-specific gameplay logic in navigation runtime.
 - Change Checklist:
@@ -148,3 +157,5 @@ navigation.Return();
 
 - 2026-03-16: Added constructor null-guard coverage and single-point `Return()` behavior verification.
 - 2026-03-17: Consolidated `Scaffold.Navigation.Contracts` + `Scaffold.Navigation.Runtime` into `Scaffold.Navigation` and moved boundary types to `Runtime/Contracts/`.
+- 2026-03-18: Migrated non-context view loading to `IAddressablesGateway`, added preload registration in installer, and documented handle-release lifecycle.
+- 2026-03-18: Refactored to remove navigation-owned preload registration, added resident prefab store + instance buffer/cache, and documented readiness-aware transition flow with unchanged `INavigation` API.
