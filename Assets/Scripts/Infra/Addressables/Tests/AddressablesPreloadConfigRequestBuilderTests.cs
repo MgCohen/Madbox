@@ -17,12 +17,12 @@ namespace Madbox.Addressables.Tests
         public void AppendRequests_WithAssetReference_BuildsKeyRequest()
         {
             AddressablesPreloadConfigEntry entry = CreateAssetEntry(typeof(TestAsset), "enemy/bee", PreloadMode.Normal);
-            AddressablesPreloadConfigWrapper wrapper = CreateWrapper(entry);
-            AssetKey wrapperKey = new AssetKey("config/preload/default");
+            AddressablesPreloadConfig config = CreateConfig(entry);
+            AssetKey configKey = new AssetKey("addressables/preload/config");
             List<AddressablesPreloadRequest> requests = new List<AddressablesPreloadRequest>();
 
             AddressablesPreloadConfigRequestBuilder builder = new AddressablesPreloadConfigRequestBuilder();
-            builder.AppendRequests(wrapper, wrapperKey, requests);
+            builder.AppendRequests(config, configKey, requests);
 
             Assert.AreEqual(1, requests.Count);
             Assert.AreEqual(typeof(TestAsset), requests[0].AssetType);
@@ -35,12 +35,12 @@ namespace Madbox.Addressables.Tests
         public void AppendRequests_WithLabelReference_BuildsCatalogRequest()
         {
             AddressablesPreloadConfigEntry entry = CreateLabelEntry(typeof(TestAsset), "enemy", PreloadMode.NeverDie);
-            AddressablesPreloadConfigWrapper wrapper = CreateWrapper(entry);
-            AssetKey wrapperKey = new AssetKey("config/preload/default");
+            AddressablesPreloadConfig config = CreateConfig(entry);
+            AssetKey configKey = new AssetKey("addressables/preload/config");
             List<AddressablesPreloadRequest> requests = new List<AddressablesPreloadRequest>();
 
             AddressablesPreloadConfigRequestBuilder builder = new AddressablesPreloadConfigRequestBuilder();
-            builder.AppendRequests(wrapper, wrapperKey, requests);
+            builder.AppendRequests(config, configKey, requests);
 
             Assert.AreEqual(1, requests.Count);
             Assert.AreEqual(typeof(TestAsset), requests[0].AssetType);
@@ -53,13 +53,13 @@ namespace Madbox.Addressables.Tests
         public void AppendRequests_WhenAssetTypeIsInvalid_ThrowsInvalidOperationException()
         {
             AddressablesPreloadConfigEntry entry = CreateAssetEntry(typeof(string), "enemy/bee", PreloadMode.Normal);
-            AddressablesPreloadConfigWrapper wrapper = CreateWrapper(entry);
-            AssetKey wrapperKey = new AssetKey("config/preload/default");
+            AddressablesPreloadConfig config = CreateConfig(entry);
+            AssetKey configKey = new AssetKey("addressables/preload/config");
             List<AddressablesPreloadRequest> requests = new List<AddressablesPreloadRequest>();
 
             AddressablesPreloadConfigRequestBuilder builder = new AddressablesPreloadConfigRequestBuilder();
 
-            Assert.Throws<InvalidOperationException>(() => builder.AppendRequests(wrapper, wrapperKey, requests));
+            Assert.Throws<InvalidOperationException>(() => builder.AppendRequests(config, configKey, requests));
         }
 
         [Test]
@@ -71,20 +71,20 @@ namespace Madbox.Addressables.Tests
             SetField(entry, "assetReference", null);
             SetField(entry, "labelReference", new AssetLabelReference { labelString = "enemy" });
             SetField(entry, "mode", PreloadMode.Normal);
-            AddressablesPreloadConfigWrapper wrapper = CreateWrapper(entry);
-            AssetKey wrapperKey = new AssetKey("config/preload/default");
+            AddressablesPreloadConfig config = CreateConfig(entry);
+            AssetKey configKey = new AssetKey("addressables/preload/config");
             List<AddressablesPreloadRequest> requests = new List<AddressablesPreloadRequest>();
 
             AddressablesPreloadConfigRequestBuilder builder = new AddressablesPreloadConfigRequestBuilder();
 
-            Assert.Throws<InvalidOperationException>(() => builder.AppendRequests(wrapper, wrapperKey, requests));
+            Assert.Throws<InvalidOperationException>(() => builder.AppendRequests(config, configKey, requests));
         }
 
-        private AddressablesPreloadConfigWrapper CreateWrapper(AddressablesPreloadConfigEntry entry)
+        private AddressablesPreloadConfig CreateConfig(AddressablesPreloadConfigEntry entry)
         {
-            AddressablesPreloadConfigWrapper wrapper = ScriptableObject.CreateInstance<AddressablesPreloadConfigWrapper>();
-            SetField(wrapper, "entries", new List<AddressablesPreloadConfigEntry> { entry });
-            return wrapper;
+            AddressablesPreloadConfig config = ScriptableObject.CreateInstance<AddressablesPreloadConfig>();
+            SetField(config, "entries", new List<AddressablesPreloadConfigEntry> { entry });
+            return config;
         }
 
         private AddressablesPreloadConfigEntry CreateAssetEntry(Type type, string key, PreloadMode mode)

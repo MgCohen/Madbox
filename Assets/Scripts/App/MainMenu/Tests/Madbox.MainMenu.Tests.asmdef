@@ -6,7 +6,6 @@
         "Madbox.Gold",
         "Scaffold.MVVM.View",
         "Scaffold.MVVM.ViewModel",
-        "Scaffold.MVVM.Model",
         "Scaffold.MVVM.Base",
         "Scaffold.Navigation"
     ],

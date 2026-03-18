@@ -43,7 +43,7 @@ namespace Madbox.Addressables.Tests
         public void InitializeAsync_NormalPreload_FirstConsumerReceivesPreloadedOwner()
         {
             TestAddressableAssetClient client = CreateClient();
-            ConfigureAssetPreloadWrapper(client, EnemyBeeKey(), PreloadMode.Normal);
+            ConfigureAssetPreloadConfig(client, EnemyBeeKey(), PreloadMode.Normal);
             AddressablesGateway gateway = CreateGateway(client);
 
             InitializeGateway(gateway);
@@ -59,7 +59,7 @@ namespace Madbox.Addressables.Tests
         public void InitializeAsync_NeverDiePreload_KeepsGatewayOwnedReference()
         {
             TestAddressableAssetClient client = CreateClient();
-            ConfigureAssetPreloadWrapper(client, EnemyBeeKey(), PreloadMode.NeverDie);
+            ConfigureAssetPreloadConfig(client, EnemyBeeKey(), PreloadMode.NeverDie);
             AddressablesGateway gateway = CreateGateway(client);
 
             InitializeGateway(gateway);
@@ -73,7 +73,7 @@ namespace Madbox.Addressables.Tests
         {
             TestAddressableAssetClient client = CreateClient();
             client.ThrowOnSync = true;
-            ConfigureAssetPreloadWrapper(client, EnemyBeeKey(), PreloadMode.Normal);
+            ConfigureAssetPreloadConfig(client, EnemyBeeKey(), PreloadMode.Normal);
             AddressablesGateway gateway = CreateGateway(client);
 
             InitializeGateway(gateway);
@@ -85,7 +85,7 @@ namespace Madbox.Addressables.Tests
         public void InitializeAsync_CalledTwice_RunsStartupOnlyOnce()
         {
             TestAddressableAssetClient client = CreateClient();
-            ConfigureAssetPreloadWrapper(client, EnemyBeeKey(), PreloadMode.Normal);
+            ConfigureAssetPreloadConfig(client, EnemyBeeKey(), PreloadMode.Normal);
             AddressablesGateway gateway = CreateGateway(client);
 
             InitializeGateway(gateway);
@@ -100,7 +100,7 @@ namespace Madbox.Addressables.Tests
             TestAddressableAssetClient client = CreateClient();
             AddressablesPreloadConfigEntry first = CreateAssetEntry(typeof(TestAsset), "enemy/bee", PreloadMode.Normal);
             AddressablesPreloadConfigEntry second = CreateAssetEntry(typeof(TestAsset), "enemy/bee", PreloadMode.Normal);
-            ConfigurePreloadWrapper(client, new[] { first, second });
+            ConfigurePreloadConfig(client, new[] { first, second });
             AddressablesGateway gateway = CreateGateway(client);
 
             InitializeGateway(gateway);
@@ -115,7 +115,7 @@ namespace Madbox.Addressables.Tests
             TestAddressableAssetClient client = CreateClient();
             ConfigureEnemyCatalog(client);
             AddressablesPreloadConfigEntry entry = CreateLabelEntry(typeof(TestAsset), "enemy", PreloadMode.Normal);
-            ConfigurePreloadWrapper(client, new[] { entry });
+            ConfigurePreloadConfig(client, new[] { entry });
             AddressablesGateway gateway = CreateGateway(client);
 
             InitializeGateway(gateway);
@@ -131,23 +131,19 @@ namespace Madbox.Addressables.Tests
         {
             TestAddressableAssetClient client = CreateClient();
             AddressablesPreloadConfigEntry invalid = CreateAssetEntry(typeof(string), "enemy/bee", PreloadMode.Normal);
-            ConfigurePreloadWrapper(client, new[] { invalid });
+            ConfigurePreloadConfig(client, new[] { invalid });
             AddressablesGateway gateway = CreateGateway(client);
 
             Assert.Throws<InvalidOperationException>(() => InitializeGateway(gateway));
         }
 
         [Test]
-        public void InitializeAsync_MultipleWrappersWithOneInvalid_ThrowsBeforePreloadApply()
+        public void InitializeAsync_MixedEntriesWithOneInvalid_ThrowsBeforePreloadApply()
         {
             TestAddressableAssetClient client = CreateClient();
-            AddressablesPreloadConfigWrapper validWrapper = CreateWrapper(new[] { CreateAssetEntry(typeof(TestAsset), "enemy/bee", PreloadMode.Normal) });
-            AddressablesPreloadConfigWrapper invalidWrapper = CreateWrapper(new[] { CreateAssetEntry(typeof(string), "enemy/slime", PreloadMode.Normal) });
-            ConfigurePreloadBootstrap(client, new Dictionary<string, AddressablesPreloadConfigWrapper>
-            {
-                ["config/preload/valid"] = validWrapper,
-                ["config/preload/invalid"] = invalidWrapper
-            });
+            AddressablesPreloadConfigEntry valid = CreateAssetEntry(typeof(TestAsset), "enemy/bee", PreloadMode.Normal);
+            AddressablesPreloadConfigEntry invalid = CreateAssetEntry(typeof(string), "enemy/slime", PreloadMode.Normal);
+            ConfigurePreloadConfig(client, new[] { valid, invalid });
             AddressablesGateway gateway = CreateGateway(client);
 
             Assert.Throws<InvalidOperationException>(() => InitializeGateway(gateway));
@@ -257,8 +253,9 @@ namespace Madbox.Addressables.Tests
         {
             RecordingGateway gateway = new RecordingGateway();
             TestAddressableAssetClient client = CreateClient();
-            AddressablesPreloadBootstrapConfig bootstrapConfig = ScriptableObject.CreateInstance<AddressablesPreloadBootstrapConfig>();
-            client.ObjectAssets[AddressablesPreloadConstants.BootstrapConfigAssetKey] = bootstrapConfig;
+            AddressablesPreloadConfig config = ScriptableObject.CreateInstance<AddressablesPreloadConfig>();
+            SetField(config, "entries", new List<AddressablesPreloadConfigEntry>());
+            client.ObjectAssets[AddressablesPreloadConstants.BootstrapConfigAssetKey] = config;
             AddressablesLayerInitializer initializer = new AddressablesLayerInitializer(gateway, client);
             NoopInitializationContext context = new NoopInitializationContext();
 
@@ -296,40 +293,23 @@ namespace Madbox.Addressables.Tests
             gateway.InitializeAsync(CancellationToken.None).GetAwaiter().GetResult();
         }
 
-        private void ConfigureAssetPreloadWrapper(TestAddressableAssetClient client, AssetKey key, PreloadMode mode)
+        private void ConfigureAssetPreloadConfig(TestAddressableAssetClient client, AssetKey key, PreloadMode mode)
         {
             AddressablesPreloadConfigEntry entry = CreateAssetEntry(typeof(TestAsset), key.Value, mode);
-            ConfigurePreloadWrapper(client, new[] { entry });
+            ConfigurePreloadConfig(client, new[] { entry });
         }
 
-        private void ConfigurePreloadWrapper(TestAddressableAssetClient client, IReadOnlyList<AddressablesPreloadConfigEntry> entries)
+        private void ConfigurePreloadConfig(TestAddressableAssetClient client, IReadOnlyList<AddressablesPreloadConfigEntry> entries)
         {
-            AddressablesPreloadConfigWrapper wrapper = CreateWrapper(entries);
-            ConfigurePreloadBootstrap(client, new Dictionary<string, AddressablesPreloadConfigWrapper>
-            {
-                ["config/preload/default"] = wrapper
-            });
+            AddressablesPreloadConfig config = CreatePreloadConfig(entries);
+            client.ObjectAssets[AddressablesPreloadConstants.BootstrapConfigAssetKey] = config;
         }
 
-        private AddressablesPreloadConfigWrapper CreateWrapper(IReadOnlyList<AddressablesPreloadConfigEntry> entries)
+        private AddressablesPreloadConfig CreatePreloadConfig(IReadOnlyList<AddressablesPreloadConfigEntry> entries)
         {
-            AddressablesPreloadConfigWrapper wrapper = ScriptableObject.CreateInstance<AddressablesPreloadConfigWrapper>();
-            SetField(wrapper, "entries", new List<AddressablesPreloadConfigEntry>(entries));
-            return wrapper;
-        }
-
-        private void ConfigurePreloadBootstrap(TestAddressableAssetClient client, IReadOnlyDictionary<string, AddressablesPreloadConfigWrapper> wrappersByKey)
-        {
-            AddressablesPreloadBootstrapConfig bootstrapConfig = ScriptableObject.CreateInstance<AddressablesPreloadBootstrapConfig>();
-            List<AssetReferenceT<AddressablesPreloadConfigWrapper>> wrapperRefs = new List<AssetReferenceT<AddressablesPreloadConfigWrapper>>();
-            foreach (KeyValuePair<string, AddressablesPreloadConfigWrapper> pair in wrappersByKey)
-            {
-                client.ObjectAssets[pair.Key] = pair.Value;
-                wrapperRefs.Add(new AssetReferenceT<AddressablesPreloadConfigWrapper>(pair.Key));
-            }
-
-            SetField(bootstrapConfig, "wrappers", wrapperRefs);
-            client.ObjectAssets[AddressablesPreloadConstants.BootstrapConfigAssetKey] = bootstrapConfig;
+            AddressablesPreloadConfig config = ScriptableObject.CreateInstance<AddressablesPreloadConfig>();
+            SetField(config, "entries", new List<AddressablesPreloadConfigEntry>(entries));
+            return config;
         }
 
         private AddressablesPreloadConfigEntry CreateAssetEntry(Type assetType, string key, PreloadMode mode)

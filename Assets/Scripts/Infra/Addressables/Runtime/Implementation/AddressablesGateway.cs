@@ -16,7 +16,8 @@ namespace Madbox.Addressables
             this.client = client;
             leaseStore = new AddressablesLeaseStore(client);
             AddressablesPreloadConfigRequestBuilder builder = new AddressablesPreloadConfigRequestBuilder();
-            startupCoordinator = new AddressablesStartupCoordinator(client, leaseStore, builder);
+            AddressablesPreloadRequestProvider requestProvider = new AddressablesPreloadRequestProvider(client, builder);
+            startupCoordinator = new AddressablesStartupCoordinator(client, leaseStore, requestProvider);
         }
 
         private readonly IAddressablesAssetClient client;

@@ -1,4 +1,5 @@
 using CommunityToolkit.Mvvm.ComponentModel;
+using Madbox.Gold;
 using Madbox.Gold.Contracts;
 using Scaffold.MVVM;
 using VContainer;
@@ -7,10 +8,10 @@ namespace Madbox.App.MainMenu
 {
     public partial class MainMenuViewModel : ViewModel
     {
-        [ObservableProperty] private MainMenuModel model = new MainMenuModel();
         [ObservableProperty] private int gold;
 
         private IGoldService goldService;
+        private GoldWallet wallet = new GoldWallet();
 
         [Inject] public void Construct(IGoldService goldService)
         {
@@ -23,8 +24,7 @@ namespace Madbox.App.MainMenu
 
         protected override void Initialize()
         {
-            Bind(() => Model.Gold, () => Gold);
-            Gold = Model.Gold;
+            Gold = wallet.CurrentGold;
         }
 
         public void AddOneGold()
@@ -56,7 +56,8 @@ namespace Madbox.App.MainMenu
 
         private void SyncGold(int value)
         {
-            Model.Gold = value;
+            wallet = new GoldWallet(value);
+            Gold = wallet.CurrentGold;
         }
     }
 }

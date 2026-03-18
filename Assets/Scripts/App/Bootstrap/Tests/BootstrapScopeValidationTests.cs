@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Reflection;
 using NUnit.Framework;
 using UnityEngine;
@@ -8,37 +8,42 @@ namespace Madbox.App.Bootstrap.Tests
     public sealed class BootstrapScopeValidationTests
     {
         [Test]
-        public void ValidateSerializedFields_Throws_WhenNavigationSettingsMissing()
+        public void BuildLayerInstallers_Throws_WhenNavigationSettingsMissing()
         {
             using ScopeHarness harness = CreateScopeHarness();
             ConfigureScope(harness.Scope, includeNavigationSettings: false, includeViewHolder: true);
-            Exception exception = CaptureValidationException(harness.Scope);
-            AssertExpectedException(exception);
+            Exception exception = CaptureBuildLayerInstallersException(harness.Scope);
+            Assert.IsNotNull(exception);
+            Assert.IsInstanceOf<ArgumentNullException>(exception);
+            Assert.AreEqual("navigationSettings", ((ArgumentNullException)exception).ParamName);
         }
 
         [Test]
-        public void ValidateSerializedFields_Throws_WhenViewHolderMissing()
+        public void BuildLayerInstallers_Throws_WhenViewHolderMissing()
         {
             using ScopeHarness harness = CreateScopeHarness();
             ConfigureScope(harness.Scope, includeNavigationSettings: true, includeViewHolder: false);
-            Exception exception = CaptureValidationException(harness.Scope);
+            Exception exception = CaptureBuildLayerInstallersException(harness.Scope);
             Assert.IsNotNull(exception);
-            Assert.IsInstanceOf<InvalidOperationException>(exception);
-            Assert.AreEqual("BootstrapScope requires a view holder Transform.", exception.Message);
+            Assert.IsInstanceOf<ArgumentNullException>(exception);
+            Assert.AreEqual("viewHolder", ((ArgumentNullException)exception).ParamName);
         }
 
         [Test]
-        public void ValidateSerializedFields_DoesNotThrow_WhenSerializedFieldsPresent()
+        public void BuildLayerInstallers_ReturnsAssetAndInfraInstallers_WhenSerializedFieldsPresent()
         {
             using ScopeHarness harness = CreateScopeHarness();
             ConfigureScope(harness.Scope, includeNavigationSettings: true, includeViewHolder: true);
-            Exception exception = CaptureValidationException(harness.Scope);
-            Assert.IsNull(exception);
+            object result = InvokeBuildLayerInstallers(harness.Scope);
+            Assert.IsNotNull(result);
+            var installers = result as System.Collections.ICollection;
+            Assert.IsNotNull(installers);
+            Assert.AreEqual(2, installers.Count);
         }
 
         private ScopeHarness CreateScopeHarness()
         {
-            GameObject root = new GameObject(nameof(ValidateSerializedFields_Throws_WhenNavigationSettingsMissing));
+            GameObject root = new GameObject(nameof(BuildLayerInstallers_Throws_WhenNavigationSettingsMissing));
             Component scope = AddBootstrapScope(root);
             return new ScopeHarness(root, scope);
         }
@@ -58,11 +63,23 @@ namespace Madbox.App.Bootstrap.Tests
             return type;
         }
 
-        private Exception CaptureValidationException(Component scope)
+        private Exception CaptureBuildLayerInstallersException(Component scope)
         {
-            Type scopeType = scope.GetType();
-            MethodInfo method = ResolveValidationMethod(scopeType);
-            return InvokeValidation(scope, method);
+            return InvokeBuildLayerInstallersSafely(scope);
+        }
+
+        private Exception InvokeBuildLayerInstallersSafely(Component scope)
+        {
+            try { InvokeBuildLayerInstallers(scope); return null; }
+            catch (TargetInvocationException exception) { return exception.InnerException; }
+        }
+
+        private object InvokeBuildLayerInstallers(Component scope)
+        {
+            BindingFlags flags = BindingFlags.Instance | BindingFlags.NonPublic;
+            MethodInfo method = scope.GetType().GetMethod("BuildLayerInstallers", flags);
+            Assert.IsNotNull(method);
+            return method.Invoke(scope, null);
         }
 
         private void ConfigureScope(Component scope, bool includeNavigationSettings, bool includeViewHolder)
@@ -93,27 +110,6 @@ namespace Madbox.App.Bootstrap.Tests
             FieldInfo field = scope.GetType().GetField(fieldName, flags);
             Assert.IsNotNull(field, $"Expected private field '{fieldName}' on {scope.GetType().Name}.");
             field.SetValue(scope, value);
-        }
-
-        private Exception InvokeValidation(Component scope, MethodInfo method)
-        {
-            try { method.Invoke(scope, null); return null; }
-            catch (TargetInvocationException exception) { return exception.InnerException; }
-        }
-
-        private MethodInfo ResolveValidationMethod(Type scopeType)
-        {
-            BindingFlags flags = BindingFlags.Instance | BindingFlags.NonPublic;
-            MethodInfo method = scopeType.GetMethod("ValidateSerializedFields", flags);
-            Assert.IsNotNull(method);
-            return method;
-        }
-
-        private void AssertExpectedException(Exception exception)
-        {
-            Assert.IsNotNull(exception);
-            Assert.IsInstanceOf<InvalidOperationException>(exception);
-            Assert.AreEqual("BootstrapScope requires NavigationSettings.", exception.Message);
         }
 
         private sealed class ScopeHarness : IDisposable

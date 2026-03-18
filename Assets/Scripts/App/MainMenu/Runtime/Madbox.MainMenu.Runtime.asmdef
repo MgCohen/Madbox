@@ -4,7 +4,6 @@
     "references": [
         "Scaffold.MVVM.View",
         "Scaffold.MVVM.ViewModel",
-        "Scaffold.MVVM.Model",
         "Scaffold.MVVM.Base",
         "Scaffold.Navigation",
         "Madbox.Gold",

@@ -1,4 +1,4 @@
-# Scaffold Infra Addressables
+﻿# Scaffold Infra Addressables
 
 ## TL;DR
 - Purpose: central Addressables gateway with strict handle ownership and explicit preload policies.
@@ -12,7 +12,7 @@
 - Owns stable contracts: `IAddressablesGateway`, `IAssetHandle<T>`, and `IAssetGroupHandle<T>`.
 - Owns startup sync + preload orchestration through `AddressablesStartupCoordinator`.
 - Owns reference-counted runtime ownership through `AddressablesLeaseStore`.
-- Owns preload bootstrap-file discovery and conversion (`AddressablesPreloadBootstrapConfig`, `AddressablesPreloadConfigWrapper`, `AddressablesPreloadConfigEntry`) and `PreloadMode` semantics.
+- Owns preload config discovery and conversion (`AddressablesPreloadConfig`, `AddressablesPreloadConfigEntry`) and `PreloadMode` semantics.
 - Owns bootstrap startup adapter `AddressablesLayerInitializer : IAsyncLayerInitializable`.
 - Does not own feature-specific cache policy (for example, custom enemy cache dictionaries).
 - Does not expose raw `UnityEngine.AddressableAssets.Addressables` calls to feature modules.
@@ -36,7 +36,7 @@
    `Madbox.Addressables` for runtime consumers, and `Madbox.Addressables.Container` for composition roots.
 2. Register `AddressablesInstaller` inside bootstrap asset install flow (asset layer before infra).
 3. Ensure `ScopeInitializer` executes `IAsyncLayerInitializable` so `AddressablesLayerInitializer` runs.
-4. Author one `AddressablesPreloadBootstrapConfig` asset and mark it addressable with key `addressables/preload/config`.
+4. Author one `AddressablesPreloadConfig` asset and mark it addressable with key `addressables/preload/config`.
 
 Quick checks:
 1. `Bootstrap` scene reaches `IsBootstrapCompleted == true`.
@@ -44,7 +44,7 @@ Quick checks:
 3. Label loads return typed group handles and one-call release is available.
 
 Common setup mistakes:
-1. Missing bootstrap preload config asset key `addressables/preload/config`.
+1. Missing preload config asset key `addressables/preload/config`.
 2. Forgetting to release handles (or label group handle) after use.
 3. Calling Unity `Addressables` APIs directly from feature services.
 
@@ -53,7 +53,7 @@ Common setup mistakes:
 2. For one asset, call `LoadAsync<T>(key/reference)`.
 3. For typed label loads, call `LoadAsync<T>(label)` and keep the returned `IAssetGroupHandle<T>`.
 4. For grouped lifecycle, release the group once when batch ownership ends.
-5. Author preloads through one bootstrap config file referencing wrapper assets, with correct `PreloadMode`.
+5. Author preload entries directly in one preload config asset, with correct `PreloadMode`.
 
 ## Examples
 ### Minimal
@@ -139,16 +139,8 @@ globals.Release();
 
 ### Preload Configuration
 ```csharp
-[CreateAssetMenu(menuName = "Madbox/Addressables/Preload Bootstrap Config", fileName = "AddressablesPreloadBootstrapConfig")]
-public class AddressablesPreloadBootstrapConfig : ScriptableObject
-{
-    [SerializeField] private List<AssetReferenceT<AddressablesPreloadConfigWrapper>> wrappers = new();
-}
-```
-
-```csharp
 [CreateAssetMenu(menuName = "Madbox/Addressables/Preload Config", fileName = "AddressablesPreloadConfig")]
-public class AddressablesPreloadConfigWrapper : ScriptableObject
+public class AddressablesPreloadConfig : ScriptableObject
 {
     [SerializeField] private List<AddressablesPreloadConfigEntry> entries = new List<AddressablesPreloadConfigEntry>();
     public IReadOnlyList<AddressablesPreloadConfigEntry> Entries => entries;
@@ -169,19 +161,29 @@ public class AddressablesPreloadConfigEntry
 
 ```text
 Flow:
-1) Create one bootstrap preload config and mark it addressable with key "addressables/preload/config".
-2) Add wrapper references to that bootstrap config asset.
-2) Startup runs AddressablesLayerInitializer -> IAddressablesGateway.InitializeAsync.
-3) Startup coordinator loads bootstrap config by key and then loads referenced wrappers.
-4) Wrapper entries are converted to preload requests and applied through lease store.
-5) Preloaded assets are delegated to child scopes as singleton instances.
+1) Create one preload config asset and mark it addressable with key "addressables/preload/config".
+2) Add preload entries directly to that config asset.
+3) Startup runs AddressablesLayerInitializer -> IAddressablesGateway.InitializeAsync.
+4) Startup loaders read that config by key and convert entries to preload requests.
+5) Requests are applied through lease store and used for child-scope registrations.
+6) Preloaded assets are delegated to child scopes as singleton instances.
 ```
 
+Preload setup (step-by-step):
+1. Create `Assets/Data/Preload/AddressablesPreloadConfig.asset` from `Madbox/Addressables/Preload Config`.
+2. Open `Assets/AddressableAssetsData/AssetGroups/Preload.asset` and ensure the preload config asset is an entry with address `addressables/preload/config`.
+3. In each `entries` item, set:
+   - `assetType` to the runtime Unity object type to preload.
+   - `referenceType` to `AssetReference` or `LabelReference`.
+   - `assetReference` when `referenceType` is `AssetReference`.
+   - `labelReference` when `referenceType` is `LabelReference`.
+   - `mode` to `Normal` (handoff) or `NeverDie` (resident).
+4. Run bootstrap and check logs. Missing config key or invalid entries will emit warnings/exceptions identifying the failing entry.
 ## Best Practices
 - Treat each `IAssetHandle<T>` as one owner and release exactly once.
 - Prefer label loads through `LoadAsync<T>(label)` when you naturally own a batch lifecycle.
 - Use `group.TypedHandles` for typed access to loaded assets.
-- Keep preload authoring centralized in wrapper assets and avoid per-feature preload registration code.
+- Keep preload authoring centralized in one preload config asset and avoid per-feature preload registration code.
 - Keep bootstrap preload discovery deterministic through one root config file.
 - Use `PreloadMode.Normal` for handoff-first-use assets.
 - Use `PreloadMode.NeverDie` only for always-resident startup-critical assets.
@@ -191,8 +193,8 @@ Flow:
 ## Anti-Patterns
 - Calling Unity `Addressables` static methods directly from gameplay/feature modules.
 - Holding feature-local preload dictionaries in services (duplicate policy ownership).
-- Registering preload entries manually in DI installers when wrapper flow already covers the same assets.
-- Using multiple dynamic discovery labels for startup preload when one bootstrap preload file already exists.
+- Registering preload entries manually in DI installers when the preload config already covers the same assets.
+- Using multiple dynamic discovery labels for startup preload when one preload config file already exists.
 - Mixing unrelated asset families under one label and expecting one typed call to return all types.
 - Releasing through ad-hoc global utility instead of ownership handles.
 - Ignoring handle release (or group release), causing retained references and hidden memory pressure.
@@ -230,7 +232,7 @@ Migration guidance:
   - Presentation/UI contracts in Addressables runtime boundaries.
 - Change Checklist:
   - Verify same-key shared load and final-owner release.
-  - Verify wrapper-driven preload behavior for `Normal` and `NeverDie`.
+  - Verify config-driven preload behavior for `Normal` and `NeverDie`.
   - Verify group release releases all child handles once.
   - Verify bootstrap PlayMode E2E still resolves gateway and loads an addressable.
   - Verify analyzer diagnostics remain clean.
@@ -247,9 +249,8 @@ Migration guidance:
 - `Assets/Scripts/Infra/Addressables/Runtime/Contracts/IAddressablesGateway.cs`
 - `Assets/Scripts/Infra/Addressables/Runtime/Contracts/IAssetHandle.cs`
 - `Assets/Scripts/Infra/Addressables/Runtime/Contracts/IAssetGroupHandle.cs`
-- `Assets/Scripts/Infra/Addressables/Runtime/Implementation/AddressablesPreloadConfigWrapper.cs`
+- `Assets/Scripts/Infra/Addressables/Runtime/Implementation/AddressablesPreloadConfig.cs`
 - `Assets/Scripts/Infra/Addressables/Runtime/Implementation/AddressablesPreloadConfigEntry.cs`
-- `Assets/Scripts/Infra/Addressables/Runtime/Implementation/AddressablesPreloadBootstrapConfig.cs`
 - `Assets/Scripts/Infra/Scope/Runtime/Contracts/IAsyncLayerInitializable.cs`
 
 ## Changelog
@@ -257,5 +258,7 @@ Migration guidance:
 - 2026-03-18: Documented startup/gateway-thinning collaborators and Unity-native reference APIs.
 - 2026-03-18: Added typed preload-only guidance and bootstrap-driven PlayMode E2E coverage notes.
 - 2026-03-18: Added `IAssetGroupHandle<T>` and unified label-loading usage via `LoadAsync<T>(label)`, plus real use-case snippets for enemy and navigation flows.
-- 2026-03-18: Replaced public preload registry flow with startup-discovered preload wrapper assets (`addressables-preload-config`) and config-entry authoring model.
-- 2026-03-18: Moved startup preload discovery to one bootstrap config file (`addressables/preload/config`), added deferred handle API docs, and documented child-scope preload instance delegation.
+- 2026-03-18: Replaced public preload registry flow with startup-discovered preload config entries and config-entry authoring model.
+- 2026-03-18: Moved startup preload discovery to one config asset key (`addressables/preload/config`), added deferred handle API docs, and documented child-scope preload instance delegation.
+
+

@@ -5,7 +5,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Madbox.Addressables.Contracts;
 using Madbox.Scope.Contracts;
-using UnityEngine.AddressableAssets;
 using VContainer;
 #pragma warning disable SCA0006
 
@@ -18,12 +17,13 @@ namespace Madbox.Addressables
             GuardConstructor(gateway, client);
             this.gateway = gateway;
             this.client = client;
-            requestBuilder = new AddressablesPreloadConfigRequestBuilder();
+            AddressablesPreloadConfigRequestBuilder requestBuilder = new AddressablesPreloadConfigRequestBuilder();
+            requestProvider = new AddressablesPreloadRequestProvider(client, requestBuilder);
         }
 
         private readonly IAddressablesGateway gateway;
         private readonly IAddressablesAssetClient client;
-        private readonly AddressablesPreloadConfigRequestBuilder requestBuilder;
+        private readonly AddressablesPreloadRequestProvider requestProvider;
         private readonly List<IAssetHandle> startupHandles = new List<IAssetHandle>();
         private static readonly MethodInfo loadByKeyMethod = CreateLoadByKeyMethod();
 
@@ -36,49 +36,8 @@ namespace Madbox.Addressables
         private async Task InitializeAndRegisterAsync(ILayerInitializationContext context, CancellationToken cancellationToken)
         {
             await gateway.InitializeAsync(cancellationToken);
-            IReadOnlyList<AddressablesPreloadRequest> requests = await LoadPreloadRequestsAsync(cancellationToken);
+            IReadOnlyList<AddressablesPreloadRequest> requests = await requestProvider.LoadRequestsAsync(cancellationToken, "Skipping child preload injection.");
             await RegisterPreloadedAssetsAsync(requests, context, cancellationToken);
-        }
-
-        private async Task<IReadOnlyList<AddressablesPreloadRequest>> LoadPreloadRequestsAsync(CancellationToken cancellationToken)
-        {
-            AssetKey configKey = new AssetKey(AddressablesPreloadConstants.BootstrapConfigAssetKey);
-            AddressablesPreloadBootstrapConfig config = await TryLoadBootstrapConfigAsync(configKey, cancellationToken);
-            if (config == null) { return Array.Empty<AddressablesPreloadRequest>(); }
-            try
-            {
-                List<AddressablesPreloadRequest> requests = new List<AddressablesPreloadRequest>();
-                IReadOnlyList<AssetReferenceT<AddressablesPreloadConfigWrapper>> wrappers = config.Wrappers;
-                for (int i = 0; i < wrappers.Count; i++)
-                {
-                    string keyValue = wrappers[i]?.RuntimeKey?.ToString();
-                    if (string.IsNullOrWhiteSpace(keyValue))
-                    {
-                        throw new InvalidOperationException($"Invalid preload bootstrap config '{configKey.Value}' at wrapper index {i}. Wrapper reference has no runtime key.");
-                    }
-
-                    AssetKey wrapperKey = new AssetKey(keyValue);
-                    AddressablesPreloadConfigWrapper wrapper = await client.LoadAssetAsync<AddressablesPreloadConfigWrapper>(wrapperKey, cancellationToken);
-                    try { requestBuilder.AppendRequests(wrapper, wrapperKey, requests); }
-                    finally { client.Release(wrapper); }
-                }
-
-                return requests;
-            }
-            finally
-            {
-                client.Release(config);
-            }
-        }
-
-        private async Task<AddressablesPreloadBootstrapConfig> TryLoadBootstrapConfigAsync(AssetKey configKey, CancellationToken cancellationToken)
-        {
-            try { return await client.LoadAssetAsync<AddressablesPreloadBootstrapConfig>(configKey, cancellationToken); }
-            catch (Exception exception) when (exception is not OperationCanceledException)
-            {
-                UnityEngine.Debug.LogWarning($"Addressables preload bootstrap config '{configKey.Value}' was not found or failed to load. Skipping child preload injection. {exception.GetType().Name}: {exception.Message}");
-                return null;
-            }
         }
 
         private async Task RegisterPreloadedAssetsAsync(IReadOnlyList<AddressablesPreloadRequest> requests, ILayerInitializationContext context, CancellationToken cancellationToken)
