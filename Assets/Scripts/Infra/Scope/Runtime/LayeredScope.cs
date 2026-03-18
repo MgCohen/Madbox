@@ -91,12 +91,12 @@ namespace Madbox.Scope
 
         private LifetimeScope CreateLayerScope(LifetimeScope parentScope, ILayerInstaller installer)
         {
-            return parentScope.CreateChild(builder => InstallLayer(builder, installer));
+            return parentScope.CreateChild(builder => InstallLayer(builder, installer, parentScope.Container));
         }
 
-        private void InstallLayer(IContainerBuilder builder, ILayerInstaller installer)
+        private void InstallLayer(IContainerBuilder builder, ILayerInstaller installer, IObjectResolver parentResolver)
         {
-            scopeInitializer.ApplyDelegatedChildRegistrations(builder);
+            scopeInitializer.ApplyDelegatedChildRegistrations(builder, parentResolver);
             installer.Install(builder);
         }
 

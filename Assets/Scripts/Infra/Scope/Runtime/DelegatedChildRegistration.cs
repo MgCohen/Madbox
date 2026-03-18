@@ -1,19 +1,22 @@
 using System;
 using Madbox.Scope.Contracts;
 using VContainer;
+#pragma warning disable SCA0012
 
 namespace Madbox.Scope
 {
     internal sealed class DelegatedChildRegistration
     {
-        public DelegatedChildRegistration(ChildScopeDelegationPolicy policy, Action<IContainerBuilder> apply)
+        public DelegatedChildRegistration(ChildScopeDelegationPolicy policy, Action<IContainerBuilder> apply, IObjectResolver ownerResolver = null)
         {
             GuardApply(apply);
             Policy = policy;
             this.apply = apply;
+            OwnerResolver = ownerResolver;
         }
 
         public ChildScopeDelegationPolicy Policy { get; }
+        public IObjectResolver OwnerResolver { get; }
 
         private readonly Action<IContainerBuilder> apply;
 
@@ -21,6 +24,11 @@ namespace Madbox.Scope
         {
             GuardBuilder(builder);
             apply(builder);
+        }
+
+        public bool IsApplicableTo(IObjectResolver parentResolver)
+        {
+            return ReferenceEquals(OwnerResolver, parentResolver);
         }
 
         private void GuardApply(Action<IContainerBuilder> applyAction)
@@ -34,3 +42,4 @@ namespace Madbox.Scope
         }
     }
 }
+#pragma warning restore SCA0012

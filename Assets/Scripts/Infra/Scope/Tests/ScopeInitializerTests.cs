@@ -6,6 +6,7 @@ using Madbox.Scope;
 using Madbox.Scope.Contracts;
 using NUnit.Framework;
 using VContainer;
+#pragma warning disable SCA0006
 
 namespace Madbox.Scope.Tests
 {
@@ -63,11 +64,27 @@ namespace Madbox.Scope.Tests
             ScopeInitializer runner = new ScopeInitializer();
             DelegatingInitializer initializer = new DelegatingInitializer(ChildScopeDelegationPolicy.AllDescendants);
             IAsyncLayerInitializable[] initializers = { initializer };
-            runner.InitializeInitializersAsync(initializers, null, CancellationToken.None).GetAwaiter().GetResult();
-            Marker first = ResolveMarkerFromAppliedRegistrations(runner);
-            Marker second = ResolveMarkerFromAppliedRegistrations(runner);
+            IObjectResolver parent = CreateResolver();
+            runner.InitializeInitializersAsync(initializers, parent, CancellationToken.None).GetAwaiter().GetResult();
+            Marker first = ResolveMarkerFromAppliedRegistrations(runner, parent);
+            Marker second = ResolveMarkerFromAppliedRegistrations(runner, parent);
             Assert.AreSame(initializer.Marker, first);
             Assert.AreSame(initializer.Marker, second);
+        }
+
+        [Test]
+        public void ApplyDelegatedChildRegistrations_AllDescendants_DoesNotApplyToDifferentParentResolver()
+        {
+            ScopeInitializer runner = new ScopeInitializer();
+            DelegatingInitializer initializer = new DelegatingInitializer(ChildScopeDelegationPolicy.AllDescendants);
+            IObjectResolver parent = CreateResolver();
+            IObjectResolver otherParent = CreateResolver();
+            IAsyncLayerInitializable[] initializers = { initializer };
+            runner.InitializeInitializersAsync(initializers, parent, CancellationToken.None).GetAwaiter().GetResult();
+
+            Marker first = ResolveMarkerFromAppliedRegistrations(runner, parent);
+            Assert.AreSame(initializer.Marker, first);
+            AssertNoMarkerFromAppliedRegistrations(runner, otherParent);
         }
 
         [Test]
@@ -112,12 +129,34 @@ namespace Madbox.Scope.Tests
             return resolver.Resolve<Marker>();
         }
 
+        private Marker ResolveMarkerFromAppliedRegistrations(ScopeInitializer runner, IObjectResolver parentResolver)
+        {
+            ContainerBuilder builder = new ContainerBuilder();
+            runner.ApplyDelegatedChildRegistrations(builder, parentResolver);
+            IObjectResolver resolver = builder.Build();
+            return resolver.Resolve<Marker>();
+        }
+
+        private void AssertNoMarkerFromAppliedRegistrations(ScopeInitializer runner, IObjectResolver parentResolver)
+        {
+            ContainerBuilder builder = new ContainerBuilder();
+            runner.ApplyDelegatedChildRegistrations(builder, parentResolver);
+            IObjectResolver resolver = builder.Build();
+            Assert.Throws<VContainerException>(() => resolver.Resolve<Marker>());
+        }
+
         private void AssertSecondApplyDoesNotResolve(ScopeInitializer runner)
         {
             ContainerBuilder builder = new ContainerBuilder();
             runner.ApplyDelegatedChildRegistrations(builder);
             IObjectResolver resolver = builder.Build();
             Assert.Throws<VContainerException>(() => resolver.Resolve<Marker>());
+        }
+
+        private IObjectResolver CreateResolver()
+        {
+            ContainerBuilder builder = new ContainerBuilder();
+            return builder.Build();
         }
 
         private sealed class FlagInitializer : IAsyncLayerInitializable
@@ -206,3 +245,4 @@ namespace Madbox.Scope.Tests
         }
     }
 }
+#pragma warning restore SCA0006

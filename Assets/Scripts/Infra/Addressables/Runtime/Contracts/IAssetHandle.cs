@@ -1,4 +1,5 @@
 using System;
+using System.Threading.Tasks;
 using UnityEngine;
 
 namespace Madbox.Addressables.Contracts
@@ -9,6 +10,9 @@ namespace Madbox.Addressables.Contracts
         Type AssetType { get; }
         UnityEngine.Object UntypedAsset { get; }
         bool IsReleased { get; }
+        AssetHandleState State { get; }
+        bool IsReady { get; }
+        Task WhenReady { get; }
         void Release();
     }
 

@@ -20,7 +20,11 @@ namespace Madbox.App.Bootstrap
 
         protected override IReadOnlyList<ILayerInstaller> BuildLayerInstallers()
         {
-            return new ILayerInstaller[] { new BootstrapInfraInstaller(navigationSettings, viewHolder) };
+            return new ILayerInstaller[]
+            {
+                new BootstrapAssetInstaller(),
+                new BootstrapInfraInstaller(navigationSettings, viewHolder)
+            };
         }
 
         protected override void OnBootstrapCompleted(LifetimeScope finalScope)

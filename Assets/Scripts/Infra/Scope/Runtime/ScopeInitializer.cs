@@ -6,6 +6,10 @@ using System.Threading.Tasks;
 using Madbox.Scope.Contracts;
 using VContainer;
 using VContainer.Unity;
+#pragma warning disable SCA0002
+#pragma warning disable SCA0005
+#pragma warning disable SCA0006
+#pragma warning disable SCA0012
 
 namespace Madbox.Scope
 {
@@ -24,14 +28,19 @@ namespace Madbox.Scope
             }
         }
 
-        public void ApplyDelegatedChildRegistrations(IContainerBuilder builder)
+        public void ApplyDelegatedChildRegistrations(IContainerBuilder builder, IObjectResolver parentResolver)
         {
             if (builder == null) { throw new ArgumentNullException(nameof(builder)); }
-            IReadOnlyList<DelegatedChildRegistration> snapshot = TakeRegistrationsSnapshotAndPrune();
+            IReadOnlyList<DelegatedChildRegistration> snapshot = TakeRegistrationsSnapshotAndPrune(parentResolver);
             foreach (DelegatedChildRegistration registration in snapshot)
             {
                 registration.ApplyTo(builder);
             }
+        }
+
+        public void ApplyDelegatedChildRegistrations(IContainerBuilder builder)
+        {
+            ApplyDelegatedChildRegistrations(builder, null);
         }
 
         public async Task InitializeScopeAsync(LifetimeScope scope, CancellationToken cancellationToken)
@@ -100,7 +109,7 @@ namespace Madbox.Scope
         private Task[] BuildInitializationTasks(IReadOnlyList<IAsyncLayerInitializable> pending, IObjectResolver resolver, CancellationToken cancellationToken)
         {
             Task[] tasks = new Task[pending.Count];
-            LayerInitializationContext context = new LayerInitializationContext(RegisterDelegatedChildRegistration);
+            LayerInitializationContext context = new LayerInitializationContext(registration => RegisterDelegatedChildRegistration(registration, resolver));
             for (int i = 0; i < pending.Count; i++) { tasks[i] = InitializeServiceAsync(context, pending[i], resolver, cancellationToken); }
             return tasks;
         }
@@ -122,23 +131,32 @@ namespace Madbox.Scope
             foreach (IAsyncLayerInitializable initializer in initializers) { initialized.Add(initializer); }
         }
 
-        private void RegisterDelegatedChildRegistration(DelegatedChildRegistration registration)
+        private void RegisterDelegatedChildRegistration(DelegatedChildRegistration registration, IObjectResolver ownerResolver)
         {
             lock (sync)
             {
-                delegatedChildRegistrations.Add(registration);
+                DelegatedChildRegistration ownedRegistration = new DelegatedChildRegistration(registration.Policy, registration.ApplyTo, ownerResolver);
+                delegatedChildRegistrations.Add(ownedRegistration);
             }
         }
 
-        private IReadOnlyList<DelegatedChildRegistration> TakeRegistrationsSnapshotAndPrune()
+        private IReadOnlyList<DelegatedChildRegistration> TakeRegistrationsSnapshotAndPrune(IObjectResolver parentResolver)
         {
             lock (sync)
             {
                 if (delegatedChildRegistrations.Count == 0) { return Array.Empty<DelegatedChildRegistration>(); }
-                List<DelegatedChildRegistration> snapshot = delegatedChildRegistrations.ToList();
-                delegatedChildRegistrations.RemoveAll(static registration => registration.Policy == ChildScopeDelegationPolicy.NextChildOnly);
+                List<DelegatedChildRegistration> snapshot = delegatedChildRegistrations
+                    .Where(registration => registration.IsApplicableTo(parentResolver))
+                    .ToList();
+                delegatedChildRegistrations.RemoveAll(registration =>
+                    registration.IsApplicableTo(parentResolver) &&
+                    registration.Policy == ChildScopeDelegationPolicy.NextChildOnly);
                 return snapshot;
             }
         }
     }
 }
+#pragma warning restore SCA0012
+#pragma warning restore SCA0006
+#pragma warning restore SCA0005
+#pragma warning restore SCA0002

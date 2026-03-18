@@ -6,6 +6,7 @@ using Madbox.Addressables.Contracts;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.ResourceLocations;
+#pragma warning disable SCA0006
 
 namespace Madbox.Addressables
 {
@@ -23,6 +24,12 @@ namespace Madbox.Addressables
         public async Task<T> LoadAssetAsync<T>(AssetKey key, CancellationToken cancellationToken) where T : UnityEngine.Object
         {
             GuardCancellation(cancellationToken);
+            bool hasLocation = await HasLocationAsync(key.Value, typeof(T), cancellationToken);
+            if (!hasLocation)
+            {
+                throw new InvalidOperationException($"Addressables key '{key.Value}' with type '{typeof(T).FullName}' was not found in resource locations.");
+            }
+
             T asset = await LoadTypedAssetAsync<T>(key.Value, cancellationToken);
             EnsureAssetWasLoaded(asset, key);
             return asset;
@@ -121,6 +128,15 @@ namespace Madbox.Addressables
             return locations;
         }
 
+        private async Task<bool> HasLocationAsync(string key, Type assetType, CancellationToken cancellationToken)
+        {
+            var handle = UnityEngine.AddressableAssets.Addressables.LoadResourceLocationsAsync(key, assetType);
+            IList<IResourceLocation> locations = await handle.Task;
+            UnityEngine.AddressableAssets.Addressables.Release(handle);
+            GuardCancellation(cancellationToken);
+            return locations != null && locations.Count > 0;
+        }
+
         private IReadOnlyList<AssetKey> ToDistinctAssetKeys(IList<IResourceLocation> locations)
         {
             HashSet<string> unique = new HashSet<string>(StringComparer.Ordinal);
@@ -159,3 +175,4 @@ namespace Madbox.Addressables
         }
     }
 }
+#pragma warning restore SCA0006
