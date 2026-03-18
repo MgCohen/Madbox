@@ -15,11 +15,11 @@ This plan keeps `INavigation` API unchanged. Transition orchestration remains th
 - [x] (2026-03-18 14:55Z) Authored initial ExecPlan and executed first migration pass (Addressables integration + tests + clean quality gate).
 - [x] (2026-03-18 16:07Z) Completed first migration pass with clean `.agents/scripts/validate-changes.cmd`.
 - [x] (2026-03-18 16:20Z) Re-scoped plan to cache/residency model based on review feedback: remove navigation preload registration, keep startup-driven config load policy external, add runtime instance cache, keep `INavigation` unchanged.
-- [ ] Execute Milestone 1: Remove preload registration logic from Navigation module and keep runtime focused on load/cache/transition behavior only.
-- [ ] Execute Milestone 2: Add prefab-handle residency service for non-context `ViewConfig` entries (load once, never release during app lifetime).
-- [ ] Execute Milestone 3: Add view instance buffer/cache (instance lifecycle policy independent from prefab handle residency).
-- [ ] Execute Milestone 4: Implement low-impact open pipeline where transitions wait for point readiness without adding new public navigation API.
-- [ ] Execute Milestone 5: Expand tests/docs and run `.agents/scripts/validate-changes.cmd` until clean.
+- [x] (2026-03-18 16:35Z) Execute Milestone 1: Removed preload registration logic from `NavigationInstaller` and reverted container asmdef dependencies to navigation-only wiring scope.
+- [x] (2026-03-18 16:48Z) Execute Milestone 2: Added `NavigationPrefabStore` resident handle service and warmed all valid navigation asset references at provider startup.
+- [x] (2026-03-18 16:54Z) Execute Milestone 3: Added `NavigationViewInstanceBuffer` and wired non-context point disposal to return instances to buffer (with bounded cache size policy).
+- [x] (2026-03-18 17:03Z) Execute Milestone 4: Updated `NavigationPoint` readiness model and `NavigationTransitions` processing to await target readiness before opening transitions.
+- [x] (2026-03-18 17:15Z) Execute Milestone 5: Expanded tests/docs and passed `.agents/scripts/validate-changes.cmd` with clean gate (`TOTAL:0`).
 
 ## Surprises & Discoveries
 
@@ -28,6 +28,12 @@ This plan keeps `INavigation` API unchanged. Transition orchestration remains th
 
 - Observation: Current implementation ties successful sync open to preload assumptions, which is brittle when preload policy ownership is moved outside Navigation.
   Evidence: current provider behavior expects completed load path before point creation.
+
+- Observation: `NavigationController` depth assignment occurs before transition execution, so point depth logic must tolerate pre-ready state.
+  Evidence: without deferred depth application in `NavigationPoint`, pending point creation throws before transition queue can await readiness.
+
+- Observation: introducing delayed load behavior in tests is deterministic only when load completion is manually controlled.
+  Evidence: replacing time-based delay assertions with held-load release in fake gateway removed flaky timing behavior and stabilized readiness tests.
 
 ## Decision Log
 
@@ -53,14 +59,24 @@ This plan keeps `INavigation` API unchanged. Transition orchestration remains th
 
 ## Outcomes & Retrospective
 
-First migration pass is complete and validated. This revised plan defines the second pass focused on ownership cleanup and runtime performance semantics.
+Second-pass refactor completed. Navigation now separates concerns cleanly:
 
-Expected end state for this pass:
+- No preload registration logic in Navigation container wiring.
+- Resident prefab handle loading is owned by runtime provider via `NavigationPrefabStore`.
+- Non-context view instances are cached/reused by `NavigationViewInstanceBuffer` and returned on point disposal.
+- Transition queue waits for target point readiness before open/focus flow.
+- `INavigation` public API remained unchanged.
 
-- Navigation has no preload registration logic.
-- Startup process (outside navigation controllers) loads required `ViewConfig` prefab handles and keeps them resident.
-- Navigation runtime uses a view instance cache for reuse and deterministic release policy.
-- Transition flow waits for point readiness when load is pending, without changing `INavigation` interface.
+Validation evidence:
+
+- `run-editmode-tests.ps1 -AssemblyNames "Scaffold.Navigation.Tests"`: PASS (16/16).
+- `run-editmode-tests.ps1 -AssemblyNames "Madbox.Addressables.Tests"`: PASS (17/17).
+- `.agents/scripts/validate-changes.cmd`: PASS
+  - scripts asmdef audit PASS
+  - compilation PASS
+  - EditMode PASS (153/153)
+  - PlayMode PASS (2/2)
+  - analyzers PASS (`TOTAL:0`)
 
 ## Context and Orientation
 
@@ -177,3 +193,4 @@ Non-goals:
 Revision Note (2026-03-18 / Codex): Created initial ExecPlan for migrating Navigation to Addressables.
 Revision Note (2026-03-18 / Codex): Executed first migration pass with clean quality gate.
 Revision Note (2026-03-18 / Codex): Re-scoped to second-pass refactor for preload decoupling, prefab residency, instance cache, and readiness-aware transitions without API changes.
+Revision Note (2026-03-18 / Codex): Executed second-pass refactor end-to-end, updated docs/tests, and validated clean full quality gate.

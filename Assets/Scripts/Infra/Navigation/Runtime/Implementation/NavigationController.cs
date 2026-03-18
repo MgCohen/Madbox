@@ -103,21 +103,7 @@ namespace Scaffold.Navigation
         private void ForceClosePoint(NavigationPoint point)
         {
             point.View.Close();
-            if (!point.IsSceneView)
-            {
-                DestroyViewObject(point.View.gameObject);
-                point.Dispose();
-            }
-        }
-
-        private void DestroyViewObject(GameObject viewObject)
-        {
-            if (Application.isPlaying)
-            {
-                GameObject.Destroy(viewObject);
-                return;
-            }
-            GameObject.DestroyImmediate(viewObject);
+            point.Dispose();
         }
 
         private void GoTo(NavigationPoint point, bool closeCurrent, NavigationOptions options)
@@ -157,6 +143,7 @@ namespace Scaffold.Navigation
             {
                 stack.RemoveFromStack(oPoint);
                 oPoint.View.Close();
+                oPoint.Dispose();
             }
         }
     }

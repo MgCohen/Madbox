@@ -145,13 +145,27 @@ namespace Scaffold.Navigation.Tests
         }
 
         [Test]
-        public void Close_WhenClosingNonCurrentAddressablePoint_ReleasesHandle()
+        public void Open_AddressableView_ReusesBufferedInstance_WithoutAdditionalLoads()
         {
             using AssetNavigationFixture fixture = CreateAssetNavigationFixture();
+            GameObject firstInstance = OpenAssetAndCaptureInstance(fixture);
+            int firstLoadCount = fixture.Gateway.AssetReferenceLoadCalls;
+            ReopenAssetViaContext(fixture);
+            GameObject secondInstance = CaptureCurrentInstance(fixture.Navigation);
+            AssertLoadCountUnchanged(firstLoadCount, fixture);
+            Assert.AreSame(firstInstance, secondInstance);
+        }
+
+        [Test]
+        public void Open_AddressableView_WithDelayedLoad_BecomesReadyWithoutApiChanges()
+        {
+            using AssetNavigationFixture fixture = CreateAssetNavigationFixture(0, true);
             fixture.Navigation.Open(fixture.AssetController);
-            fixture.Navigation.Open(fixture.ContextController);
-            fixture.Navigation.Close(fixture.AssetController);
-            Assert.AreEqual(1, fixture.Gateway.LastIssuedHandle.ReleaseCalls);
+            Assert.IsNull(fixture.Navigation.CurrentPoint.View);
+            fixture.Gateway.ReleaseHeldLoads();
+            WaitUntilReady(fixture.Navigation, 5000);
+            Assert.Greater(fixture.Gateway.AssetReferenceLoadCalls, 0);
+            Assert.IsNotNull(fixture.Navigation.CurrentPoint.View);
         }
 
         private NavigationFixture CreateNavigationFixture()
@@ -171,15 +185,15 @@ namespace Scaffold.Navigation.Tests
             return CreateNavigationFixture();
         }
 
-        private AssetNavigationFixture CreateAssetNavigationFixture()
+        private AssetNavigationFixture CreateAssetNavigationFixture(int loadDelayMs = 0, bool holdLoads = false)
         {
             GameObject assetPrefab = BuildAssetPrefab();
-            AssetReference assetReference = new AssetReference("00000000000000000000000000000000");
+            AssetReference assetReference = new AssetReference("44b03c24ec1888b45b3fec2bd00ef1cf");
             AssetFixtureState state = BuildAssetFixtureState(assetReference);
+            ConfigureGateway(state.Gateway, loadDelayMs, holdLoads);
             NavigationSettings settings = BuildAssetNavigationSettings(assetReference, out ViewConfig assetConfig, out ViewConfig contextConfig);
             state.Gateway.RegisterPrefab(assetReference, assetPrefab);
-            NavigationController navigation = BuildNavigation(settings, state.Holder.transform, state.Gateway);
-            return new AssetNavigationFixture(state.Holder, settings, navigation, assetConfig, contextConfig, state.ContextObject, assetPrefab, state.Gateway);
+            return CreateAssetFixture(state, settings, assetConfig, contextConfig, assetPrefab);
         }
 
         private GameObject BuildAssetPrefab()
@@ -292,6 +306,90 @@ namespace Scaffold.Navigation.Tests
             point.SetDepth(30, options);
             Canvas canvas = fixture.ViewObject.GetComponent<Canvas>();
             Assert.AreEqual(RenderMode.ScreenSpaceOverlay, canvas.renderMode);
+        }
+
+        private void WaitUntilReady(NavigationController navigation, int timeoutMs)
+        {
+            DateTime start = DateTime.UtcNow;
+            while (!IsReady(navigation))
+            {
+                EnsureNotTimedOut(navigation, timeoutMs, start);
+                WaitBriefly();
+            }
+        }
+
+        private bool IsReady(NavigationController navigation)
+        {
+            NavigationPoint point = navigation.CurrentPoint;
+            return point != null && point.View != null;
+        }
+
+        private void EnsureNotTimedOut(NavigationController navigation, int timeoutMs, DateTime start)
+        {
+            double elapsed = (DateTime.UtcNow - start).TotalMilliseconds;
+            if (elapsed <= timeoutMs) { return; }
+            string message = ResolvePointTimeoutMessage(navigation);
+            Assert.Fail(message);
+        }
+
+        private void WaitBriefly()
+        {
+            System.Threading.Thread.Sleep(10);
+        }
+
+        private string ResolvePointTimeoutMessage(NavigationController navigation)
+        {
+            NavigationPoint point = navigation.CurrentPoint;
+            if (point == null) { return "Navigation point did not become ready in time (point is null)."; }
+            Task task = ResolvePointReadyTask(point);
+            if (task == null) { return "Navigation point did not become ready in time (ready task missing)."; }
+            if (!task.IsFaulted) { return "Navigation point did not become ready in time."; }
+            Exception error = task.Exception?.GetBaseException();
+            return $"Navigation point failed to become ready: {error?.GetType().Name}: {error?.Message}";
+        }
+
+        private Task ResolvePointReadyTask(NavigationPoint point)
+        {
+            BindingFlags flags = BindingFlags.Instance | BindingFlags.NonPublic;
+            FieldInfo field = typeof(NavigationPoint).GetField("readyTask", flags);
+            return field?.GetValue(point) as Task;
+        }
+
+        private void ConfigureGateway(FakeAddressablesGateway gateway, int loadDelayMs, bool holdLoads)
+        {
+            gateway.SetLoadDelayMilliseconds(loadDelayMs);
+            gateway.SetHoldLoads(holdLoads);
+        }
+
+        private AssetNavigationFixture CreateAssetFixture(AssetFixtureState state, NavigationSettings settings, ViewConfig assetConfig, ViewConfig contextConfig, GameObject assetPrefab)
+        {
+            NavigationController navigation = BuildNavigation(settings, state.Holder.transform, state.Gateway);
+            return new AssetNavigationFixture(state.Holder, settings, navigation, assetConfig, contextConfig, state.ContextObject, assetPrefab, state.Gateway);
+        }
+
+        private GameObject OpenAssetAndCaptureInstance(AssetNavigationFixture fixture)
+        {
+            fixture.Navigation.Open(fixture.AssetController);
+            WaitUntilReady(fixture.Navigation, 1000);
+            return CaptureCurrentInstance(fixture.Navigation);
+        }
+
+        private void ReopenAssetViaContext(AssetNavigationFixture fixture)
+        {
+            fixture.Navigation.Open(fixture.ContextController);
+            fixture.Navigation.Close(fixture.AssetController);
+            fixture.Navigation.Open(fixture.AssetController);
+            WaitUntilReady(fixture.Navigation, 1000);
+        }
+
+        private GameObject CaptureCurrentInstance(NavigationController navigation)
+        {
+            return navigation.CurrentPoint.View.gameObject;
+        }
+
+        private void AssertLoadCountUnchanged(int expected, AssetNavigationFixture fixture)
+        {
+            Assert.AreEqual(expected, fixture.Gateway.AssetReferenceLoadCalls);
         }
 
         private void ApplyFieldValue(object target, string fieldName, object value)
@@ -476,6 +574,9 @@ namespace Scaffold.Navigation.Tests
             public int AssetReferenceLoadCalls { get; private set; }
             public FakeAssetHandle LastIssuedHandle { get; private set; }
             private readonly Dictionary<string, GameObject> prefabs = new Dictionary<string, GameObject>();
+            private readonly List<Action> pendingLoadCompletions = new List<Action>();
+            private int loadDelayMilliseconds;
+            private bool holdLoads;
 
             public Task InitializeAsync(CancellationToken cancellationToken = default)
             {
@@ -494,12 +595,7 @@ namespace Scaffold.Navigation.Tests
 
             public Task<IAssetHandle<T>> LoadAsync<T>(AssetReference reference, CancellationToken cancellationToken = default) where T : UnityEngine.Object
             {
-                AssetReferenceLoadCalls++;
-                GameObject prefab = ResolvePrefab(reference);
-                FakeAssetHandle handle = new FakeAssetHandle(prefab);
-                LastIssuedHandle = handle;
-                IAssetHandle<T> typed = CastHandle<T>(handle);
-                return Task.FromResult(typed);
+                return LoadReferenceAsync<T>(reference, cancellationToken);
             }
 
             public Task<IAssetHandle<T>> LoadAsync<T>(AssetReferenceT<T> reference, CancellationToken cancellationToken = default) where T : UnityEngine.Object
@@ -511,6 +607,51 @@ namespace Scaffold.Navigation.Tests
             {
                 string key = reference.RuntimeKey.ToString();
                 prefabs[key] = prefab;
+            }
+
+            public void SetLoadDelayMilliseconds(int value)
+            {
+                loadDelayMilliseconds = Math.Max(0, value);
+            }
+
+            public void SetHoldLoads(bool value)
+            {
+                holdLoads = value;
+            }
+
+            public void ReleaseHeldLoads()
+            {
+                holdLoads = false;
+                foreach (Action complete in pendingLoadCompletions)
+                {
+                    complete();
+                }
+                pendingLoadCompletions.Clear();
+            }
+
+            private async Task<IAssetHandle<T>> LoadReferenceAsync<T>(AssetReference reference, CancellationToken cancellationToken) where T : UnityEngine.Object
+            {
+                AssetReferenceLoadCalls++;
+                await DelayIfNeeded(cancellationToken);
+                GameObject prefab = ResolvePrefab(reference);
+                FakeAssetHandle handle = new FakeAssetHandle(prefab);
+                LastIssuedHandle = handle;
+                IAssetHandle<T> typed = CastHandle<T>(handle);
+                return await HoldIfNeeded(typed);
+            }
+
+            private async Task DelayIfNeeded(CancellationToken cancellationToken)
+            {
+                if (loadDelayMilliseconds <= 0) { return; }
+                await Task.Delay(loadDelayMilliseconds, cancellationToken);
+            }
+
+            private async Task<IAssetHandle<T>> HoldIfNeeded<T>(IAssetHandle<T> typed) where T : UnityEngine.Object
+            {
+                if (!holdLoads) { return typed; }
+                TaskCompletionSource<IAssetHandle<T>> tcs = new TaskCompletionSource<IAssetHandle<T>>();
+                pendingLoadCompletions.Add(() => tcs.TrySetResult(typed));
+                return await tcs.Task;
             }
 
             private GameObject ResolvePrefab(AssetReference reference)

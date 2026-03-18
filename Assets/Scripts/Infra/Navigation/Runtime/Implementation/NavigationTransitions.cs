@@ -49,10 +49,17 @@ namespace Scaffold.Navigation
             var transition = pendingTransitions.Dequeue();
             if (transition != null)
             {
+                await EnsureTargetPointReady(transition);
                 SetupTransitionSequences(transition);
                 await ExecuteTransition(transition);
                 TransitionFinished?.Invoke(transition);
             }
+        }
+
+        private async Task EnsureTargetPointReady(ViewTransitionData transition)
+        {
+            if (transition?.To == null) { return; }
+            await transition.To.EnsureReadyAsync();
         }
 
         private void GuardTransitionRequest(NavigationPoint from, NavigationPoint to)
@@ -229,15 +236,7 @@ namespace Scaffold.Navigation
                 return;
             }
             point.View.Close();
-            DestroyIfNotSceneView(point);
-        }
-
-        private void DestroyIfNotSceneView(NavigationPoint point)
-        {
-            if (!point.IsSceneView)
-            {
-                GameObject.Destroy(point.View.gameObject);
-            }
+            point.Dispose();
         }
 
         private void Hide(NavigationPoint point, NavigationPoint to)

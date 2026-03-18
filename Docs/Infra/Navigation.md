@@ -15,7 +15,7 @@
 - Owns view-controller stack behavior (`NavigationStack`, `NavigationPoint`).
 - Owns transition orchestration (`NavigationTransitions` and schemas).
 - Owns DI integration (`NavigationInstaller`, `NavigationInjection`).
-- Owns addressable view preload registration and handle-aware view lifecycle for non-context views.
+- Owns non-context view runtime loading via Addressables gateway, resident prefab-handle usage, and instance buffer/cache lifecycle.
 - Does not own app-specific business decisions or domain mutation logic.
 
 ## Public API
@@ -34,7 +34,7 @@
 
 1. Reference `Scaffold.Navigation` for contracts and implementation/container wiring.
 2. Configure `NavigationSettings` with controller/view mappings and `ViewConfig.Asset` references.
-3. Register `NavigationInstaller` in composition root after `AddressablesInstaller`.
+3. Register `NavigationInstaller` in composition root (it does not own preload policy).
 4. Open controllers through `INavigation`.
 
 ## How to Use
@@ -57,8 +57,11 @@
 
 - `NavigationTransitions.DoTransition(from, to, closeCurrent)` enqueues transitions and executes them serially.
 - Default ordering is: close or hide `from` first, then open/focus `to`.
-- `ViewConfig` resolution uses `NavigationSettings` mapping and may reuse context views under `viewHolder` before addressable view instantiation.
-- Non-context views are loaded via `IAddressablesGateway`, instantiated from the loaded prefab, and the returned handle is released when the point is disposed/closed.
+- `ViewConfig` resolution uses `NavigationSettings` mapping and may reuse context views under `viewHolder` before non-context view instantiation.
+- Non-context flow treats loaded addressable as prefab source, not persistent instance.
+- Prefab handles are loaded once per config and kept resident for navigation lifetime flow.
+- Closed non-context view instances are returned to an internal instance buffer/cache and reused on next open when available.
+- Transition processing waits for target point readiness before open/focus sequences run.
 - Schema handlers:
 - `TransitionViewSchema.Handler=Default` uses built-in close/hide/open flow.
 - `TransitionViewSchema.Handler=Code` calls `IViewTransitionHandler.DoTransition(...)`.
@@ -104,7 +107,8 @@ navigation.Return();
 ## Anti-Patterns
 
 - Instantiating and toggling views directly outside navigation.
-- Bypassing addressables preloads for non-context views (this causes open-time runtime exceptions).
+- Putting preload policy in navigation/container wiring.
+- Treating loaded prefab handle as live UI instance state.
 - Hiding navigation side effects in unrelated service layers.
 - Mixing domain business rules into transition handlers.
 
@@ -118,7 +122,7 @@ navigation.Return();
 ```
 
 - Expected: all tests pass with zero failures.
-- Addressable path coverage: tests verify context view path does not call gateway and non-current addressable close releases handle ownership.
+- Addressable path coverage: tests verify context path no-load behavior, delayed readiness handling, and non-context view instance reuse from buffer/cache.
 - Bugfix rule: add/update regression test first, verify fail-before/fix/pass-after.
 
 ## AI Agent Context
@@ -154,3 +158,4 @@ navigation.Return();
 - 2026-03-16: Added constructor null-guard coverage and single-point `Return()` behavior verification.
 - 2026-03-17: Consolidated `Scaffold.Navigation.Contracts` + `Scaffold.Navigation.Runtime` into `Scaffold.Navigation` and moved boundary types to `Runtime/Contracts/`.
 - 2026-03-18: Migrated non-context view loading to `IAddressablesGateway`, added preload registration in installer, and documented handle-release lifecycle.
+- 2026-03-18: Refactored to remove navigation-owned preload registration, added resident prefab store + instance buffer/cache, and documented readiness-aware transition flow with unchanged `INavigation` API.

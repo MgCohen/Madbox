@@ -3,9 +3,6 @@
     "rootNamespace": "Scaffold.Navigation.Container",
     "references": [
         "Scaffold.Navigation",
-        "Madbox.Addressables",
-        "Scaffold.Schemas",
-        "Unity.Addressables",
         "VContainer",
         "VContainer.Unity"
     ],

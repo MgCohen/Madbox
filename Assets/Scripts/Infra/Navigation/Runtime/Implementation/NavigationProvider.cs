@@ -11,18 +11,19 @@ namespace Scaffold.Navigation
     {
         public NavigationProvider(NavigationSettings settings, Transform viewHolder, IAddressablesGateway addressables)
         {
-            if (settings is null) { throw new ArgumentNullException(nameof(settings)); }
-            if (viewHolder is null) { throw new ArgumentNullException(nameof(viewHolder)); }
-            if (addressables is null) { throw new ArgumentNullException(nameof(addressables)); }
+            GuardConstructor(settings, viewHolder, addressables);
             this.settings = settings;
             this.viewHolder = viewHolder;
-            this.addressables = addressables;
+            prefabStore = new NavigationPrefabStore(addressables, settings.Screens);
+            instanceBuffer = new NavigationViewInstanceBuffer(viewHolder);
             FetchContextViews();
+            prefabStore.Warmup();
         }
 
         private readonly Transform viewHolder;
         private readonly NavigationSettings settings;
-        private readonly IAddressablesGateway addressables;
+        private readonly NavigationPrefabStore prefabStore;
+        private readonly NavigationViewInstanceBuffer instanceBuffer;
         private readonly Dictionary<Type, IView> contextViews = new Dictionary<Type, IView>();
 
         public NavigationPoint GetNavigationPoint<TController>(TController controller, NavigationOptions options) where TController : IViewController
@@ -35,64 +36,53 @@ namespace Scaffold.Navigation
 
         private NavigationPoint GetNavigationPoint(ViewConfig config, IViewController controller, NavigationOptions options)
         {
-            if (TryGetContextView(config.ViewType, out IView view))
+            if (TryGetContextView(config.ViewType, out IView contextView))
             {
-                return new NavigationPoint(view, controller, config, true, options);
+                return new NavigationPoint(contextView, controller, config, true, options);
             }
-            return CreateAssetNavigationPoint(config, controller, options);
+            return CreateAssetPoint(config, controller, options);
         }
 
-        private NavigationPoint CreateAssetNavigationPoint(ViewConfig config, IViewController controller, NavigationOptions options)
+        private NavigationPoint CreateAssetPoint(ViewConfig config, IViewController controller, NavigationOptions options)
         {
-            if (!TryGetAssetScreen(config, out IView view, out IAssetHandle<GameObject> handle)) { return null; }
-            return new NavigationPoint(view, controller, config, false, options, handle);
-        }
-
-        private bool TryGetAssetScreen(ViewConfig config, out IView screen, out IAssetHandle<GameObject> handle)
-        {
-            handle = LoadPreloadedHandle(config);
-            GameObject instance = CreateViewInstance(handle.Asset);
-            screen = ResolveView(instance, handle);
-            SetViewInactive(instance);
-            return true;
-        }
-
-        private IAssetHandle<GameObject> LoadPreloadedHandle(ViewConfig config)
-        {
-            EnsureAssetReference(config);
-            Task<IAssetHandle<GameObject>> task = addressables.LoadAsync<GameObject>(config.Asset);
-            if (!task.IsCompleted)
+            if (instanceBuffer.TryTake(config, out IView cachedView))
             {
-                throw new InvalidOperationException("Navigation view asset was not preloaded. Register view addressables with NeverDie preload mode before opening views.");
+                return new NavigationPoint(cachedView, controller, config, false, options, ReturnToBuffer);
             }
-            return task.GetAwaiter().GetResult();
+            Task<IView> loadTask = LoadViewFromPrefabAsync(config);
+            return new NavigationPoint(controller, config, false, options, loadTask, ReturnToBuffer);
         }
 
-        private GameObject CreateViewInstance(GameObject prefab)
+        private async Task<IView> LoadViewFromPrefabAsync(ViewConfig config)
         {
-            return GameObject.Instantiate(prefab, viewHolder);
+            IAssetHandle<GameObject> prefabHandle = await prefabStore.GetHandleAsync(config);
+            GameObject instance = CreateInstance(prefabHandle);
+            return ResolveView(instance);
         }
 
-        private void EnsureAssetReference(ViewConfig config)
+        private GameObject CreateInstance(IAssetHandle<GameObject> prefabHandle)
         {
-            if (config.Asset == null)
-            {
-                throw new InvalidOperationException("Navigation view config is missing addressable reference.");
-            }
+            return GameObject.Instantiate(prefabHandle.Asset, viewHolder);
         }
 
-        private IView ResolveView(GameObject instance, IAssetHandle<GameObject> handle)
+        private IView ResolveView(GameObject instance)
         {
-            IView screen = instance.GetComponent<IView>();
-            if (screen != null) { return screen; }
+            IView view = instance.GetComponent<IView>();
+            if (view == null) { return ThrowMissingView(instance); }
+            instance.SetActive(false);
+            return view;
+        }
+
+        private IView ThrowMissingView(GameObject instance)
+        {
             UnityEngine.Object.Destroy(instance);
-            handle.Release();
             throw new InvalidOperationException($"Addressable view '{instance.name}' does not implement {nameof(IView)}.");
         }
 
-        private void SetViewInactive(GameObject instance)
+        private void ReturnToBuffer(NavigationPoint point)
         {
-            instance.SetActive(false);
+            if (point == null || point.IsSceneView || point.View == null) { return; }
+            instanceBuffer.Return(point.Config, point.View);
         }
 
         private void FetchContextViews()
@@ -134,6 +124,13 @@ namespace Scaffold.Navigation
         private void GuardController(IViewController controller)
         {
             if (controller == null) { throw new ArgumentNullException(nameof(controller)); }
+        }
+
+        private void GuardConstructor(NavigationSettings settings, Transform viewHolder, IAddressablesGateway addressables)
+        {
+            if (settings == null) { throw new ArgumentNullException(nameof(settings)); }
+            if (viewHolder == null) { throw new ArgumentNullException(nameof(viewHolder)); }
+            if (addressables == null) { throw new ArgumentNullException(nameof(addressables)); }
         }
     }
 }
