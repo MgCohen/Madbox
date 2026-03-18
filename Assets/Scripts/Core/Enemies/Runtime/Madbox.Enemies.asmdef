@@ -1,0 +1,17 @@
+{
+    "name": "Madbox.Enemies",
+    "rootNamespace": "Madbox.Enemies",
+    "references": [
+        "Madbox.Levels",
+        "Scaffold.MVVM.Model"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": true
+}

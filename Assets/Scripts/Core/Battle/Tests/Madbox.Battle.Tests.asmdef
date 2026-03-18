@@ -1,0 +1,25 @@
+{
+    "name": "Madbox.Battle.Tests",
+    "rootNamespace": "Madbox.Battle.Tests",
+    "references": [
+        "Madbox.Battle",
+        "Madbox.Levels",
+        "Madbox.Gold",
+        "Scaffold.MVVM.Model",
+        "Scaffold.Records"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": true,
+    "optionalUnityReferences": [
+        "TestAssemblies"
+    ]
+}

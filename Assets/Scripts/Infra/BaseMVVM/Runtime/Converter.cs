@@ -1,3 +1,4 @@
+#pragma warning disable SCA0012
 namespace Scaffold.MVVM.Binding
 {
     public abstract class Converter<TSource, TTarget>
