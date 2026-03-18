@@ -21,15 +21,16 @@ Directory layout, module relationships, and architectural structure are document
 
 ## Code Rules (Non-Negotiable)
 
-1. **Separation of Concerns**: Never couple core logic with Unity-specific presentation.
-2. **Modular Integrity**: Declare all dependencies explicitly via `.asmdef`/`.csproj`. Never bypass architectural boundaries.
-3. **No MonoBehaviours in Core**: MonoBehaviours are restricted to bootstrap and presentation layers only.
-4. **Mandatory Tests**: Every module must have tests.
-5. **Documentation**: Every module needs a `.md` file or folder under `Docs/`.
-6. **Plans go in `Plans/`**: All planning documents belong there.
-7. **New source generators go in `Generators/`**.
-8. **Analyzer compliance**: Fix all Roslyn analyzer warnings/errors before committing.
-9. **Bugfixes require regression tests**: Every bug fix must add or update an automated test that fails before the fix and passes after it.
+1. **English-Only Outputs**: All generated content (code comments, docs, plans, commit messages, test names, UI placeholder text, and agent replies) must be in English, regardless of the input language (typed or voice).
+2. **Separation of Concerns**: Never couple core logic with Unity-specific presentation.
+3. **Modular Integrity**: Declare all dependencies explicitly via `.asmdef`/`.csproj`. Never bypass architectural boundaries.
+4. **No MonoBehaviours in Core**: MonoBehaviours are restricted to bootstrap and presentation layers only.
+5. **Mandatory Tests**: Every module must have tests.
+6. **Documentation**: Every module needs a `.md` file or folder under `Docs/`.
+7. **Plans go in `Plans/`**: All planning documents belong there.
+8. **New source generators go in `Generators/`**.
+9. **Analyzer compliance**: Fix all Roslyn analyzer warnings/errors before committing.
+10. **Bugfixes require regression tests**: Every bug fix must add or update an automated test that fails before the fix and passes after it.
 
 ## How to Build
 
