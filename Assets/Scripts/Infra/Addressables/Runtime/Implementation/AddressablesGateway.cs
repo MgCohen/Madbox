@@ -9,17 +9,13 @@ namespace Madbox.Addressables
 {
     public sealed class AddressablesGateway : IAddressablesGateway
     {
-        public AddressablesGateway(IAddressablesAssetClient client, IAddressablesPreloadRegistry preloadRegistry)
-            : this(client, CreatePreloadSource(preloadRegistry))
+        public AddressablesGateway(IAddressablesAssetClient client)
         {
-        }
-
-        private AddressablesGateway(IAddressablesAssetClient client, IAddressablesPreloadSource preloadSource)
-        {
-            GuardConstructor(client, preloadSource);
+            GuardConstructor(client);
             this.client = client;
             leaseStore = new AddressablesLeaseStore(client);
-            startupCoordinator = new AddressablesStartupCoordinator(client, preloadSource, leaseStore);
+            AddressablesPreloadConfigRequestBuilder builder = new AddressablesPreloadConfigRequestBuilder();
+            startupCoordinator = new AddressablesStartupCoordinator(client, leaseStore, builder);
         }
 
         private readonly IAddressablesAssetClient client;
@@ -101,10 +97,9 @@ namespace Madbox.Addressables
             return new AssetKey(keyValue);
         }
 
-        private void GuardConstructor(IAddressablesAssetClient client, IAddressablesPreloadSource preloadSource)
+        private void GuardConstructor(IAddressablesAssetClient client)
         {
             if (client == null) { throw new ArgumentNullException(nameof(client)); }
-            if (preloadSource == null) { throw new ArgumentNullException(nameof(preloadSource)); }
         }
 
         private void GuardCancellation(CancellationToken cancellationToken)
@@ -126,11 +121,5 @@ namespace Madbox.Addressables
             if (string.IsNullOrWhiteSpace(keyValue)) { throw new ArgumentException("Asset reference is not valid.", nameof(reference)); }
         }
 
-        private static IAddressablesPreloadSource CreatePreloadSource(IAddressablesPreloadRegistry preloadRegistry)
-        {
-            if (preloadRegistry == null) { throw new ArgumentNullException(nameof(preloadRegistry)); }
-            if (preloadRegistry is IAddressablesPreloadSource source) { return source; }
-            throw new ArgumentException("Preload registry must implement internal preload source contract.", nameof(preloadRegistry));
-        }
     }
 }

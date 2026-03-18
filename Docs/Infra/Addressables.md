@@ -9,10 +9,10 @@
 - Keywords: addressables, preload, ownership, group handle, label load, release lifecycle.
 
 ## Responsibilities
-- Owns stable contracts: `IAddressablesGateway`, `IAssetHandle<T>`, `IAssetGroupHandle<T>`, and preload registry contracts.
+- Owns stable contracts: `IAddressablesGateway`, `IAssetHandle<T>`, and `IAssetGroupHandle<T>`.
 - Owns startup sync + preload orchestration through `AddressablesStartupCoordinator`.
 - Owns reference-counted runtime ownership through `AddressablesLeaseStore`.
-- Owns preload registration API (`IAddressablesPreloadRegistry`) and `PreloadMode` semantics.
+- Owns preload wrapper discovery and conversion (`AddressablesPreloadConfigWrapper`, `AddressablesPreloadConfigEntry`) and `PreloadMode` semantics.
 - Owns bootstrap startup adapter `AddressablesLayerInitializer : IAsyncLayerInitializable`.
 - Does not own feature-specific cache policy (for example, custom enemy cache dictionaries).
 - Does not expose raw `UnityEngine.AddressableAssets.Addressables` calls to feature modules.
@@ -28,14 +28,13 @@
 | `IAddressablesGateway.LoadAsync<T>(AssetLabelReference)` | Load typed assets by label as one release owner | label + token | `IAssetGroupHandle<T>` | returns group with 0 handles when no typed locations |
 | `IAssetHandle.Release()` | Release single asset owner | none | void | idempotent; second call no-op |
 | `IAssetGroupHandle.Release()` | Release all child handles at once | none | void | idempotent; second call no-op |
-| `IAddressablesPreloadRegistry.Register<T>(...)` | Register typed preloads | key/reference/label + mode | registration state | duplicates tolerated; untyped overloads are unsupported |
 
 ## Setup / Integration
 1. Add module dependency:
    `Madbox.Addressables` for runtime consumers, and `Madbox.Addressables.Container` for composition roots.
 2. Register `AddressablesInstaller` inside bootstrap infra install flow.
 3. Ensure `ScopeInitializer` executes `IAsyncLayerInitializable` so `AddressablesLayerInitializer` runs.
-4. Register typed preloads in installer/build callback via `IAddressablesPreloadRegistry.Register<T>(...)`.
+4. Author preload wrapper assets and assign Addressables label `addressables-preload-config`.
 
 Quick checks:
 1. `Bootstrap` scene reaches `IsBootstrapCompleted == true`.
@@ -43,7 +42,7 @@ Quick checks:
 3. Label loads return typed group handles and one-call release is available.
 
 Common setup mistakes:
-1. Using untyped preload registration overloads; use `Register<T>(...)` only.
+1. Missing `addressables-preload-config` label on preload wrapper assets.
 2. Forgetting to release handles (or label group handle) after use.
 3. Calling Unity `Addressables` APIs directly from feature services.
 
@@ -52,7 +51,7 @@ Common setup mistakes:
 2. For one asset, call `LoadAsync<T>(key/reference)`.
 3. For typed label loads, call `LoadAsync<T>(label)` and keep the returned `IAssetGroupHandle<T>`.
 4. For grouped lifecycle, release the group once when batch ownership ends.
-5. Register preloads centrally with typed calls and correct `PreloadMode`.
+5. Author preloads through wrapper assets with correct `PreloadMode`.
 
 ## Examples
 ### Minimal
@@ -130,27 +129,39 @@ globals.Release();
 
 ### Preload Configuration
 ```csharp
-public sealed class AddressablesPreloadInstaller : ILayerInstaller
+[CreateAssetMenu(menuName = "Madbox/Addressables/Preload Config", fileName = "AddressablesPreloadConfig")]
+public class AddressablesPreloadConfigWrapper : ScriptableObject
 {
-    public void Install(IContainerBuilder builder)
-    {
-        builder.RegisterBuildCallback(container =>
-        {
-            IAddressablesPreloadRegistry preloads = container.Resolve<IAddressablesPreloadRegistry>();
-            preloads.Register<EnemyDefinitionSO>(new AssetKey("enemy/bee"), PreloadMode.Normal);
-            preloads.Register<EnemyDefinitionSO>(new AssetLabelReference { labelString = "enemy" }, PreloadMode.Normal);
-            preloads.Register<ViewConfigSO>(new AssetLabelReference { labelString = "navigation" }, PreloadMode.NeverDie);
-            preloads.Register<NavigationConfigSO>(new AssetLabelReference { labelString = "navigation" }, PreloadMode.NeverDie);
-        });
-    }
+    [SerializeField] private List<AddressablesPreloadConfigEntry> entries = new List<AddressablesPreloadConfigEntry>();
+    public IReadOnlyList<AddressablesPreloadConfigEntry> Entries => entries;
 }
+```
+
+```csharp
+[Serializable]
+public class AddressablesPreloadConfigEntry
+{
+    [SerializeField] private TypeReference assetType;
+    [SerializeField] private PreloadReferenceType referenceType;
+    [SerializeField] private AssetReference assetReference;
+    [SerializeField] private AssetLabelReference labelReference;
+    [SerializeField] private PreloadMode mode;
+}
+```
+
+```text
+Flow:
+1) Put wrapper assets under Addressables label "addressables-preload-config".
+2) Startup runs AddressablesLayerInitializer -> IAddressablesGateway.InitializeAsync.
+3) Startup coordinator resolves wrapper keys by label and loads each wrapper.
+4) Wrapper entries are converted to preload requests and applied through lease store.
 ```
 
 ## Best Practices
 - Treat each `IAssetHandle<T>` as one owner and release exactly once.
 - Prefer label loads through `LoadAsync<T>(label)` when you naturally own a batch lifecycle.
 - Use `group.TypedHandles` for typed access to loaded assets.
-- Keep preload registration typed (`Register<T>(...)`) and centralized in composition.
+- Keep preload authoring centralized in wrapper assets and avoid per-feature preload registration code.
 - Use `PreloadMode.Normal` for handoff-first-use assets.
 - Use `PreloadMode.NeverDie` only for always-resident startup-critical assets.
 - Keep feature services free of direct `Addressables` static API usage.
@@ -159,6 +170,7 @@ public sealed class AddressablesPreloadInstaller : ILayerInstaller
 ## Anti-Patterns
 - Calling Unity `Addressables` static methods directly from gameplay/feature modules.
 - Holding feature-local preload dictionaries in services (duplicate policy ownership).
+- Registering preload entries manually in DI installers when wrapper flow already covers the same assets.
 - Mixing unrelated asset families under one label and expecting one typed call to return all types.
 - Releasing through ad-hoc global utility instead of ownership handles.
 - Ignoring handle release (or group release), causing retained references and hidden memory pressure.
@@ -196,7 +208,7 @@ Migration guidance:
   - Presentation/UI contracts in Addressables runtime boundaries.
 - Change Checklist:
   - Verify same-key shared load and final-owner release.
-  - Verify typed preload behavior for `Normal` and `NeverDie`.
+  - Verify wrapper-driven preload behavior for `Normal` and `NeverDie`.
   - Verify group release releases all child handles once.
   - Verify bootstrap PlayMode E2E still resolves gateway and loads an addressable.
   - Verify analyzer diagnostics remain clean.
@@ -213,6 +225,8 @@ Migration guidance:
 - `Assets/Scripts/Infra/Addressables/Runtime/Contracts/IAddressablesGateway.cs`
 - `Assets/Scripts/Infra/Addressables/Runtime/Contracts/IAssetHandle.cs`
 - `Assets/Scripts/Infra/Addressables/Runtime/Contracts/IAssetGroupHandle.cs`
+- `Assets/Scripts/Infra/Addressables/Runtime/Implementation/AddressablesPreloadConfigWrapper.cs`
+- `Assets/Scripts/Infra/Addressables/Runtime/Implementation/AddressablesPreloadConfigEntry.cs`
 - `Assets/Scripts/Infra/Scope/Runtime/Contracts/IAsyncLayerInitializable.cs`
 
 ## Changelog
@@ -220,3 +234,4 @@ Migration guidance:
 - 2026-03-18: Documented startup/gateway-thinning collaborators and Unity-native reference APIs.
 - 2026-03-18: Added typed preload-only guidance and bootstrap-driven PlayMode E2E coverage notes.
 - 2026-03-18: Added `IAssetGroupHandle<T>` and unified label-loading usage via `LoadAsync<T>(label)`, plus real use-case snippets for enemy and navigation flows.
+- 2026-03-18: Replaced public preload registry flow with startup-discovered preload wrapper assets (`addressables-preload-config`) and config-entry authoring model.

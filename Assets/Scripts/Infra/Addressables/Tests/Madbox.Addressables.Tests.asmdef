@@ -3,6 +3,7 @@
     "rootNamespace": "Madbox.Addressables.Tests",
     "references": [
         "Madbox.Addressables",
+        "Scaffold.Types",
         "Unity.Addressables"
     ],
     "includePlatforms": [

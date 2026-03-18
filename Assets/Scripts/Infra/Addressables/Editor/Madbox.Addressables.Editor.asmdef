@@ -1,13 +1,12 @@
 {
-    "name": "Madbox.Addressables",
-    "rootNamespace": "Madbox.Addressables",
+    "name": "Madbox.Addressables.Editor",
+    "rootNamespace": "Madbox.Addressables.Editor",
     "references": [
-        "Madbox.Scope",
-        "Scaffold.Types",
-        "Unity.Addressables",
-        "Unity.ResourceManager"
+        "Madbox.Addressables"
     ],
-    "includePlatforms": [],
+    "includePlatforms": [
+        "Editor"
+    ],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
     "overrideReferences": false,
