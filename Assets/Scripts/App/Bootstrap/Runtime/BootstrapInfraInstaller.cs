@@ -1,5 +1,6 @@
 using System;
 using Madbox.Scope.Contracts;
+using Scaffold.Addressables.Container;
 using Scaffold.Events.Container;
 using Scaffold.Navigation;
 using Scaffold.Navigation.Container;
@@ -25,6 +26,9 @@ namespace Madbox.App.Bootstrap
 
             EventsInstaller eventsInstaller = new EventsInstaller();
             eventsInstaller.Install(builder);
+
+            AddressablesInstaller addressablesInstaller = new AddressablesInstaller();
+            addressablesInstaller.Install(builder);
 
             NavigationInstaller navigationInstaller = new NavigationInstaller(navigationSettings, viewHolder);
             navigationInstaller.Install(builder);

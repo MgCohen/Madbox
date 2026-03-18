@@ -8,7 +8,8 @@
                        "Scaffold.MVVM.ViewModel",
                        "VContainer",
                        "Scaffold.Events.Container",
-                       "Scaffold.Navigation.Container"
+                       "Scaffold.Navigation.Container",
+                       "Scaffold.Addressables.Container"
                    ],
     "includePlatforms":  [
 
