@@ -1,0 +1,17 @@
+{
+    "name": "Madbox.Gold.Container",
+    "rootNamespace": "Madbox.Gold.Container",
+    "references": [
+        "Madbox.Gold",
+        "VContainer"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

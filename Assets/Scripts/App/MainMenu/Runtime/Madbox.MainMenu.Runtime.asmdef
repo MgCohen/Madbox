@@ -1,0 +1,22 @@
+{
+    "name": "Madbox.MainMenu.Runtime",
+    "rootNamespace": "Madbox.App.MainMenu",
+    "references": [
+        "Scaffold.MVVM.View",
+        "Scaffold.MVVM.ViewModel",
+        "Scaffold.MVVM.Model",
+        "Scaffold.MVVM.Base",
+        "Scaffold.Navigation",
+        "Madbox.Gold",
+        "VContainer"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

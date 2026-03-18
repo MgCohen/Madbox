@@ -1,0 +1,29 @@
+{
+    "name": "Madbox.MainMenu.Tests",
+    "rootNamespace": "Madbox.App.MainMenu.Tests",
+    "references": [
+        "Madbox.MainMenu.Runtime",
+        "Madbox.Gold",
+        "Scaffold.MVVM.View",
+        "Scaffold.MVVM.ViewModel",
+        "Scaffold.MVVM.Model",
+        "Scaffold.MVVM.Base",
+        "Scaffold.Navigation"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [
+        "CommunityToolkit.Mvvm.dll"
+    ],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false,
+    "optionalUnityReferences": [
+        "TestAssemblies"
+    ]
+}

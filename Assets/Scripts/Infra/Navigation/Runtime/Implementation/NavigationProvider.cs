@@ -44,50 +44,94 @@ namespace Scaffold.Navigation
 
         private NavigationPoint CreateAssetPoint(ViewConfig config, IViewController controller, NavigationOptions options)
         {
+            if (TryCreateBufferedPoint(config, controller, options, out NavigationPoint bufferedPoint)) { return bufferedPoint; }
+            IAssetHandle<GameObject>[] handleSlot = { addressables.Load<GameObject>(config.Asset) };
+            NavigationPoint point = CreatePendingAssetPoint(controller, config, options, handleSlot);
+            _ = MaterializePointAsync(point, () => handleSlot[0], () => handleSlot[0] = null);
+            return point;
+        }
+
+        private bool TryCreateBufferedPoint(ViewConfig config, IViewController controller, NavigationOptions options, out NavigationPoint point)
+        {
             if (instanceBuffer.TryTake(config, out IView cachedView))
             {
-                return new NavigationPoint(cachedView, controller, config, false, options, ReturnToBuffer);
+                point = new NavigationPoint(cachedView, controller, config, false, options, ReturnToBuffer);
+                return true;
             }
-            IAssetHandle<GameObject> handle = addressables.Load<GameObject>(config.Asset);
-            NavigationPoint point = new NavigationPoint(controller, config, false, options, disposedPoint =>
-            {
-                if (handle != null)
-                {
-                    handle.Release();
-                    handle = null;
-                }
-                ReturnToBuffer(disposedPoint);
-            });
-            _ = MaterializePointAsync(point, () => handle, () => handle = null);
-            return point;
+            point = null;
+            return false;
+        }
+
+        private NavigationPoint CreatePendingAssetPoint(IViewController controller, ViewConfig config, NavigationOptions options, IAssetHandle<GameObject>[] handleSlot)
+        {
+            return new NavigationPoint(controller, config, false, options, disposedPoint => ReleaseAndBuffer(disposedPoint, handleSlot));
+        }
+
+        private void ReleaseAndBuffer(NavigationPoint disposedPoint, IAssetHandle<GameObject>[] handleSlot)
+        {
+            ReleaseHandle(handleSlot);
+            ReturnToBuffer(disposedPoint);
         }
 
         private async Task MaterializePointAsync(NavigationPoint point, Func<IAssetHandle<GameObject>> getHandle, Action clearHandle)
         {
-            try
-            {
-                IAssetHandle<GameObject> handle = getHandle();
-                if (point == null || point.Disposed || handle == null) { return; }
-                await handle.WhenReady;
-                handle = getHandle();
-                if (point.Disposed || handle == null) { return; }
-                GameObject instance = CreateInstance(handle);
-                IView view = ResolveView(instance);
-                point.CompleteReady(view);
-            }
-            catch (Exception exception)
-            {
-                point?.FailReady(exception);
-            }
-            finally
-            {
-                IAssetHandle<GameObject> handle = getHandle();
-                if (handle != null)
-                {
-                    handle.Release();
-                    clearHandle();
-                }
-            }
+            await MaterializePointCoreAsync(point, getHandle, clearHandle);
+        }
+
+        private async Task MaterializePointCoreAsync(NavigationPoint point, Func<IAssetHandle<GameObject>> getHandle, Action clearHandle)
+        {
+            Exception exception = await TryCompletePointIfReadyAsync(point, getHandle);
+            if (exception != null) { point?.FailReady(exception); }
+            ReleaseAndClear(getHandle, clearHandle);
+        }
+
+        private async Task<Exception> TryCompletePointIfReadyAsync(NavigationPoint point, Func<IAssetHandle<GameObject>> getHandle)
+        {
+            try { await CompletePointIfReadyAsync(point, getHandle); return null; }
+            catch (Exception exception) { return exception; }
+        }
+
+        private async Task CompletePointIfReadyAsync(NavigationPoint point, Func<IAssetHandle<GameObject>> getHandle)
+        {
+            IAssetHandle<GameObject> handle = ValidatePointAndHandle(point, getHandle);
+            if (handle == null) { return; }
+            await handle.WhenReady;
+            handle = ValidatePointAndHandle(point, getHandle);
+            if (handle == null) { return; }
+            CompletePointWithInstance(point, handle);
+        }
+
+        private IAssetHandle<GameObject> ValidatePointAndHandle(NavigationPoint point, Func<IAssetHandle<GameObject>> getHandle)
+        {
+            IAssetHandle<GameObject> handle = getHandle();
+            return IsPointAndHandleUsable(point, handle) ? handle : null;
+        }
+
+        private bool IsPointAndHandleUsable(NavigationPoint point, IAssetHandle<GameObject> handle)
+        {
+            return point != null && !point.Disposed && handle != null;
+        }
+
+        private void CompletePointWithInstance(NavigationPoint point, IAssetHandle<GameObject> handle)
+        {
+            GameObject instance = CreateInstance(handle);
+            IView view = ResolveView(instance);
+            point.CompleteReady(view);
+        }
+
+        private void ReleaseAndClear(Func<IAssetHandle<GameObject>> getHandle, Action clearHandle)
+        {
+            IAssetHandle<GameObject> handle = getHandle();
+            if (handle == null) { return; }
+            handle.Release();
+            clearHandle();
+        }
+
+        private void ReleaseHandle(IAssetHandle<GameObject>[] handleSlot)
+        {
+            if (handleSlot[0] == null) { return; }
+            handleSlot[0].Release();
+            handleSlot[0] = null;
         }
 
 

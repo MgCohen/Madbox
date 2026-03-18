@@ -1,4 +1,5 @@
 using System;
+using Madbox.Gold.Container;
 using Madbox.Scope.Contracts;
 using Scaffold.Events.Container;
 using Scaffold.Navigation;
@@ -24,6 +25,7 @@ namespace Madbox.App.Bootstrap
             ValidateBuilder(builder);
             InstallEvents(builder);
             InstallNavigation(builder);
+            InstallGold(builder);
         }
 
         private void InstallEvents(IContainerBuilder builder)
@@ -35,6 +37,12 @@ namespace Madbox.App.Bootstrap
         private void InstallNavigation(IContainerBuilder builder)
         {
             NavigationInstaller installer = new NavigationInstaller(navigationSettings, viewHolder);
+            installer.Install(builder);
+        }
+
+        private void InstallGold(IContainerBuilder builder)
+        {
+            GoldInstaller installer = new GoldInstaller();
             installer.Install(builder);
         }
 

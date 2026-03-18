@@ -3,13 +3,20 @@
     "rootNamespace":  "Madbox.Bootstrap",
     "references":  [
                        "Scaffold.Navigation",
+                       "Scaffold.Schemas",
                        "Madbox.Scope",
+                       "Scaffold.MVVM.Base",
+                       "Scaffold.MVVM.View",
                        "Scaffold.MVVM.Model",
                        "Scaffold.MVVM.ViewModel",
                        "VContainer",
                        "Scaffold.Events.Container",
                        "Scaffold.Navigation.Container",
-                       "Madbox.Addressables.Container"
+                       "Madbox.Addressables.Container",
+                       "Madbox.Gold.Container",
+                       "Madbox.MainMenu.Runtime",
+                       "Scaffold.Types",
+                       "Unity.Addressables"
                    ],
     "includePlatforms":  [
 
