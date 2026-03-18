@@ -22,7 +22,9 @@
 |---|---|---|---|---|
 | `LayeredScope` | Coordinates layered startup in deterministic order. | Layer installer callbacks and cancellation token. | Initialized scope graph and startup completion. | Throws on critical setup failures to prevent invalid runtime startup. |
 | `ScopeInitializer` | Resolves and runs `IAsyncLayerInitializable` instances safely. | Container scope and cancellation token. | Completed initialization tasks for a layer. | Wraps/propagates initialization failures with scope context. |
-| `IAsyncLayerInitializable.InitializeAsync(CancellationToken)` | Contract for async startup work. | Cancellation token. | Asynchronous initialization completion signal. | Implementations decide recoverable vs fatal failures. |
+| `IAsyncLayerInitializable.InitializeAsync(ILayerInitializationContext, IObjectResolver, CancellationToken)` | Contract for async startup work plus delegated child-scope registration and resolver access. | Initialization context, scope resolver, cancellation token. | Asynchronous initialization completion signal and optional delegated child registrations. | Implementations decide recoverable vs fatal failures; invalid delegated registrations throw during child scope build. |
+| `ILayerInitializationContext.RegisterTypeForChild(...)` | Delegate type-based service registrations for future child scopes. | Service type, implementation type, `Lifetime`, delegation policy. | Registration applied to next child or all descendants based on policy. | Throws on invalid/ incompatible type mappings. |
+| `ILayerInitializationContext.RegisterInstanceForChild(...)` | Delegate instance-based service registrations for future child scopes. | Service type, instance, `Lifetime`, delegation policy. | Registration applied to next child or all descendants based on policy. | Requires `Lifetime.Singleton` for instances; throws otherwise. |
 | `AllowSameLayerInitializationUsageAttribute` | Explicit opt-out for analyzer same-layer initialization rule. | Attribute applied to method/class. | Analyzer metadata for exception handling. | Incorrect usage remains analyzer-visible. |
 | `AllowInitializationCallChainAttribute` | Explicit opt-out for transitive call-chain analyzer checks. | Attribute applied to method/class. | Analyzer metadata for exception handling. | Incorrect usage remains analyzer-visible. |
 
@@ -31,15 +33,17 @@
 1. Add asmdef reference to `Madbox.Scope` from bootstrap runtime modules.
 2. Derive bootstrap composition root from `LayeredScope`.
 3. Register startup services implementing `IAsyncLayerInitializable` in the correct layer installer.
-4. Use exception attributes sparingly and document why they are required.
-5. Fast check: startup logs should show layer initialization in expected deterministic order.
+4. Use `ILayerInitializationContext` inside initializers when you need delegated child-scope registrations.
+5. Use exception attributes sparingly and document why they are required.
+6. Fast check: startup logs should show layer initialization in expected deterministic order.
 
 ## How to Use
 
 1. Create or update your bootstrap scope to install layers in the order required by architecture (`Infra -> Core -> Meta -> Game -> App`).
 2. Implement `IAsyncLayerInitializable` for services that need async startup logic.
-3. Keep each initializer focused on its own service readiness and dependency-safe behavior.
-4. Run scope tests and analyzer checks after adding/changing initialization behavior.
+3. Use the provided `IObjectResolver` only for startup-safe resolution work and keep business logic out of startup.
+4. When needed, register delegated child-scope entries via `ILayerInitializationContext` using explicit `Lifetime` and `ChildScopeDelegationPolicy`.
+5. Run scope tests and analyzer checks after adding/changing initialization behavior.
 
 ## Examples
 
@@ -48,37 +52,51 @@
 ```csharp
 public sealed class ConfigWarmupService : IAsyncLayerInitializable
 {
-    public Task InitializeAsync(CancellationToken cancellationToken)
+    public Task InitializeAsync(
+        ILayerInitializationContext context,
+        IObjectResolver resolver,
+        CancellationToken cancellationToken)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         return Task.CompletedTask;
     }
 }
 ```
 
-### Realistic
+### Child registration delegation
 
 ```csharp
-public sealed class GameBootstrapScope : LayeredScope
+public sealed class DynamicRuntimeConfigInitializer : IAsyncLayerInitializable
 {
-    protected override void InstallInfra(IContainerBuilder builder)
+    public Task InitializeAsync(
+        ILayerInitializationContext context,
+        IObjectResolver resolver,
+        CancellationToken cancellationToken)
     {
-        builder.Register<ConfigWarmupService>(Lifetime.Singleton).As<IAsyncLayerInitializable>();
+        RuntimeConfig config = resolver.Resolve<RuntimeConfig>();
+        RuntimeConfigProvider provider = new RuntimeConfigProvider(config);
+        context.RegisterInstanceForChild(
+            typeof(IRuntimeConfigProvider),
+            provider,
+            Lifetime.Singleton,
+            ChildScopeDelegationPolicy.AllDescendants);
+        return Task.CompletedTask;
     }
 }
 ```
 
-### Guard / Error path
+### Later child initializer consuming delegated service
 
 ```csharp
-public sealed class RemoteConfigInitializer : IAsyncLayerInitializable
+public sealed class RuntimeConsumerInitializer : IAsyncLayerInitializable
 {
-    public async Task InitializeAsync(CancellationToken cancellationToken)
+    public async Task InitializeAsync(
+        ILayerInitializationContext context,
+        IObjectResolver resolver,
+        CancellationToken cancellationToken)
     {
-        bool loaded = await TryLoadAsync(cancellationToken);
-        if (!loaded)
-        {
-            throw new InvalidOperationException("Remote config was required but failed to load.");
-        }
+        IRuntimeConfigProvider provider = resolver.Resolve<IRuntimeConfigProvider>();
+        await provider.WarmupAsync(cancellationToken);
     }
 }
 ```
@@ -143,5 +161,6 @@ dotnet test "Analyzers/Scaffold/Scaffold.Analyzers.Tests/Scaffold.Analyzers.Test
 
 ## Changelog
 
+- 2026-03-18: Updated initializer contract docs to context+resolver signature and added delegated child-registration usage snippets with `Lifetime` and `ChildScopeDelegationPolicy`.
 - 2026-03-18: Reworked to module documentation standard and added missing setup/examples/anti-patterns/AI context sections.
 - 2026-03-17: Consolidated scope contracts/runtime and documented layered initialization behavior.

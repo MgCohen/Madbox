@@ -1,7 +1,8 @@
 using System.Threading;
 using System.Threading.Tasks;
-using Madbox.Scope.Contracts;
 using Madbox.Addressables.Contracts;
+using Madbox.Scope.Contracts;
+using VContainer;
 
 namespace Madbox.Addressables
 {
@@ -15,7 +16,7 @@ namespace Madbox.Addressables
 
         private readonly IAddressablesGateway gateway;
 
-        public Task InitializeAsync(CancellationToken cancellationToken)
+        public Task InitializeAsync(ILayerInitializationContext context, IObjectResolver resolver, CancellationToken cancellationToken)
         {
             GuardCancellation(cancellationToken);
             return gateway.InitializeAsync(cancellationToken);
