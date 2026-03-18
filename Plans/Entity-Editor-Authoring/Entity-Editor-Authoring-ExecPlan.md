@@ -53,6 +53,10 @@ A working outcome is visible when a developer creates `EnemyDefinitionSO` and `L
   Rationale: Reuses existing package/module and keeps loading policy centralized in infra.
   Date/Author: 2026-03-18 / Codex.
 
+- Decision: Default loading policy is on-demand per selected level/session, not "load all definitions into memory".
+  Rationale: Aligns with `Docs/Infra/Addressables.md` ownership rules and avoids unnecessary resident memory.
+  Date/Author: 2026-03-18 / Codex.
+
 - Decision: `LevelEnemyEntrySO` will be a `[Serializable]` nested/support class (not a `ScriptableObject`) and does not need its own `ToDomain` method.
   Rationale: Entry objects are simple containers owned by `LevelDefinitionSO`; keeping mapping at level aggregate avoids fragmentation.
   Date/Author: 2026-03-18 / Codex.
@@ -118,7 +122,7 @@ Milestone 2 introduces a Unity-facing authoring module using the create-module w
 
 Milestone 3 adds a minimal enemy MonoBehaviour authoring stub in the Unity-facing module and integrates it into enemy prefab authoring. Keep fields focused on references required by assets and later view-layer logic, with no runtime combat behavior implementation.
 
-Milestone 4 integrates Addressables for authored assets that should be loaded by key/reference at runtime (level list, level definitions, enemy definitions, and prefab links as needed). Reuse `Madbox.Addressables` contracts, keep keys/labels centralized, and add focused tests for mapping and load/release paths.
+Milestone 4 integrates Addressables for authored assets that should be loaded by key/reference at runtime (level list, selected level definition, only referenced enemy definitions, and needed prefab links). Reuse `Madbox.Addressables` contracts, keep keys/labels centralized, and add focused tests for mapping and load/release paths.
 
 Milestone 5 completes documentation and quality gates: update module docs under `Docs/` (including any new module docs), run EditMode/PlayMode/analyzer checks via repository scripts, and keep rerunning `.agents/scripts/validate-changes.cmd` until all gates are clean.
 
@@ -150,6 +154,7 @@ All commands run from repository root: `C:\Unity\Madbox`.
 6. Implement Milestone 4 Addressables integration updates and tests:
 
     - `powershell -NoProfile -ExecutionPolicy Bypass -File ".\.agents\scripts\run-editmode-tests.ps1" -AssemblyNames "Madbox.Addressables.Tests,Madbox.Authoring.Tests"`
+    - Verify one level-session flow loads only selected content and releases all non-resident handles when session ends.
 
 7. Run full quality gate for each milestone completion:
 
@@ -172,12 +177,13 @@ Acceptance is behavior-based and must be observable.
 5. Enemy prefab can host the baseline authoring MonoBehaviour and reference an enemy definition asset without embedding gameplay behavior logic.
 
 6. Addressables can load authored assets through existing gateway contracts (typed key/reference/label path), with deterministic release ownership behavior.
+   Loading behavior must demonstrate non-global preload: load selected level content on demand, then release session-owned handles.
 
 7. Automated tests cover:
 
 - record-to-class migration behavior/invariants in `Madbox.Levels.Tests`.
 - SO-to-domain mapping (including rule mapping) in new authoring tests.
-- Addressables integration touchpoints and handle lifecycle where changed.
+- Addressables integration touchpoints and handle lifecycle where changed, including proof that only selected level/session assets are loaded and then released.
 
 8. Full gate passes via `.agents/scripts/validate-changes.cmd`.
 
@@ -263,6 +269,8 @@ Dependency rules to preserve:
 - `Madbox.Levels` remains Unity-agnostic (`noEngineReferences: true`).
 - Unity-facing authoring module may depend on `Madbox.Levels` and `Madbox.Addressables` contracts.
 - `Madbox.Battle` and `Madbox.Enemies` continue consuming domain definitions, not Unity objects.
+- Addressables ownership rules from `Docs/Infra/Addressables.md` are mandatory: use `IAssetHandle<T>` / `IAssetGroupHandle<T>` and release all session-scoped owners.
 
 Revision Note (2026-03-18): Initial plan created to enable editor authoring for entities/levels/gold with Addressables integration, include battle-rule authoring inputs, and migrate authoring-facing records to serializable classes per user direction.
 Revision Note (2026-03-18): Updated plan to keep mapping in root ScriptableObjects instead of `ILevelDefinitionMapper`, model `LevelEnemyEntrySO` as a plain serializable entry class without independent mapping API, and add `[SerializeReference]` rule authoring with custom editor support on `EnemyDefinitionSO`.
+Revision Note (2026-03-18): Tightened Addressables scope to on-demand selected-level/session loading with explicit handle-release validation to avoid loading all content into memory.
