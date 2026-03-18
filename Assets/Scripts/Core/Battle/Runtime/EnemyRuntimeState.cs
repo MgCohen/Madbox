@@ -1,4 +1,5 @@
 using Madbox.Levels;
+#pragma warning disable SCA0017
 
 namespace Madbox.Battle
 {

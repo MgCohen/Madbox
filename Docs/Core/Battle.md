@@ -7,7 +7,6 @@
 ## Public API
 
 - Enums: `GameState`, `GameEndReason`
-- Runtime model: `BattleRuntimeState` (observable state for HP, counters, elapsed time)
 - Engine: `Game`
 - Events:
   - Inputs: `TryPlayerAttack`, `EnemyHitObserved`
@@ -20,7 +19,6 @@ Game game = new Game(levelDefinition, goldWallet, new EntityId("player-1"));
 game.EventTriggered += OnBattleEvent;
 game.OnCompleted += OnCompleted;
 
-game.Initialize();
 game.Start();
 game.Tick(0.016f);
 
@@ -32,5 +30,8 @@ game.Trigger(new EnemyHitObserved(new EntityId("enemy-1"), new EntityId("player-
 
 - Movement and attack-intent decisions stay on prefab/view side.
 - Collision/hit is the enemy-side input that enters game logic via `EnemyHitObserved`.
-- `Game` validates and applies authoritative state updates, then emits transient output events.
-- Permanent state changes (HP, counts, elapsed time) are reflected through `BattleRuntimeState`.
+- `Game` orchestrates specialized internal systems:
+  - `EnemyService` for enemy behavior/runtime mutations.
+  - `BattleEventRouter` that routes event types through internal methods using `EnemyService` + `Player`.
+  - `GameRuleEvaluator` that builds and evaluates rules from `LevelDefinition` to detect end state during tick.
+- `Game` only exposes high-level game state (`CurrentState`, `ElapsedTimeSeconds`, `CurrentLevelId`) and does not use `BattleRuntimeState`.
