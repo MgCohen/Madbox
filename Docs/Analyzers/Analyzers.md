@@ -21,7 +21,7 @@
 |---|---|---|---|---|
 | `Scaffold.Analyzers.dll` | Analyzer distribution artifact | analyzer source + build pipeline | Roslyn diagnostics surfaced in IDE/build | missing artifact means no diagnostics in consumers |
 | `AnalyzerConfig` | Central config reader and descriptor override helper | `.editorconfig` values + analyzer options | effective rule descriptors/config values | invalid values fall back to defaults |
-| `SCA0001`-`SCA0026` descriptors | Rule contracts consumed by IDE/build tooling | C# syntax/semantic model | diagnostics with code fixes/remediation guidance | suppressed/disabled severities skip reporting |
+| `SCA0001`-`SCA0030` descriptors | Rule contracts consumed by IDE/build tooling | C# syntax/semantic model | diagnostics with code fixes/remediation guidance | suppressed/disabled severities skip reporting |
 
 ## Setup / Integration
 
@@ -189,7 +189,7 @@ When you see `SCAxxxx` in diagnostics:
 
 Active rule IDs in this repository:
 
-- `SCA0001`-`SCA0026` (contiguous, no gaps)
+- `SCA0001`-`SCA0030` (SCA0027 + SCA0028 + SCA0029 + SCA0030 active)
 
 ---
 ## Rules Reference
@@ -227,7 +227,11 @@ public void LoadPlayer()
 
 ### SCA0002 - Method Order
 
-Methods must be declared after the methods that call them. If `A` calls `B`, then `B` must appear below `A` in the file. This enforces a top-down reading order.
+Instance methods must be declared after the methods that call them. If `A` calls `B`, then `B` must appear below `A` in the file. This enforces a top-down reading order.
+
+Additionally, dependency blocks must be contiguous: if `A` calls `C`, an unrelated `B` should not appear between `A` and `C` unless `B` also depends on `C`.
+
+Static methods are not evaluated by this rule (class-level placement for static members is covered by `SCA0020`).
 
 **Rationale:** Code reads like a newspaper - high-level entry points at the top, implementation details below.
 
@@ -286,7 +290,9 @@ public int GetCount()
 
 ### SCA0005 - No Multi-Line Signatures or Statements
 
-Method signatures must fit on a single line. Statements inside a method body must not span multiple lines.
+Method and constructor signatures must fit on a single line. Method signatures include trailing generic constraints (`where T : ...`) and those constraints must stay on the same line as the signature.
+
+Statements inside a method body must not span multiple lines.
 
 **Exception:** Fluent/builder chains using member access (`.Method().Method()`) are permitted to span lines.
 
@@ -358,6 +364,7 @@ Files under a `Contracts/` path segment (for example `Runtime/Contracts/`) are e
 This rule applies only to files under `Assets/Scripts/` and skips generated files (e.g., `obj/`, `bin/`, `*.g.cs`).
 All top-level namespace declarations in a file are validated (not just the first declaration).
 `Assets/Scripts/Tools/Records/Runtime/IsExternalInit.cs` is explicitly exempted for C# record compatibility.
+Compilation units that contain only assembly/module attributes (for example `AssemblyInfo.cs` with `[assembly: ...]`) are also exempt.
 
 Root namespace resolution order:
 1. `scaffold.SCA0007.root_namespace` from `.editorconfig` (explicit override)
@@ -398,6 +405,7 @@ Files under `Assets/Scripts/` must declare exactly one top-level namespace.
 This prevents sibling namespace declarations from bypassing namespace/folder conventions.
 
 `Assets/Scripts/Tools/Records/Runtime/IsExternalInit.cs` is explicitly exempted for C# record compatibility.
+Assembly/module-attributes-only files (for example `AssemblyInfo.cs`) are exempt as metadata-only files.
 
 ```csharp
 // VIOLATION
@@ -545,6 +553,9 @@ dotnet_diagnostic.SCA0023.severity = warning
 dotnet_diagnostic.SCA0024.severity = warning
 dotnet_diagnostic.SCA0025.severity = warning
 dotnet_diagnostic.SCA0026.severity = warning
+dotnet_diagnostic.SCA0028.severity = warning
+dotnet_diagnostic.SCA0029.severity = warning
+dotnet_diagnostic.SCA0030.severity = warning
 ```
 
 ---
@@ -1000,6 +1011,85 @@ public Task InitializeAsync(CancellationToken token)
     Persist(goldService);
     return Task.CompletedTask;
 }
+```
+
+---
+
+### SCA0028 - Loop Bodies Require Braces and Next-Line Formatting
+
+`for`, `foreach`, `while`, and `do-while` must use braces, and the opening brace must be on the next line after the loop header.
+
+```csharp
+// VIOLATION
+for (int i = 0; i < 10; i++) Tick();
+
+// VIOLATION
+while (ready) { Tick(); }
+
+// COMPLIANT
+for (int i = 0; i < 10; i++)
+{
+    Tick();
+}
+```
+
+---
+
+### SCA0029 - Conditional Braces and Inline If Exception
+
+Only one pattern may omit braces:
+- single-line `if (...) statement;`
+- no `else` branch
+- exactly one embedded statement
+
+All other `if/else` forms must use braces and next-line block formatting.
+
+```csharp
+// ALLOWED
+if (ready) Tick();
+
+// VIOLATION
+if (ready)
+    Tick();
+
+// VIOLATION
+if (ready) Tick();
+else Tick();
+
+// COMPLIANT
+if (ready)
+{
+    Tick();
+}
+else
+{
+    Pause();
+}
+```
+
+---
+
+### SCA0030 - Runtime Dead Code for Non-Public Methods/Constructors
+
+In `Runtime/` paths, non-public methods/constructors that are not referenced by non-test code are flagged as dead code.
+
+This rule skips:
+- public/protected public API members
+- interface implementations
+- override members
+- files under `Tests/` and `Samples/`
+
+```csharp
+// VIOLATION (unused private runtime helper)
+private void NormalizeState() { }
+
+// COMPLIANT (used in non-test runtime flow)
+public void Run()
+{
+    NormalizeState();
+}
+
+private void NormalizeState() { }
 ```
 
 Valid severity values: `error`, `warning`, `suggestion`, `info`, `hidden`, `silent`, `none`.

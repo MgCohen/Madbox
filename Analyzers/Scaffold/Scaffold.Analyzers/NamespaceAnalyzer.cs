@@ -73,6 +73,8 @@ namespace Scaffold.Analyzers
             var expectedNamespace = BuildExpectedNamespace(rootNamespace, requiredSuffixSegments);
 
             var root = context.Tree.GetRoot(context.CancellationToken);
+            if (IsAssemblyMetadataOnlyFile(root)) return;
+
             var namespaceDeclarations = root
                 .DescendantNodes()
                 .OfType<BaseNamespaceDeclarationSyntax>()
@@ -229,6 +231,25 @@ namespace Scaffold.Analyzers
         {
             var fileName = System.IO.Path.GetFileName(filePath);
             return string.Equals(fileName, "IsExternalInit.cs", StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static bool IsAssemblyMetadataOnlyFile(SyntaxNode root)
+        {
+            if (root is not CompilationUnitSyntax compilationUnit) return false;
+            if (compilationUnit.Members.Count > 0) return false;
+            if (compilationUnit.AttributeLists.Count == 0) return false;
+
+            foreach (var attributeList in compilationUnit.AttributeLists)
+            {
+                if (attributeList.Target == null) return false;
+                var targetKind = attributeList.Target.Identifier.Kind();
+                if (targetKind != SyntaxKind.AssemblyKeyword && targetKind != SyntaxKind.ModuleKeyword)
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
     }
 }

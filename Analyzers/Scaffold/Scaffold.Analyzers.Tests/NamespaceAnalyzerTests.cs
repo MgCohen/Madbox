@@ -80,6 +80,56 @@ public class EventBus
     }
 
     [Fact]
+    public async Task NoDiagnostic_WhenFileContainsOnlyAssemblyAttributes()
+    {
+        const string source = @"
+using System.Runtime.CompilerServices;
+
+[assembly: InternalsVisibleTo(""Madbox.Addressables.Tests"")]";
+
+        var options = new Dictionary<string, string>
+        {
+            ["build_property.MSBuildProjectName"] = "Madbox",
+        };
+
+        var diagnostics = await AnalyzerTestHarness.GetDiagnosticsByIdAsync(
+            source,
+            @"C:\Repo\Assets\Scripts\Infra\Addressables\Runtime\AssemblyInfo.cs",
+            new NamespaceAnalyzer(),
+            NamespaceAnalyzer.DiagnosticId,
+            options);
+
+        Assert.Empty(diagnostics);
+    }
+
+    [Fact]
+    public async Task Diagnostic_WhenAssemblyInfoContainsCodeWithoutNamespace()
+    {
+        const string source = @"
+using System.Runtime.CompilerServices;
+
+[assembly: InternalsVisibleTo(""Madbox.Addressables.Tests"")]
+internal static class Marker
+{
+}";
+
+        var options = new Dictionary<string, string>
+        {
+            ["build_property.MSBuildProjectName"] = "Madbox",
+        };
+
+        var diagnostics = await AnalyzerTestHarness.GetDiagnosticsByIdAsync(
+            source,
+            @"C:\Repo\Assets\Scripts\Infra\Addressables\Runtime\AssemblyInfo.cs",
+            new NamespaceAnalyzer(),
+            NamespaceAnalyzer.DiagnosticId,
+            options);
+
+        var diagnostic = Assert.Single(diagnostics);
+        Assert.Contains("<global>", diagnostic.GetMessage());
+    }
+
+    [Fact]
     public async Task NoDiagnostic_ForFilesOutsideAssetsScripts()
     {
         const string source = @"

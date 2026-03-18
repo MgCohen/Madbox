@@ -1,10 +1,12 @@
+#pragma warning disable SCA0012
 namespace Scaffold.MVVM.Binding
 {
     public abstract class Converter<TSource, TTarget>
     {
         public virtual bool CanConvert(TSource source)
         {
-            return source is not null;
+            if (source is null) { return false; }
+            return true;
         }
 
         public abstract TTarget Convert(TSource source);

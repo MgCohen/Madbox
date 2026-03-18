@@ -33,6 +33,7 @@ namespace Scaffold.Analyzers
             context.EnableConcurrentExecution();
 
             context.RegisterSyntaxNodeAction(AnalyzeMethodSignature, SyntaxKind.MethodDeclaration);
+            context.RegisterSyntaxNodeAction(AnalyzeConstructorSignature, SyntaxKind.ConstructorDeclaration);
             // Basic statement blocks
             context.RegisterSyntaxNodeAction(AnalyzeExpressionStatement, SyntaxKind.ExpressionStatement);
             context.RegisterSyntaxNodeAction(AnalyzeLocalDeclarationStatement, SyntaxKind.LocalDeclarationStatement);
@@ -46,14 +47,30 @@ namespace Scaffold.Analyzers
 
             var methodDeclaration = (MethodDeclarationSyntax)context.Node;
 
-            // Basic check: does the parameter list or modifiers span multiple lines?
-            // To do this reliably, we can check the line span of the block from return type to end of parameter list.
             var startLine = methodDeclaration.GetLocation().GetLineSpan().StartLinePosition.Line;
-            var paramEndLine = methodDeclaration.ParameterList.GetLocation().GetLineSpan().EndLinePosition.Line;
+            var signatureEndLine = GetMethodSignatureEndLine(methodDeclaration);
 
-            if (startLine != paramEndLine && methodDeclaration.ParameterList.Parameters.Count > 0)
+            if (startLine != signatureEndLine &&
+                (methodDeclaration.ParameterList.Parameters.Count > 0 || methodDeclaration.ConstraintClauses.Count > 0))
             {
                 var diagnostic = Diagnostic.Create(rule, methodDeclaration.Identifier.GetLocation());
+                context.ReportDiagnostic(diagnostic);
+            }
+        }
+
+        private void AnalyzeConstructorSignature(SyntaxNodeAnalysisContext context)
+        {
+            var options = context.Options.AnalyzerConfigOptionsProvider.GetOptions(context.Node.SyntaxTree);
+            if (AnalyzerConfig.ShouldSuppress(options, DiagnosticId)) return;
+            var rule = AnalyzerConfig.GetEffectiveDescriptor(options, DiagnosticId, Rule);
+
+            var constructorDeclaration = (ConstructorDeclarationSyntax)context.Node;
+            var startLine = constructorDeclaration.GetLocation().GetLineSpan().StartLinePosition.Line;
+            var paramEndLine = constructorDeclaration.ParameterList.GetLocation().GetLineSpan().EndLinePosition.Line;
+
+            if (startLine != paramEndLine && constructorDeclaration.ParameterList.Parameters.Count > 0)
+            {
+                var diagnostic = Diagnostic.Create(rule, constructorDeclaration.Identifier.GetLocation());
                 context.ReportDiagnostic(diagnostic);
             }
         }
@@ -95,6 +112,17 @@ namespace Scaffold.Analyzers
                 var diagnostic = Diagnostic.Create(rule, statement.GetLocation());
                 context.ReportDiagnostic(diagnostic);
             }
+        }
+
+        private static int GetMethodSignatureEndLine(MethodDeclarationSyntax methodDeclaration)
+        {
+            if (methodDeclaration.ConstraintClauses.Count > 0)
+            {
+                var lastClause = methodDeclaration.ConstraintClauses[methodDeclaration.ConstraintClauses.Count - 1];
+                return lastClause.GetLocation().GetLineSpan().EndLinePosition.Line;
+            }
+
+            return methodDeclaration.ParameterList.GetLocation().GetLineSpan().EndLinePosition.Line;
         }
     }
 }

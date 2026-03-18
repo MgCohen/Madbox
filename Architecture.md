@@ -1,174 +1,248 @@
 # Architecture
 
-This document describes the current repository architecture and where architectural controls live.
+This document is the architecture entrypoint for Madbox. It describes the current module boundaries, runtime flow, and verification loop used to keep architecture rules enforceable.
 
 ## TL;DR
 
-- The project now has a modular runtime under `Assets/Scripts/` with explicit `.asmdef` boundaries.
-- Current structure is split into `App`, `Core`, `Infra`, and `Tools` modules, with tests/samples per module.
-- Architecture guardrails are enforced by docs standards, `.asmdef` dependencies, and custom analyzers.
+- Madbox is a modular Unity project with explicit assembly boundaries under `Assets/Scripts/`.
+- Core gameplay logic is kept in pure C# modules; Unity-specific behavior stays in app/presentation layers.
+- Architecture enforcement is layered: docs standards, `.asmdef` dependency boundaries, and custom Roslyn analyzers.
+- Startup composition follows deterministic phases (`Infra -> Core -> Meta -> Game -> App`) aligned with research flows.
+- Current state updated on 2026-03-18.
 
 ## Architectural Drivers
 
-- Keep module boundaries explicit and enforceable through `.asmdef` references.
-- Keep core logic isolated from Unity-specific presentation concerns.
-- Keep validation fast and repeatable with analyzer checks and scripted quality gates.
+- Keep module boundaries explicit and mechanically enforceable.
+- Preserve testability by isolating domain logic from Unity runtime concerns.
+- Keep startup predictable and diagnosable with deterministic scope initialization.
+- Make quality checks repeatable through repository scripts and analyzer diagnostics.
 
 ## Project Summary
 
-Madbox is a Unity project with architecture constraints enforced through:
-- documentation standards under `Docs/Standards/`
-- custom Roslyn analyzers under `Analyzers/`
-- repository quality scripts under `.agents/scripts/`
-- assembly boundaries under `Assets/Scripts/**/*.asmdef`
+Madbox is a modular Unity project with architecture controls enforced through:
 
-Current state updated on 2026-03-17.
+- Documentation standards under `Docs/Standards/`.
+- Explicit assembly boundaries under `Assets/Scripts/**/*.asmdef`.
+- Custom Roslyn analyzers under `Analyzers/Scaffold/Scaffold.Analyzers`.
+- Repository validation scripts under `.agents/scripts/`.
+
+## Constraints and Invariants
+
+- Core/domain assemblies must not depend on `UnityEngine` APIs.
+- MonoBehaviour usage is restricted to bootstrap/app/presentation integrations.
+- All cross-module dependencies must be declared in `.asmdef` files; no hidden references.
+- Bootstrap/composition root owns concrete wiring; runtime modules consume contracts/interfaces.
+- Any bug fix must include or update a regression test before completion.
 
 ## Tech Stack
 
-- **Engine**: Unity `2022.3.50f1`
-- **Language**: C#
-- **Architecture**: MVVM
-- **Dependency Injection**: VContainer (`jp.hadashikick.vcontainer`)
-- **Rendering**: Universal Render Pipeline (URP)
-- **Key Packages**: Addressables, AI Navigation, Cinemachine, TextMeshPro, Unity Test Framework, Scaffold Schemas (`com.scaffold.schemas`)
-- **Code generation in project**: `Assets/Generators/MVVM` (MVVM source generator binaries used by Unity-generated projects)
-- **Code quality enforcement**: Roslyn analyzers (`Analyzers/Scaffold/Scaffold.Analyzers`)
+- Engine: Unity `2022.3.50f1`
+- Language: C#
+- Architecture: MVVM
+- Dependency Injection: VContainer (`jp.hadashikick.vcontainer`)
+- Rendering: Universal Render Pipeline (URP)
+- Core Packages: Addressables, AI Navigation, Cinemachine, TextMeshPro, Unity Test Framework, Scaffold Schemas (`com.scaffold.schemas`)
+- Code Quality: Roslyn analyzers (`Analyzers/Scaffold/Scaffold.Analyzers`)
 
-## Current Repository Map
+## System Context
 
-Top-level directories:
-- `Assets/`: Unity assets, scenes, prefabs, data, generators, and scripts.
-- `Analyzers/`: Analyzer source, tests, and output dll folder.
-- `Docs/`: Module and standards documentation.
-- `Research/`: Research artifacts.
-- `Plans/`: ExecPlans and milestone planning artifacts.
-- `.agents/`: Workflows and quality/test scripts.
-- `Packages/`: Unity package manifest/lock.
-- `ProjectSettings/`: Unity project configuration.
-- `UserSettings/`: Local Unity user settings.
+Intent: show how external actors/systems interact with Madbox at runtime.
+Source of truth: `Research/Layers and flow/Layers and flow.md`, `Research/Core-Loop/Core-Loop-Research-and-Specs.md`, `Assets/Scenes/Bootstrap.unity`, `Assets/Scenes/MainScene.unity`.
+Update trigger: changes to startup sequence, external service integrations, or root scene flow.
 
-## Module View (Current State)
+System context diagram:
 
-`Assets/Scripts/` has 32 assembly definitions:
+```mermaid
+flowchart LR
+    Player([Player]) --> UnityClient[Madbox Unity Client]
+    UnityClient --> UGS[Unity Gaming Services / Cloud]
+    UnityClient --> Addressables[Addressables Content Catalog]
+    UnityClient --> LocalData[Local Save/Settings]
+    UnityClient --> Telemetry[Logs and Diagnostics]
 
-- `App`
-  - `Madbox.Bootstrap.Runtime`, `Madbox.Bootstrap.Tests`, `Madbox.Bootstrap.PlayModeTests`
-  - `Scaffold.MVVM.View`, `Scaffold.MVVM.Samples`, `Scaffold.MVVM.View.Tests`
-- `Core`
-  - `Scaffold.MVVM.ViewModel`, `Scaffold.MVVM.ViewModel.Tests`
-- `Infra`
-  - Events: `Scaffold.Events`, `Scaffold.Events.Container`, `Scaffold.Events.Samples`, `Scaffold.Events.Tests`
-  - Model: `Scaffold.MVVM.Model`, `Scaffold.MVVM.Model.Tests`
-  - Navigation: `Scaffold.Navigation`, `Scaffold.Navigation.Container`, `Scaffold.Navigation.Samples`, `Scaffold.Navigation.Tests`
-  - Scope: `Scaffold.Scope`, `Scaffold.Scope.Tests`
-- `Tools`
-  - Maps: `Scaffold.Maps`, `Scaffold.Maps.Samples`, `Scaffold.Maps.Tests`
-  - Records: `Scaffold.Records`, `Scaffold.Records.Samples`, `Scaffold.Records.Tests`
-  - Types: `Scaffold.Types`, `Scaffold.Types.Editor`, `Scaffold.Types.Samples`, `Scaffold.Types.Tests`
+    subgraph Client[Madbox Unity Client]
+      Bootstrap[Bootstrap Scope + DI]
+      AppFlow[App Navigation and Views]
+      Domain[Core Domain Simulation]
+      Bootstrap --> AppFlow
+      AppFlow --> Domain
+    end
+```
 
-Primary production dependency direction:
+## Container/Module View
 
-- `Scaffold.MVVM.Model` <- `Scaffold.MVVM.ViewModel` <- `Scaffold.MVVM.View` <- `Madbox.Bootstrap.Runtime`
-- `Scaffold.Navigation` <- `Scaffold.MVVM.ViewModel` / `Scaffold.MVVM.View` / `Madbox.Bootstrap.Runtime`
-- `Scaffold.Scope` <- `Madbox.Bootstrap.Runtime`
-- `Scaffold.Events` <- `Scaffold.Navigation` / `Scaffold.Events.Container` <- `Madbox.Bootstrap.Runtime`
-- `Scaffold.Records` <- `Scaffold.Maps` <- `Scaffold.MVVM.ViewModel`
-- `Scaffold.Types` <- `Scaffold.MVVM.View` and `Scaffold.Navigation`
-- `Scaffold.Schemas` (package assembly from `com.scaffold.schemas`) <- `Scaffold.Navigation`
-- `VContainer` / `VContainer.Unity` are consumed by `Scaffold.Scope.*`, `Scaffold.Navigation.Container`, `Scaffold.Events.Container`, and `Madbox.Bootstrap.Runtime`
+Intent: show static module groups and the allowed dependency direction between runtime containers.
+Source of truth: `Assets/Scripts/**/*.asmdef`, `Madbox.sln`, `Research/Layers and flow/Layers and flow.md`.
+Update trigger: add/rename/remove assemblies or change `.asmdef` references.
 
-Notes:
-- Tests are split into Editor tests and PlayMode tests where applicable.
-- Sample assemblies exist for View, Events, Navigation, Maps, Records, and Types modules.
+Container/module dependency diagram:
 
-## Runtime Flows (Current State)
+```mermaid
+flowchart LR
+    Infra[Infra Modules<br/>Scope / Events / Navigation / Model / BaseMVVM / Addressables]
+    Core[Core Modules<br/>Battle / Enemies / Levels / ViewModel]
+    Meta[Meta Modules<br/>Gold]
+    Game[Game Runtime Orchestration<br/>Madbox.Battle]
+    App[App Modules<br/>Bootstrap / View]
+    Tools[Tools Modules<br/>Maps / Records / Types]
 
-Entry/content roots:
-- Scenes: `Assets/Scenes/Bootstrap.unity`, `Assets/Scenes/MainScene.unity`
-- Content roots: `Assets/Art/`, `Assets/Prefabs/`, `Assets/AddressableAssetsData/`, `Assets/Data/`
-- Runtime scripts root: `Assets/Scripts/`
+    Infra --> Core
+    Infra --> Meta
+    Infra --> App
+    Core --> Game
+    Meta --> Game
+    Game --> App
+    Core --> App
+    Tools --> Core
+    Tools --> App
+```
 
-MVVM flow (high level):
-- Model contracts/data: `Infra/Model`
-- ViewModel orchestration: `Core/ViewModel`
-- View/presentation: `App/View`
-- App startup/composition root: `App/Bootstrap`
-
-## Dependency Rules
-
-Allowed:
-- Dependencies declared explicitly in `.asmdef` files.
-- Core/domain logic staying Unity-agnostic where possible.
-- Container/bootstrap assemblies referencing framework dependencies (for example VContainer).
-
-Forbidden:
-- Hidden dependencies that bypass declared assembly references.
-- MonoBehaviours in core/domain layers.
-- Direct runtime reliance on analyzer projects.
-
-## Docs Map (Current Files)
+Current module documentation map:
 
 - `Docs/App/Bootstrap.md`
 - `Docs/App/View.md`
+- `Docs/Core/Battle.md`
+- `Docs/Core/Enemies.md`
+- `Docs/Core/Levels.md`
 - `Docs/Core/ViewModel.md`
+- `Docs/Infra/Addressables.md`
+- `Docs/Infra/BaseMVVM.md`
 - `Docs/Infra/Events.md`
 - `Docs/Infra/Model.md`
 - `Docs/Infra/Navigation.md`
 - `Docs/Infra/Scope.md`
+- `Docs/Meta/Gold.md`
 - `Docs/Tools/Maps.md`
 - `Docs/Tools/Records.md`
 - `Docs/Tools/Types.md`
 - `Docs/Analyzers/Analyzers.md`
 - `Docs/Testing.md`
 - `Docs/AutomatedTesting.md`
-- `Docs/Standards/Architecture-Documentation-Standard.md`
-- `Docs/Standards/Module-Documentation-Standard.md`
 
-## Architecture Controls
+## Runtime Flows
 
-- Analyzer source: `Analyzers/Scaffold/Scaffold.Analyzers`
-- Analyzer tests: `Analyzers/Scaffold/Scaffold.Analyzers.Tests`
-- Analyzer output target: `Analyzers/Output/Scaffold.Analyzers.dll`
-- Analyzer wiring: `Directory.Build.props`
-- Assembly boundaries: `Assets/Scripts/**/*.asmdef`
+Intent: show critical runtime behavior for startup and gameplay lifecycle.
+Source of truth: `Research/Layers and flow/Layers and flow.md`, `Research/Battle/Battle-Research-and-Specs.md`, `Research/Core-Loop/Core-Loop-Research-and-Specs.md`, `Assets/Scripts/Core/Battle/Runtime/`.
+Update trigger: any change to startup ordering, gameplay input pipeline, or navigation states.
 
-Operational policy and workflows:
-- `AGENTS.md`
-- `PLANS.md`
-- `MILESTONE.md`
-- `.agents/workflows/create-module.md`
-- `.agents/workflows/create-custom-analyzer.md`
-- `.agents/workflows/check-analyzers.md`
-- `.agents/workflows/coverage-audit.md`
+Startup sequence:
 
-## Quality Loop
+```mermaid
+sequenceDiagram
+    participant Player
+    participant Boot as Bootstrap
+    participant Infra as InstallInfra
+    participant Core as InstallCore
+    participant Meta as InstallMeta
+    participant Game as InstallGame
+    participant App as InstallApp
 
-Milestone gate (from repository root):
+    Player->>Boot: Press Play
+    Boot->>Infra: Register infra services
+    Infra-->>Boot: Infra ready
+    Boot->>Core: Register core services
+    Core-->>Boot: Core ready
+    Boot->>Meta: Register meta services
+    Meta-->>Boot: Meta ready
+    Boot->>Game: Register game orchestration
+    Game-->>Boot: Game ready
+    Boot->>App: Register views/controllers
+    App-->>Boot: App ready
+```
 
-1. `& ".\.agents\scripts\validate-changes.cmd"`
+Battle event flow sequence:
 
-Related scripts:
-- `.agents/scripts/run-editmode-tests.ps1`
-- `.agents/scripts/run-playmode-tests.ps1`
-- `.agents/scripts/check-analyzers.ps1`
-- `.agents/scripts/check-unity-compilation.ps1`
-- `.agents/scripts/check-scripts-asmdef-references.ps1`
-- `.agents/scripts/validate-changes.ps1`
-- `.agents/scripts/run-coverage-audit.cmd`
-- `.agents/scripts/run-coverage-audit.ps1`
+```mermaid
+sequenceDiagram
+    participant View as GameView
+    participant Game as Madbox.Battle.Game
+    participant Router as BattleEventRouter
+    participant Cmd as BattleCommand
+    participant Enemy as EnemyRuntimeState
+
+    View->>Game: Trigger(BattleEvent)
+    Game->>Router: Resolve command
+    Router-->>Game: BattleCommand
+    Game->>Cmd: Execute(context)
+    Cmd->>Enemy: Mutate domain state
+    Cmd-->>Game: Domain event(s)
+    Game-->>View: EventTriggered callback
+```
+
+App loop state machine:
+
+```mermaid
+stateDiagram-v2
+    [*] --> Boot
+    Boot --> MainMenu
+    MainMenu --> LoadingLevel: Level selected
+    LoadingLevel --> InGame: Session created
+    InGame --> PostGame: Win/Lose/Quit
+    PostGame --> ReturningToMenu
+    ReturningToMenu --> MainMenu
+```
+
+## Dependency Rules
+
+Allowed:
+
+- Explicit `.asmdef` references between modules.
+- Pure C# domain logic in Core/Meta modules.
+- Framework dependencies (`VContainer`, navigation/event adapters) in infra/bootstrap modules.
+
+Forbidden:
+
+- Hidden dependencies that bypass declared assembly references.
+- Unity-facing runtime behavior inside pure domain modules.
+- Direct production runtime coupling to analyzer implementation projects.
+
+## Quality Attributes and Tradeoffs
+
+- Modularity over convenience:
+  - Pros: safer edits, stronger boundaries, analyzable dependency graph.
+  - Tradeoff: more interfaces/contracts and composition wiring.
+- Deterministic startup over implicit registration:
+  - Pros: predictable initialization and easier fault isolation.
+  - Tradeoff: phase ordering must be maintained intentionally.
+- Domain authority over view authority:
+  - Pros: testable and replayable game rules.
+  - Tradeoff: adapter translation layers are required for Unity events/physics.
+- Scripted validation over ad-hoc checks:
+  - Pros: repeatable quality gate for contributors and agents.
+  - Tradeoff: longer feedback loop than compile-only checks.
 
 ## Verification
 
-- Full quality gate:
+Run from repository root:
+
+- Full gate:
   - `& ".\.agents\scripts\validate-changes.cmd"`
-- Analyzer-only gate:
+- Analyzer diagnostics:
   - `powershell -NoProfile -ExecutionPolicy Bypass -File ".\.agents\scripts\check-analyzers.ps1"`
 - EditMode tests:
   - `powershell -NoProfile -ExecutionPolicy Bypass -File ".\.agents\scripts\run-editmode-tests.ps1"`
 - PlayMode tests:
   - `powershell -NoProfile -ExecutionPolicy Bypass -File ".\.agents\scripts\run-playmode-tests.ps1"`
 
+Architecture controls and policy files:
+
+- Analyzer source: `Analyzers/Scaffold/Scaffold.Analyzers`
+- Analyzer tests: `Analyzers/Scaffold/Scaffold.Analyzers.Tests`
+- Analyzer output: `Analyzers/Output/Scaffold.Analyzers.dll`
+- Assembly boundaries: `Assets/Scripts/**/*.asmdef`
+- Operational docs: `AGENTS.md`, `PLANS.md`, `MILESTONE.md`
+
+## Operational policy
+
+- Primary agent operating policy: `AGENTS.md`.
+- ExecPlan authoring/execution policy: `PLANS.md`.
+- Milestone plan policy: `MILESTONE.md`.
+- Milestone quality gate is mandatory: `& ".\.agents\scripts\validate-changes.cmd"`.
+- Analyzer diagnostics workflow: `.agents/workflows/check-analyzers.md`.
+- Module creation workflow: `.agents/workflows/create-module.md`.
+- Custom analyzer workflow: `.agents/workflows/create-custom-analyzer.md`.
+
 ## Change Log
 
-- 2026-03-17: Replaced outdated fresh-project architecture notes with the current modular `Assets/Scripts` assembly map, dependency graph, docs inventory, and quality tooling.
+- 2026-03-18: Reorganized the document to match architecture documentation standard; added system context, module dependency, startup/battle/runtime state diagrams, invariants, and quality-tradeoff sections.
+- 2026-03-18: Synced docs map with current module docs and aligned startup/runtime language with research flow documents.

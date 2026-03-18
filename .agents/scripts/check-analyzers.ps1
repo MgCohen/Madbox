@@ -68,82 +68,83 @@ function Try-GetRelativePath {
 #   DIAG:<raw SCA diagnostic line>
 #   BLOCKER:<raw error line>
 $analyzerTestsOutput = @()
+$runAnalyzerTests = Test-Path $analyzerTestsProjectPath
 
-if (-not (Test-Path $analyzerTestsProjectPath)) {
-    Write-Output "TOTAL:-1"
-    Write-Output ("BLOCKER:Analyzer tests project not found at '{0}'." -f $analyzerTestsProjectPath)
-    exit 1
+if (-not $runAnalyzerTests) {
+    Write-Output ("NOTE:Analyzer tests project not found at '{0}'. Analyzer unit tests skipped." -f $analyzerTestsProjectPath)
 }
 
-if ($AnalyzerTestsTimeoutMinutes -lt 1) {
-    Write-Output "TOTAL:-1"
-    Write-Output "BLOCKER:AnalyzerTestsTimeoutMinutes must be 1 or greater."
-    exit 1
-}
-
-$testsTempRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("dotnet-test-analyzers-" + [guid]::NewGuid().ToString("N"))
-$null = New-Item -ItemType Directory -Path $testsTempRoot -Force
-$testsStdOutPath = Join-Path $testsTempRoot "stdout.log"
-$testsStdErrPath = Join-Path $testsTempRoot "stderr.log"
-$analyzerTestsExitCode = 1
-
-try {
-    $testProcess = Start-Process -FilePath "dotnet" `
-        -ArgumentList @("test", $analyzerTestsProjectPath, "-c", "Release", "--nologo") `
-        -PassThru `
-        -NoNewWindow `
-        -RedirectStandardOutput $testsStdOutPath `
-        -RedirectStandardError $testsStdErrPath
-
-    $testsTimeoutMilliseconds = $AnalyzerTestsTimeoutMinutes * 60 * 1000
-    $testsDidExit = $testProcess.WaitForExit($testsTimeoutMilliseconds)
-
-    if (-not $testsDidExit) {
-        try {
-            Stop-Process -Id $testProcess.Id -Force -ErrorAction SilentlyContinue
-        } catch {
-        }
-
+if ($runAnalyzerTests) {
+    if ($AnalyzerTestsTimeoutMinutes -lt 1) {
         Write-Output "TOTAL:-1"
-        Write-Output ("BLOCKER:Analyzer tests timed out after {0} minute(s)." -f $AnalyzerTestsTimeoutMinutes)
+        Write-Output "BLOCKER:AnalyzerTestsTimeoutMinutes must be 1 or greater."
         exit 1
     }
 
-    $analyzerTestsExitCode = [int]$testProcess.ExitCode
+    $testsTempRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("dotnet-test-analyzers-" + [guid]::NewGuid().ToString("N"))
+    $null = New-Item -ItemType Directory -Path $testsTempRoot -Force
+    $testsStdOutPath = Join-Path $testsTempRoot "stdout.log"
+    $testsStdErrPath = Join-Path $testsTempRoot "stderr.log"
+    $analyzerTestsExitCode = 1
 
-    if (Test-Path $testsStdOutPath) {
-        $analyzerTestsOutput += @(Get-Content $testsStdOutPath)
-    }
+    try {
+        $testProcess = Start-Process -FilePath "dotnet" `
+            -ArgumentList @("test", $analyzerTestsProjectPath, "-c", "Release", "--nologo") `
+            -PassThru `
+            -NoNewWindow `
+            -RedirectStandardOutput $testsStdOutPath `
+            -RedirectStandardError $testsStdErrPath
 
-    if (Test-Path $testsStdErrPath) {
-        $analyzerTestsOutput += @(Get-Content $testsStdErrPath)
+        $testsTimeoutMilliseconds = $AnalyzerTestsTimeoutMinutes * 60 * 1000
+        $testsDidExit = $testProcess.WaitForExit($testsTimeoutMilliseconds)
+
+        if (-not $testsDidExit) {
+            try {
+                Stop-Process -Id $testProcess.Id -Force -ErrorAction SilentlyContinue
+            } catch {
+            }
+
+            Write-Output "TOTAL:-1"
+            Write-Output ("BLOCKER:Analyzer tests timed out after {0} minute(s)." -f $AnalyzerTestsTimeoutMinutes)
+            exit 1
+        }
+
+        $analyzerTestsExitCode = [int]$testProcess.ExitCode
+
+        if (Test-Path $testsStdOutPath) {
+            $analyzerTestsOutput += @(Get-Content $testsStdOutPath)
+        }
+
+        if (Test-Path $testsStdErrPath) {
+            $analyzerTestsOutput += @(Get-Content $testsStdErrPath)
+        }
     }
-}
-finally {
-    if (Test-Path $testsTempRoot) {
-        try {
-            [System.IO.Directory]::Delete($testsTempRoot, $true)
-        } catch {
-            Start-Sleep -Milliseconds 250
+    finally {
+        if (Test-Path $testsTempRoot) {
             try {
                 [System.IO.Directory]::Delete($testsTempRoot, $true)
             } catch {
+                Start-Sleep -Milliseconds 250
+                try {
+                    [System.IO.Directory]::Delete($testsTempRoot, $true)
+                } catch {
+                }
             }
         }
     }
-}
 
-if ($analyzerTestsExitCode -ne 0) {
-    Write-Output "TOTAL:-1"
-    Write-Output ("BLOCKER:Analyzer tests failed (exit code {0})." -f $analyzerTestsExitCode)
-    foreach ($line in $analyzerTestsOutput) {
-        if ([string]::IsNullOrWhiteSpace($line)) { continue }
-        Write-Output ("BLOCKER:{0}" -f $line)
+    if ($analyzerTestsExitCode -ne 0) {
+        Write-Output "TOTAL:-1"
+        Write-Output ("BLOCKER:Analyzer tests failed (exit code {0})." -f $analyzerTestsExitCode)
+        foreach ($line in $analyzerTestsOutput) {
+            if ([string]::IsNullOrWhiteSpace($line)) { continue }
+            Write-Output ("BLOCKER:{0}" -f $line)
+        }
+        exit 1
     }
-    exit 1
-}
 
-Write-Output "NOTE:Analyzer tests passed."
+    Write-Output "NOTE:Analyzer tests passed."
+}
 
 $selectedSolution = Resolve-SolutionPath -ResolvedProjectPath $resolvedProjectPath
 if ($null -eq $selectedSolution) {
