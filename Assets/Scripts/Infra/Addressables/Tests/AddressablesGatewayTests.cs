@@ -263,6 +263,21 @@ namespace Madbox.Addressables.Tests
             Assert.AreEqual(1, gateway.InitializeCalls);
         }
 
+        [Test]
+        public void LayerInitializer_WhenCanceledDuringRegistration_ThrowsOperationCanceledException()
+        {
+            TestAddressableAssetClient client = CreateClient();
+            ConfigureAssetPreloadConfig(client, EnemyBeeKey(), PreloadMode.Normal);
+            AddressablesGateway gateway = CreateGateway(client);
+            AddressablesLayerInitializer initializer = new AddressablesLayerInitializer(gateway, client);
+            NoopInitializationContext context = new NoopInitializationContext();
+            using CancellationTokenSource cancellationSource = new CancellationTokenSource();
+            cancellationSource.Cancel();
+
+            Assert.Throws<OperationCanceledException>(() =>
+                initializer.InitializeAsync(context, null, cancellationSource.Token).GetAwaiter().GetResult());
+        }
+
         private TestAddressableAssetClient CreateClient()
         {
             return new TestAddressableAssetClient();

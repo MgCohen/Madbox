@@ -117,6 +117,7 @@ namespace Madbox.Scope
         private async Task InitializeServiceAsync(ILayerInitializationContext context, IAsyncLayerInitializable initializer, IObjectResolver resolver, CancellationToken cancellationToken)
         {
             try { await initializer.InitializeAsync(context, resolver, cancellationToken); }
+            catch (OperationCanceledException) { throw; }
             catch (Exception exception) { throw CreateInitializationFailure(initializer, exception); }
         }
 

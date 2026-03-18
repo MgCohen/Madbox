@@ -96,6 +96,18 @@ namespace Madbox.Scope.Tests
             Assert.Throws<InvalidOperationException>(() => runner.InitializeInitializersAsync(initializers, null, CancellationToken.None).GetAwaiter().GetResult());
         }
 
+        [Test]
+        public void InitializeInitializersAsync_WhenInitializerIsCanceled_ThrowsOperationCanceledException()
+        {
+            ScopeInitializer runner = new ScopeInitializer();
+            IAsyncLayerInitializable[] initializers = { new CancellationAwareInitializer() };
+            using CancellationTokenSource cancellationSource = new CancellationTokenSource();
+            cancellationSource.Cancel();
+
+            Assert.Throws<OperationCanceledException>(() =>
+                runner.InitializeInitializersAsync(initializers, null, cancellationSource.Token).GetAwaiter().GetResult());
+        }
+
         private Task StartInitialization(ScopeInitializer runner, IAsyncLayerInitializable first, IAsyncLayerInitializable second)
         {
             IAsyncLayerInitializable[] initializers = { first, second };
@@ -236,6 +248,15 @@ namespace Madbox.Scope.Tests
             public Task InitializeAsync(ILayerInitializationContext context, IObjectResolver resolver, CancellationToken cancellationToken)
             {
                 context.RegisterInstanceForChild(typeof(Marker), marker, Lifetime.Scoped);
+                return Task.CompletedTask;
+            }
+        }
+
+        private sealed class CancellationAwareInitializer : IAsyncLayerInitializable
+        {
+            public Task InitializeAsync(ILayerInitializationContext context, IObjectResolver resolver, CancellationToken cancellationToken)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
                 return Task.CompletedTask;
             }
         }

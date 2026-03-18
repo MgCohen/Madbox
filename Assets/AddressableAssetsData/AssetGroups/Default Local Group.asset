@@ -22,11 +22,6 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 37bd65c58ad7825418d39ce3103f9d51
-    m_Address: Assets/Data/AddressablesPreloadConfig.asset
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 44b03c24ec1888b45b3fec2bd00ef1cf
     m_Address: Navigation/BaseView
     m_ReadOnly: 0

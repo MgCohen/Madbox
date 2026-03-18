@@ -74,13 +74,25 @@ namespace Madbox.Addressables
         private async Task<IAssetHandle> LoadHandleByTypeAsync(Type assetType, AssetKey key, CancellationToken cancellationToken)
         {
             MethodInfo generic = loadByKeyMethod.MakeGenericMethod(assetType);
-            Task loadTask = (Task)generic.Invoke(gateway, new object[] { key, cancellationToken });
+            Task loadTask = InvokeLoadAsync(generic, key, cancellationToken);
             await loadTask;
             PropertyInfo resultProperty = loadTask.GetType().GetProperty("Result");
             if (resultProperty == null) { throw new InvalidOperationException("Gateway load task result property could not be resolved."); }
             object handle = resultProperty.GetValue(loadTask);
             if (handle is IAssetHandle typed) { return typed; }
             throw new InvalidOperationException("Gateway load did not return a valid asset handle.");
+        }
+
+        private Task InvokeLoadAsync(MethodInfo generic, AssetKey key, CancellationToken cancellationToken)
+        {
+            try
+            {
+                return (Task)generic.Invoke(gateway, new object[] { key, cancellationToken });
+            }
+            catch (TargetInvocationException exception) when (exception.InnerException is OperationCanceledException canceled)
+            {
+                throw canceled;
+            }
         }
 
         private void GuardConstructor(IAddressablesGateway gateway, IAddressablesAssetClient client)

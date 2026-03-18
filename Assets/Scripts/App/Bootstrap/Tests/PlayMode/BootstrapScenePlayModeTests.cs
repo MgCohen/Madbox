@@ -49,38 +49,41 @@ namespace Madbox.Bootstrap.Tests.PlayMode
 
         private IEnumerator WaitForBootstrapInitialization()
         {
-            const int maxFrames = 180;
-            yield return WaitForBootstrapScope(maxFrames);
-            yield return WaitForBootstrapCompletion(maxFrames);
+            const float timeoutSeconds = 5f;
+            yield return WaitForBootstrapScope(timeoutSeconds);
+            yield return WaitForBootstrapCompletion(timeoutSeconds);
         }
 
-        private IEnumerator WaitForBootstrapScope(int maxFrames)
+        private IEnumerator WaitForBootstrapScope(float timeoutSeconds)
         {
-            int frame = 0;
+            float startedAt = Time.realtimeSinceStartup;
             MonoBehaviour scope = FindBootstrapScope();
-            while (scope == null && frame < maxFrames)
+            while (scope == null && !HasTimedOut(startedAt, timeoutSeconds))
             {
-                frame++;
                 yield return null;
                 scope = FindBootstrapScope();
             }
         }
 
-        private IEnumerator WaitForBootstrapCompletion(int maxFrames)
+        private IEnumerator WaitForBootstrapCompletion(float timeoutSeconds)
         {
-            int frame = 0;
-            while (ShouldWaitForBootstrapCompletion(frame, maxFrames))
+            float startedAt = Time.realtimeSinceStartup;
+            while (ShouldWaitForBootstrapCompletion(startedAt, timeoutSeconds))
             {
-                frame++;
                 yield return null;
             }
         }
 
-        private bool ShouldWaitForBootstrapCompletion(int frame, int maxFrames)
+        private bool ShouldWaitForBootstrapCompletion(float startedAt, float timeoutSeconds)
         {
-            if (frame >= maxFrames) { return false; }
+            if (HasTimedOut(startedAt, timeoutSeconds)) { return false; }
             MonoBehaviour scope = FindBootstrapScope();
             return !IsBootstrapCompleted(scope);
+        }
+
+        private bool HasTimedOut(float startedAt, float timeoutSeconds)
+        {
+            return Time.realtimeSinceStartup - startedAt >= timeoutSeconds;
         }
 
         private void AssertBootstrapCompleted()
@@ -94,13 +97,25 @@ namespace Madbox.Bootstrap.Tests.PlayMode
 
         private MonoBehaviour FindBootstrapScope()
         {
+            Scene bootstrapScene = SceneManager.GetSceneByName("Bootstrap");
             MonoBehaviour[] behaviours = FindBehaviours();
+            return FindBootstrapScopeInScene(bootstrapScene, behaviours);
+        }
+
+        private MonoBehaviour FindBootstrapScopeInScene(Scene bootstrapScene, MonoBehaviour[] behaviours)
+        {
             for (int i = 0; i < behaviours.Length; i++)
             {
-                if (IsBootstrapScope(behaviours[i])) { return behaviours[i]; }
+                MonoBehaviour behaviour = behaviours[i];
+                if (IsBootstrapScope(behaviour) && IsScopeInBootstrapScene(bootstrapScene, behaviour)) { return behaviour; }
             }
 
             return null;
+        }
+
+        private bool IsScopeInBootstrapScene(Scene bootstrapScene, MonoBehaviour behaviour)
+        {
+            return !bootstrapScene.IsValid() || behaviour.gameObject.scene == bootstrapScene;
         }
 
         private MonoBehaviour[] FindBehaviours()
