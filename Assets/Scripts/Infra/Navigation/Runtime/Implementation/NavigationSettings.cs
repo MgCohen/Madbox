@@ -1,17 +1,15 @@
-﻿using UnityEngine;
-using Scaffold.Types;
-using Scaffold.Events.Contracts;
-using Scaffold.Events;
-using System.Threading.Tasks;
-using System.Linq;
-using System.Collections.Generic;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using Scaffold.Navigation.Contracts;
+using UnityEngine;
+
 namespace Scaffold.Navigation
 {
     [CreateAssetMenu(menuName = "Scaffold/Core/Settings/Navigation")]
     public class NavigationSettings : ScriptableObject
     {
+        public IReadOnlyList<ViewConfig> Screens => screens;
         [SerializeField] private List<ViewConfig> screens = new List<ViewConfig>();
 
         private Dictionary<Type, ViewConfig> cachedConfigs = new Dictionary<Type, ViewConfig>();
@@ -27,15 +25,15 @@ namespace Scaffold.Navigation
 
         private ViewConfig GetAndCacheConfig(Type type)
         {
-            var isController = typeof(IViewController).IsAssignableFrom(type);
-            var config = FindViewConfig(type, isController);
+            bool isController = typeof(IViewController).IsAssignableFrom(type);
+            ViewConfig config = FindViewConfig(type, isController);
             cachedConfigs[type] = config;
             return config;
         }
 
         private ViewConfig FindViewConfig(Type type, bool isController)
         {
-            var config = screens.FirstOrDefault(s => isController ? s.ControllerType.IsAssignableFrom(type) : s.ViewType.IsAssignableFrom(type));
+            ViewConfig config = screens.FirstOrDefault(s => isController ? s.ControllerType.IsAssignableFrom(type) : s.ViewType.IsAssignableFrom(type));
             if (!config)
             {
                 throw new Exception($"No view config found for {type.Name}");
@@ -44,5 +42,3 @@ namespace Scaffold.Navigation
         }
     }
 }
-
-
