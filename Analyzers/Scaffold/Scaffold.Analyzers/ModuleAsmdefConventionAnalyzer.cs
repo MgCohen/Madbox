@@ -69,7 +69,6 @@ namespace Scaffold.Analyzers
         {
             var suffixMap = new Dictionary<string, string[]>(StringComparer.OrdinalIgnoreCase)
             {
-                [".Contracts"] = new[] { "Contracts" },
                 [".Runtime"] = new[] { "Runtime" },
                 [".Tests"] = new[] { "Tests" },
                 [".PlayModeTests"] = new[] { Path.Combine("Tests", "PlayMode") },

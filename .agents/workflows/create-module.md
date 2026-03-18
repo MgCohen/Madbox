@@ -19,6 +19,7 @@ description: Scaffolds a new module following the project's structure guidelines
     - `[ModulePath]/Runtime/[ProjectPrefix].[ModuleName].asmdef`
     - `[ModulePath]/Container/[ProjectPrefix].[ModuleName].Container.asmdef` (Reference Runtime module as needed)
     - `[ModulePath]/Tests/[ProjectPrefix].[ModuleName].Tests.asmdef` (Reference Runtime, Container, and Test Framework as needed)
+    - Never place the main module asmdef at `[ModulePath]/`; it must live under `[ModulePath]/Runtime/`.
 6.  **Generate Initial Boundary API**:
     - Create a template interface in `Runtime/Contracts/I[ModuleName].cs` when the module exposes cross-module boundary types.
     - Create a template installer in `Container/[ModuleName]Installer.cs` (Inheriting from `Installer` and public).
