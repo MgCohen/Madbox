@@ -18,6 +18,7 @@ Delivery is incremental and risk-managed: first meta economy (`Gold`), then leve
 - [x] (2026-03-18 00:59Z) Stage 4 completed: implemented lifecycle (`NotRunning` -> `Running` -> `Done`), tick timer, and minimal runtime counters/state transitions.
 - [x] (2026-03-18 00:59Z) Stage 5 completed: implemented behavior-based runtime processing for movement/contact-attack definitions and event emissions.
 - [x] (2026-03-18 00:59Z) Stage 6 completed: delivered full simulation slice for this milestone and passed `.agents/scripts/validate-changes.cmd` clean.
+- [x] (2026-03-18 16:40Z) Post-delivery architectural decisions for battle flow were finalized in `Plans/BattleIntentCommandPipeline/BattleIntentCommandPipeline-ExecPlan.md` and adopted by implementation.
 
 ## Surprises & Discoveries
 
@@ -71,9 +72,35 @@ Delivery is incremental and risk-managed: first meta economy (`Gold`), then leve
   Rationale: Minimizes implementation churn while maintaining required behavior and passing repository quality gates.
   Date/Author: 2026-03-18 / Codex.
 
+- Decision: Battle action flow follows `Intent -> Command -> DomainEvent` with one ingress (`Game.Trigger`) and one egress (`EventTriggered`), while keeping semantic distinction between intent, command, and event.
+  Rationale: Keeps orchestration clear, testable, and avoids event/command conflation.
+  Date/Author: 2026-03-18 / Codex.
+
+- Decision: `Game` remains an orchestrator-only instance; specialized behavior and routing live in internal systems/services.
+  Rationale: Keeps `Game` clean and minimizes feature-specific logic accumulation.
+  Date/Author: 2026-03-18 / Codex.
+
+- Decision: Enemy attack authority is presentation-driven; runtime applies authoritative mutation only after observed-hit intents.
+  Rationale: Runtime cannot evaluate line-of-sight/physics blockers; view simulation must confirm hit feasibility.
+  Date/Author: 2026-03-18 / Codex.
+
+- Decision: Player auto-attack is projectile-based (spawn event first, damage on projectile-hit observation).
+  Rationale: Preserves separation between presentation simulation and authoritative damage resolution.
+  Date/Author: 2026-03-18 / Codex.
+
+- Decision: Enemy-focused runtime logic is extracted into dedicated `Madbox.Enemies` module.
+  Rationale: Improves modular boundaries and keeps battle module focused on orchestration.
+  Date/Author: 2026-03-18 / Codex.
+
+- Decision: `LevelDefinition.GameRules` is the source for game-end evaluation rules.
+  Rationale: Rule configuration belongs to level content; evaluator consumes level definitions plus runtime context.
+  Date/Author: 2026-03-18 / Codex.
+
 ## Outcomes & Retrospective
 
 Implemented `Madbox.Gold`, `Madbox.Levels`, and `Madbox.Battle` end-to-end with tests and docs. The delivered battle runtime includes direct input routing (`Trigger`), output callbacks (`EventTriggered`), completion callback (`OnCompleted`), model-backed runtime state, player-attack and enemy-hit flows, win/lose completion, and reward payout through `GoldWallet`.
+
+Cross-plan note: final battle-flow architecture decisions, updated player/enemy attack flows, and migration details are tracked in `Plans/BattleIntentCommandPipeline/BattleIntentCommandPipeline-ExecPlan.md`. This Basic plan is now the high-level domain baseline and decision index.
 
 Validation evidence:
 
@@ -424,3 +451,4 @@ Revision Note (2026-03-17): Simplified contracts to reduce abstraction: removed 
 Revision Note (2026-03-17): Removed `sealed` from class/record examples and expanded attack flow to explicit View intent -> ViewModel command mapping -> direct in-`Game` event resolution -> model-backed state updates -> emitted transient output events.
 Revision Note (2026-03-17): Refined enemy attack flow: movement/attack-condition checks remain in prefab/view logic; only collision (`EnemyHitObserved`) enters `Game` through `Trigger`, where authoritative resolution updates model state and emits `PlayerDamaged`/`PlayerKilled`.
 Revision Note (2026-03-18): Executed all six stages in this worktree, added concrete module implementations/tests/docs, resolved analyzer and quality-gate issues, and updated living sections with evidence.
+Revision Note (2026-03-18): Added final post-delivery architecture decisions and explicit cross-reference to `BattleIntentCommandPipeline-ExecPlan.md` as the detailed implementation record.

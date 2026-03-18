@@ -1,7 +1,10 @@
 using System;
 using System.Collections.Generic;
+using Madbox.Battle.Events;
 using Madbox.Gold;
 using Madbox.Levels;
+using Madbox.Levels.Behaviors;
+using Madbox.Levels.Rules;
 using NUnit.Framework;
 #pragma warning disable SCA0003
 #pragma warning disable SCA0005
@@ -145,25 +148,10 @@ namespace Madbox.Battle.Tests
         }
 
         [Test]
-        public void Tick_WhenEnemyHasMovementBehavior_UpdatesEnemyDistance()
-        {
-            Game game = CreateGame();
-            game.Start();
-            bool foundBefore = game.TryGetEnemyDistance(new EntityId("enemy-1"), out float before);
-
-            game.Tick(1f);
-
-            bool foundAfter = game.TryGetEnemyDistance(new EntityId("enemy-1"), out float after);
-            Assert.IsTrue(foundBefore);
-            Assert.IsTrue(foundAfter);
-            Assert.Less(after, before);
-        }
-
-        [Test]
         public void Tick_EvaluatesGameRulesAndCompletesWhenAllEnemiesAreDead()
         {
             GoldWallet wallet = new GoldWallet();
-            Game game = CreateGame(wallet: wallet);
+            Game game = CreateGame(wallet: wallet, gameRules: CreateEnemyKillOnlyRuleSet());
             game.Start();
             game.Tick(3f);
 
@@ -180,15 +168,129 @@ namespace Madbox.Battle.Tests
             Assert.AreEqual(15, wallet.CurrentGold);
         }
 
-        private Game CreateGame(int playerHealth = 100, GoldWallet wallet = null)
+        [Test]
+        public void Simulation_TimerOnlyRule_WhenTimeRunsOut_CompletesAsLose()
+        {
+            Game game = CreateGame(gameRules: CreateTimerOnlyRuleSet(1f));
+            GameEndReason completionReason = GameEndReason.None;
+            game.OnCompleted += reason => completionReason = reason;
+
+            game.Start();
+            game.Tick(0.5f);
+            Assert.AreEqual(GameState.Running, game.CurrentState);
+
+            game.Tick(0.5f);
+
+            Assert.AreEqual(GameState.Done, game.CurrentState);
+            Assert.AreEqual(GameEndReason.Lose, completionReason);
+        }
+
+        [Test]
+        public void Simulation_EnemyKillOnlyRule_WhenEnemiesDie_CompletesAsWin()
+        {
+            GoldWallet wallet = new GoldWallet();
+            Game game = CreateGame(wallet: wallet, gameRules: CreateEnemyKillOnlyRuleSet());
+            GameEndReason completionReason = GameEndReason.None;
+            game.OnCompleted += reason => completionReason = reason;
+
+            game.Start();
+            game.Tick(3f);
+            game.Trigger(new TryPlayerAttack(new EntityId("player-1"), new EntityId("enemy-1")));
+            game.Trigger(new TryPlayerAttack(new EntityId("player-1"), new EntityId("enemy-1")));
+            game.Trigger(new TryPlayerAttack(new EntityId("player-1"), new EntityId("enemy-2")));
+            game.Trigger(new TryPlayerAttack(new EntityId("player-1"), new EntityId("enemy-2")));
+            game.Tick(0.01f);
+
+            Assert.AreEqual(GameState.Done, game.CurrentState);
+            Assert.AreEqual(GameEndReason.Win, completionReason);
+            Assert.AreEqual(15, wallet.CurrentGold);
+        }
+
+        [Test]
+        public void Simulation_TimerAndEnemyRules_WhenTimerRunsOutWithEnemiesAlive_CompletesAsLose()
+        {
+            Game game = CreateGame(gameRules: CreateEnemyAndTimerRuleSet(1f));
+            GameEndReason completionReason = GameEndReason.None;
+            game.OnCompleted += reason => completionReason = reason;
+
+            game.Start();
+            game.Tick(1f);
+
+            Assert.AreEqual(GameState.Done, game.CurrentState);
+            Assert.AreEqual(GameEndReason.Lose, completionReason);
+        }
+
+        [Test]
+        public void Simulation_TimerAndEnemyRules_WhenEnemiesDieBeforeTimer_CompletesAsWin()
+        {
+            GoldWallet wallet = new GoldWallet();
+            Game game = CreateGame(wallet: wallet, gameRules: CreateEnemyAndTimerRuleSet(5f));
+            GameEndReason completionReason = GameEndReason.None;
+            game.OnCompleted += reason => completionReason = reason;
+
+            game.Start();
+            game.Tick(3f);
+            game.Trigger(new TryPlayerAttack(new EntityId("player-1"), new EntityId("enemy-1")));
+            game.Trigger(new TryPlayerAttack(new EntityId("player-1"), new EntityId("enemy-1")));
+            game.Trigger(new TryPlayerAttack(new EntityId("player-1"), new EntityId("enemy-2")));
+            game.Trigger(new TryPlayerAttack(new EntityId("player-1"), new EntityId("enemy-2")));
+            game.Tick(0.01f);
+
+            Assert.AreEqual(GameState.Done, game.CurrentState);
+            Assert.AreEqual(GameEndReason.Win, completionReason);
+            Assert.AreEqual(15, wallet.CurrentGold);
+        }
+
+        [Test]
+        public void Trigger_PlayerAutoAttackObserved_WhenProjectileHits_EmitsAttackAndEnemyKilled()
+        {
+            Game game = CreateGame();
+            game.Start();
+            List<BattleEvent> emitted = new List<BattleEvent>();
+            game.EventTriggered += emitted.Add;
+
+            game.Trigger(new PlayerAutoAttackObserved(new EntityId("player-1"), new EntityId("enemy-1")));
+            PlayerProjectileSpawned firstProjectile = emitted.Find(e => e is PlayerProjectileSpawned) as PlayerProjectileSpawned;
+            Assert.IsNotNull(firstProjectile);
+
+            game.Trigger(new PlayerProjectileHitObserved(firstProjectile.ProjectileId, new EntityId("player-1"), new EntityId("enemy-1")));
+            Assert.That(emitted, Has.Some.InstanceOf<PlayerAttack>());
+            Assert.That(emitted, Has.None.InstanceOf<EnemyKilled>());
+
+            game.Tick(0.5f);
+            game.Trigger(new PlayerAutoAttackObserved(new EntityId("player-1"), new EntityId("enemy-1")));
+            PlayerProjectileSpawned secondProjectile = emitted.FindLast(e => e is PlayerProjectileSpawned) as PlayerProjectileSpawned;
+            Assert.IsNotNull(secondProjectile);
+            game.Trigger(new PlayerProjectileHitObserved(secondProjectile.ProjectileId, new EntityId("player-1"), new EntityId("enemy-1")));
+
+            Assert.That(emitted, Has.Some.InstanceOf<EnemyKilled>());
+        }
+
+        [Test]
+        public void Trigger_PlayerProjectileHitObserved_WhenProjectileUnknown_EmitsNothing()
+        {
+            Game game = CreateGame();
+            game.Start();
+            int emittedCount = 0;
+            game.EventTriggered += _ => emittedCount++;
+
+            game.Trigger(new PlayerProjectileHitObserved(new EntityId("unknown-projectile"), new EntityId("player-1"), new EntityId("enemy-1")));
+
+            Assert.AreEqual(0, emittedCount);
+        }
+
+        private Game CreateGame(
+            int playerHealth = 100,
+            GoldWallet wallet = null,
+            IReadOnlyList<LevelGameRuleDefinition> gameRules = null)
         {
             EnemyDefinition enemy = new EnemyDefinition(
                 new EntityId("slime"),
                 maxHealth: 20,
-                new EnemyBehaviorDefinition[]
+                    new EnemyBehaviorDefinition[]
                 {
                     new MovementBehaviorDefinition(1.5f, 4f),
-                    new ContactAttackBehaviorDefinition(6, 0.5f, 1.5f)
+                    new ContactAttackBehaviorDefinition(6, 0.5f, 4f)
                 });
 
             LevelDefinition level = new LevelDefinition(
@@ -197,9 +299,36 @@ namespace Madbox.Battle.Tests
                 enemies: new List<LevelEnemyDefinition>
                 {
                     new LevelEnemyDefinition(enemy, 2)
-                });
+                },
+                gameRules ?? CreateEnemyAndTimerRuleSet(10f));
 
-            return new Game(level, wallet ?? new GoldWallet(), new EntityId("player-1"), playerHealth);
+            Player player = new Player(new EntityId("player-1"), playerHealth);
+            return new Game(level, wallet ?? new GoldWallet(), player);
+        }
+
+        private IReadOnlyList<LevelGameRuleDefinition> CreateTimerOnlyRuleSet(float loseAfterSeconds)
+        {
+            return new LevelGameRuleDefinition[]
+            {
+                new TimeLimitLoseRuleDefinition(loseAfterSeconds)
+            };
+        }
+
+        private IReadOnlyList<LevelGameRuleDefinition> CreateEnemyKillOnlyRuleSet()
+        {
+            return new LevelGameRuleDefinition[]
+            {
+                new EnemyEliminatedWinRuleDefinition()
+            };
+        }
+
+        private IReadOnlyList<LevelGameRuleDefinition> CreateEnemyAndTimerRuleSet(float loseAfterSeconds)
+        {
+            return new LevelGameRuleDefinition[]
+            {
+                new EnemyEliminatedWinRuleDefinition(),
+                new TimeLimitLoseRuleDefinition(loseAfterSeconds)
+            };
         }
     }
 }

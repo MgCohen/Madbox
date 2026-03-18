@@ -1,4 +1,6 @@
 using System;
+using Madbox.Levels.Behaviors;
+using Madbox.Levels.Rules;
 using NUnit.Framework;
 #pragma warning disable SCA0003
 #pragma warning disable SCA0005
@@ -62,6 +64,9 @@ namespace Madbox.Levels.Tests
             Assert.AreEqual("level-1", level.LevelId.Value);
             Assert.AreEqual(10, level.GoldReward);
             Assert.AreEqual(2, level.Enemies.Count);
+            Assert.AreEqual(2, level.GameRules.Count);
+            Assert.IsInstanceOf<EnemyEliminatedWinRuleDefinition>(level.GameRules[0]);
+            Assert.That(level.GameRules, Has.Some.InstanceOf<PlayerDefeatedLoseRuleDefinition>());
         }
 
         [Test]
@@ -93,6 +98,25 @@ namespace Madbox.Levels.Tests
             TestDelegate action = () => new LevelDefinition(new LevelId("level-1"), 10, enemies);
 
             Assert.Throws<ArgumentException>(action);
+        }
+
+        [Test]
+        public void LevelDefinition_WhenRuleListIsNull_ThrowsArgumentNullException()
+        {
+            LevelEnemyDefinition[] enemies = { new LevelEnemyDefinition(CreateEnemyDefinition("enemy-a"), 1) };
+            TestDelegate action = () => new LevelDefinition(new LevelId("level-1"), 10, enemies, null);
+
+            Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Test]
+        public void LevelDefinition_WhenRuleListIsEmpty_AddsPlayerDefeatRule()
+        {
+            LevelEnemyDefinition[] enemies = { new LevelEnemyDefinition(CreateEnemyDefinition("enemy-a"), 1) };
+            LevelDefinition level = new LevelDefinition(new LevelId("level-1"), 10, enemies, Array.Empty<LevelGameRuleDefinition>());
+
+            Assert.AreEqual(1, level.GameRules.Count);
+            Assert.IsInstanceOf<PlayerDefeatedLoseRuleDefinition>(level.GameRules[0]);
         }
 
         private EnemyDefinition CreateEnemyDefinition(string enemyType)

@@ -22,7 +22,7 @@ Madbox is a Unity project with architecture constraints enforced through:
 - repository quality scripts under `.agents/scripts/`
 - assembly boundaries under `Assets/Scripts/**/*.asmdef`
 
-Current state updated on 2026-03-17.
+Current state updated on 2026-03-18.
 
 ## Tech Stack
 
@@ -50,13 +50,18 @@ Top-level directories:
 
 ## Module View (Current State)
 
-`Assets/Scripts/` has 32 assembly definitions:
+`Assets/Scripts/` has 39 assembly definitions:
 
 - `App`
   - `Madbox.Bootstrap.Runtime`, `Madbox.Bootstrap.Tests`, `Madbox.Bootstrap.PlayModeTests`
   - `Scaffold.MVVM.View`, `Scaffold.MVVM.Samples`, `Scaffold.MVVM.View.Tests`
 - `Core`
+  - `Madbox.Battle`, `Madbox.Battle.Tests`
+  - `Madbox.Enemies`, `Madbox.Enemies.Tests`
+  - `Madbox.Levels`, `Madbox.Levels.Tests`
   - `Scaffold.MVVM.ViewModel`, `Scaffold.MVVM.ViewModel.Tests`
+- `Meta`
+  - `Madbox.Gold`, `Madbox.Gold.Tests`
 - `Infra`
   - Events: `Scaffold.Events`, `Scaffold.Events.Container`, `Scaffold.Events.Samples`, `Scaffold.Events.Tests`
   - Model: `Scaffold.MVVM.Model`, `Scaffold.MVVM.Model.Tests`
@@ -77,6 +82,10 @@ Primary production dependency direction:
 - `Scaffold.Types` <- `Scaffold.MVVM.View` and `Scaffold.Navigation`
 - `Scaffold.Schemas` (package assembly from `com.scaffold.schemas`) <- `Scaffold.Navigation`
 - `VContainer` / `VContainer.Unity` are consumed by `Scaffold.Scope.*`, `Scaffold.Navigation.Container`, `Scaffold.Events.Container`, and `Madbox.Bootstrap.Runtime`
+- Domain core flow:
+  - `Madbox.Levels` -> `Madbox.Enemies` -> `Madbox.Battle`
+  - `Madbox.Gold` -> `Madbox.Battle` (reward payout only)
+  - `Madbox.Battle` orchestrates game lifecycle and routes intents to commands; enemy lifecycle/state stays in `Madbox.Enemies`.
 
 Notes:
 - Tests are split into Editor tests and PlayMode tests where applicable.
@@ -95,6 +104,14 @@ MVVM flow (high level):
 - View/presentation: `App/View`
 - App startup/composition root: `App/Bootstrap`
 
+Battle runtime flow (high level):
+- Input ingress: `Game.Trigger(BattleEvent)` in `Madbox.Battle`.
+- Internal pipeline: intent/event routing to commands (`BattleEventRouter`) and execution with `BattleExecutionContext`.
+- Domain mutation: command logic mutates rich models (`Player`, `EnemyRuntimeState`) and emits domain events.
+- Output egress: `Game.EventTriggered` callback.
+- Completion: `GameRuleEvaluator` evaluates `LevelDefinition.GameRules` using runtime context and triggers `OnCompleted(GameEndReason)`.
+- Authority split: movement/LOS/physics checks remain presentation-driven; runtime applies authoritative state changes on observed-hit intents.
+
 ## Dependency Rules
 
 Allowed:
@@ -112,10 +129,14 @@ Forbidden:
 - `Docs/App/Bootstrap.md`
 - `Docs/App/View.md`
 - `Docs/Core/ViewModel.md`
+- `Docs/Core/Battle.md`
+- `Docs/Core/Enemies.md`
+- `Docs/Core/Levels.md`
 - `Docs/Infra/Events.md`
 - `Docs/Infra/Model.md`
 - `Docs/Infra/Navigation.md`
 - `Docs/Infra/Scope.md`
+- `Docs/Meta/Gold.md`
 - `Docs/Tools/Maps.md`
 - `Docs/Tools/Records.md`
 - `Docs/Tools/Types.md`
@@ -172,3 +193,4 @@ Related scripts:
 ## Change Log
 
 - 2026-03-17: Replaced outdated fresh-project architecture notes with the current modular `Assets/Scripts` assembly map, dependency graph, docs inventory, and quality tooling.
+- 2026-03-18: Updated assembly count, added `Madbox.Battle`/`Madbox.Enemies`/`Madbox.Levels`/`Madbox.Gold` module view, and documented the current battle intent-command-domain-event runtime flow with level-defined game rules.

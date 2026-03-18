@@ -1,41 +1,37 @@
 using System;
 using Madbox.Gold;
+using Madbox.Battle.Events;
+using Madbox.Battle.Rules;
+using Madbox.Enemies.Services;
 using Madbox.Levels;
-#pragma warning disable SCA0003
-#pragma warning disable SCA0004
-#pragma warning disable SCA0005
-#pragma warning disable SCA0006
-#pragma warning disable SCA0009
-#pragma warning disable SCA0012
-#pragma warning disable SCA0014
-#pragma warning disable SCA0017
-#pragma warning disable SCA0020
+using Madbox.Levels.Rules;
 
 namespace Madbox.Battle
 {
     public class Game
     {
-        private readonly LevelDefinition levelDefinition;
-        private readonly GoldWallet goldWallet;
-        private readonly EnemyService enemyService;
-        private readonly BattleEventRouter eventRouter;
-        private readonly GameRuleEvaluator gameRuleEvaluator;
-        private readonly Player player;
-        private bool completionRaised;
-        private float elapsedTimeSeconds;
-
-        public Game(LevelDefinition levelDefinition, GoldWallet goldWallet, EntityId playerId, int playerMaxHealth = 100)
+        public Game(LevelDefinition levelDefinition, GoldWallet goldWallet, Player player)
         {
-            this.levelDefinition = levelDefinition ?? throw new ArgumentNullException(nameof(levelDefinition));
-            this.goldWallet = goldWallet ?? throw new ArgumentNullException(nameof(goldWallet));
-            if (playerId == null)
+            if (levelDefinition == null)
             {
-                throw new ArgumentNullException(nameof(playerId));
+                throw new ArgumentNullException(nameof(levelDefinition));
             }
 
+            if (goldWallet == null)
+            {
+                throw new ArgumentNullException(nameof(goldWallet));
+            }
+
+            if (player == null)
+            {
+                throw new ArgumentNullException(nameof(player));
+            }
+
+            this.levelDefinition = levelDefinition;
+            this.goldWallet = goldWallet;
+            this.player = player;
             CurrentLevelId = levelDefinition.LevelId ?? throw new ArgumentException("LevelDefinition.LevelId is required.", nameof(levelDefinition));
 
-            player = new Player(playerId, playerMaxHealth);
             enemyService = new EnemyService(levelDefinition);
             eventRouter = new BattleEventRouter(enemyService, player, RaiseEvent);
             gameRuleEvaluator = new GameRuleEvaluator(levelDefinition);
@@ -43,15 +39,23 @@ namespace Madbox.Battle
             CurrentState = GameState.NotRunning;
         }
 
-        public event Action<BattleEvent> EventTriggered;
-
-        public event Action<GameEndReason> OnCompleted;
-
         public GameState CurrentState { get; private set; }
 
         public float ElapsedTimeSeconds => elapsedTimeSeconds;
 
         public LevelId CurrentLevelId { get; }
+
+        private readonly LevelDefinition levelDefinition;
+        private readonly GoldWallet goldWallet;
+        private readonly EnemyService enemyService;
+        private readonly BattleEventRouter eventRouter;
+        private readonly GameRuleEvaluator gameRuleEvaluator;
+        private readonly Player player;
+        private float elapsedTimeSeconds;
+
+        public event Action<BattleEvent> EventTriggered;
+
+        public event Action<GameEndReason> OnCompleted;
 
         public void Start()
         {
@@ -65,29 +69,18 @@ namespace Madbox.Battle
 
         public void Tick(float deltaTime)
         {
-            if (CurrentState != GameState.Running)
+            if (CanTick(deltaTime) == false)
             {
                 return;
             }
 
-            if (deltaTime <= 0f)
-            {
-                return;
-            }
-
-            elapsedTimeSeconds += deltaTime;
-            enemyService.Tick(deltaTime);
+            AdvanceTick(deltaTime);
             EvaluateGameRules();
         }
 
         public void Trigger(BattleEvent gameEvent)
         {
-            if (gameEvent == null)
-            {
-                throw new ArgumentNullException(nameof(gameEvent));
-            }
-
-            if (CurrentState != GameState.Running)
+            if (CanTrigger(gameEvent) == false)
             {
                 return;
             }
@@ -95,15 +88,26 @@ namespace Madbox.Battle
             eventRouter.Route(gameEvent);
         }
 
-        public bool TryGetEnemyDistance(EntityId enemyId, out float distance)
+        private bool CanTick(float deltaTime)
         {
-            if (enemyId == null)
+            return CurrentState == GameState.Running && deltaTime > 0f;
+        }
+
+        private void AdvanceTick(float deltaTime)
+        {
+            elapsedTimeSeconds += deltaTime;
+            eventRouter.Tick(deltaTime);
+            enemyService.Tick(deltaTime);
+        }
+
+        private bool CanTrigger(BattleEvent gameEvent)
+        {
+            if (gameEvent == null)
             {
-                distance = default;
-                return false;
+                throw new ArgumentNullException(nameof(gameEvent));
             }
 
-            return enemyService.TryGetEnemyDistance(enemyId, out distance);
+            return CurrentState == GameState.Running;
         }
 
         private void RaiseEvent(BattleEvent battleEvent)
@@ -113,30 +117,26 @@ namespace Madbox.Battle
 
         private void EvaluateGameRules()
         {
-            if (completionRaised)
+            if (CurrentState is not GameState.Running) return;
+            if (gameRuleEvaluator.TryEvaluate(CurrentState, elapsedTimeSeconds, player, enemyService, out GameEndReason reason))
             {
-                return;
+                Complete(reason);
             }
-
-            if (gameRuleEvaluator.TryEvaluate(CurrentState, player, enemyService, out GameEndReason reason) == false)
-            {
-                return;
-            }
-
-            Complete(reason);
         }
 
         private void Complete(GameEndReason reason)
         {
-            completionRaised = true;
             CurrentState = GameState.Done;
+            AwardWinReward(reason);
+            OnCompleted?.Invoke(reason);
+        }
 
+        private void AwardWinReward(GameEndReason reason)
+        {
             if (reason == GameEndReason.Win && levelDefinition.GoldReward > 0)
             {
                 goldWallet.Add(levelDefinition.GoldReward);
             }
-
-            OnCompleted?.Invoke(reason);
         }
     }
 }

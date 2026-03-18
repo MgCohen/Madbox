@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Madbox.Levels.Behaviors;
 
 namespace Madbox.Levels
 {

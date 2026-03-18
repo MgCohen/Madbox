@@ -1,4 +1,4 @@
-namespace Madbox.Battle
+namespace Madbox.Levels.Rules
 {
     public enum GameEndReason
     {

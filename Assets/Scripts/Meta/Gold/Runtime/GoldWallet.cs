@@ -1,6 +1,4 @@
 using System;
-#pragma warning disable SCA0006
-#pragma warning disable SCA0023
 
 namespace Madbox.Gold
 {
@@ -20,16 +18,7 @@ namespace Madbox.Gold
 
         public bool TrySpend(int amount)
         {
-            if (amount <= 0)
-            {
-                return false;
-            }
-
-            if (CurrentGold < amount)
-            {
-                return false;
-            }
-
+            if (CanSpend(amount) == false) return false;
             CurrentGold -= amount;
             return true;
         }
@@ -41,10 +30,17 @@ namespace Madbox.Gold
                 throw new ArgumentOutOfRangeException(nameof(amount), "Amount must be positive.");
             }
 
-            checked
-            {
-                CurrentGold += amount;
-            }
+            AddChecked(amount);
+        }
+
+        private bool CanSpend(int amount)
+        {
+            return amount > 0 && CurrentGold >= amount;
+        }
+
+        private void AddChecked(int amount)
+        {
+            checked { CurrentGold += amount; }
         }
     }
 }

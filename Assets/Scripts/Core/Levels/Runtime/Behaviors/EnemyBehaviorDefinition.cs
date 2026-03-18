@@ -1,5 +1,4 @@
-#pragma warning disable SCA0023
-namespace Madbox.Levels
+namespace Madbox.Levels.Behaviors
 {
     public abstract record EnemyBehaviorDefinition;
 }

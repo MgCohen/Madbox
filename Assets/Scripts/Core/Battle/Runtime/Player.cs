@@ -1,21 +1,29 @@
 using System;
+using System.Collections.Generic;
+using Madbox.Battle.Behaviors;
 using Madbox.Levels;
-#pragma warning disable SCA0017
+using Scaffold.MVVM;
 
 namespace Madbox.Battle
 {
-    internal class Player
+    public class Player : Model
     {
         public Player(EntityId entityId, int maxHealth)
         {
-            EntityId = entityId ?? throw new ArgumentNullException(nameof(entityId));
+            if (entityId == null)
+            {
+                throw new ArgumentNullException(nameof(entityId));
+            }
+
             if (maxHealth <= 0)
             {
                 throw new ArgumentOutOfRangeException(nameof(maxHealth), "Player max health must be greater than zero.");
             }
 
+            EntityId = entityId;
             MaxHealth = maxHealth;
             CurrentHealth = maxHealth;
+            Behaviors = new IPlayerBehaviorRuntime[] { new PlayerAutoAttackBehaviorState() };
         }
 
         public EntityId EntityId { get; }
@@ -23,6 +31,8 @@ namespace Madbox.Battle
         public int MaxHealth { get; }
 
         public int CurrentHealth { get; private set; }
+
+        internal IReadOnlyList<IPlayerBehaviorRuntime> Behaviors { get; }
 
         public int ApplyDamage(int damage)
         {

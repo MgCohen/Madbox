@@ -1,12 +1,9 @@
 {
-    "name": "Madbox.Battle",
-    "rootNamespace": "Madbox.Battle",
+    "name": "Madbox.Enemies",
+    "rootNamespace": "Madbox.Enemies",
     "references": [
-        "Madbox.Enemies",
         "Madbox.Levels",
-        "Madbox.Gold",
-        "Scaffold.MVVM.Model",
-        "Scaffold.Records"
+        "Scaffold.MVVM.Model"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
