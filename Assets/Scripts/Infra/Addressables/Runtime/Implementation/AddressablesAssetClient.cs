@@ -21,26 +21,29 @@ namespace Madbox.Addressables
             await DownloadCatalogDependenciesAsync(catalogs, cancellationToken);
         }
 
-        public async Task<T> LoadAssetAsync<T>(AssetKey key, CancellationToken cancellationToken) where T : UnityEngine.Object
+        public async Task<UnityEngine.Object> LoadAssetAsync(string key, Type assetType, CancellationToken cancellationToken)
         {
             GuardCancellation(cancellationToken);
-            bool hasLocation = await HasLocationAsync(key.Value, typeof(T), cancellationToken);
+            GuardKey(key);
+            GuardAssetType(assetType);
+            bool hasLocation = await HasLocationAsync(key, assetType, cancellationToken);
             if (!hasLocation)
             {
-                throw new InvalidOperationException($"Addressables key '{key.Value}' with type '{typeof(T).FullName}' was not found in resource locations.");
+                throw new InvalidOperationException($"Addressables key '{key}' with type '{assetType.FullName}' was not found in resource locations.");
             }
 
-            T asset = await LoadTypedAssetAsync<T>(key.Value, cancellationToken);
-            EnsureAssetWasLoaded(asset, key);
+            UnityEngine.Object asset = await LoadAssetCoreAsync(key, cancellationToken);
+            EnsureAssetWasLoaded(asset, key, assetType);
             return asset;
         }
 
-        public async Task<IReadOnlyList<AssetKey>> ResolveLabelAsync(Type assetType, AssetLabelReference label, CancellationToken cancellationToken)
+        public async Task<IReadOnlyList<string>> ResolveLabelAsync(Type assetType, AssetLabelReference label, CancellationToken cancellationToken)
         {
             GuardCancellation(cancellationToken);
+            GuardAssetType(assetType);
             GuardLabel(label);
             IList<IResourceLocation> locations = await LoadLocationsAsync(assetType, label, cancellationToken);
-            return ToDistinctAssetKeys(locations);
+            return ToDistinctKeys(locations);
         }
 
         public void Release(UnityEngine.Object asset)
@@ -103,19 +106,24 @@ namespace Madbox.Addressables
             GuardCancellation(cancellationToken);
         }
 
-        private async Task<T> LoadTypedAssetAsync<T>(string keyValue, CancellationToken cancellationToken) where T : UnityEngine.Object
+        private async Task<UnityEngine.Object> LoadAssetCoreAsync(string keyValue, CancellationToken cancellationToken)
         {
-            var handle = UnityEngine.AddressableAssets.Addressables.LoadAssetAsync<T>(keyValue);
-            T asset = await handle.Task;
+            var handle = UnityEngine.AddressableAssets.Addressables.LoadAssetAsync<UnityEngine.Object>(keyValue);
+            UnityEngine.Object asset = await handle.Task;
             GuardCancellation(cancellationToken);
             return asset;
         }
 
-        private void EnsureAssetWasLoaded<T>(T asset, AssetKey key) where T : UnityEngine.Object
+        private void EnsureAssetWasLoaded(UnityEngine.Object asset, string key, Type assetType)
         {
             if (asset == null)
             {
-                throw new InvalidOperationException($"Addressables returned null for key '{key.Value}' and type '{typeof(T).FullName}'.");
+                throw new InvalidOperationException($"Addressables returned null for key '{key}' and type '{assetType.FullName}'.");
+            }
+
+            if (!assetType.IsInstanceOfType(asset))
+            {
+                throw new InvalidOperationException($"Addressables loaded type '{asset.GetType().FullName}' for key '{key}', expected assignable to '{assetType.FullName}'.");
             }
         }
 
@@ -137,19 +145,18 @@ namespace Madbox.Addressables
             return locations != null && locations.Count > 0;
         }
 
-        private IReadOnlyList<AssetKey> ToDistinctAssetKeys(IList<IResourceLocation> locations)
+        private IReadOnlyList<string> ToDistinctKeys(IList<IResourceLocation> locations)
         {
             HashSet<string> unique = new HashSet<string>(StringComparer.Ordinal);
-            List<AssetKey> keys = new List<AssetKey>();
+            List<string> keys = new List<string>();
             foreach (IResourceLocation location in locations) { AddDistinctLocationKey(location, unique, keys); }
             return keys;
         }
 
-        private void AddDistinctLocationKey(IResourceLocation location, ISet<string> unique, ICollection<AssetKey> keys)
+        private void AddDistinctLocationKey(IResourceLocation location, ISet<string> unique, ICollection<string> keys)
         {
             if (!ShouldIncludeLocation(location, unique)) { return; }
-            AssetKey key = CreateAssetKey(location.PrimaryKey);
-            keys.Add(key);
+            keys.Add(location.PrimaryKey);
         }
 
         private bool ShouldIncludeLocation(IResourceLocation location, ISet<string> uniqueKeys)
@@ -159,14 +166,20 @@ namespace Madbox.Addressables
             return uniqueKeys.Add(location.PrimaryKey);
         }
 
-        private AssetKey CreateAssetKey(string key)
+        private void GuardKey(string key)
         {
-            return new AssetKey(key);
+            if (string.IsNullOrWhiteSpace(key)) { throw new ArgumentException("Asset key cannot be empty.", nameof(key)); }
         }
 
         private void GuardCancellation(CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
+        }
+
+        private void GuardAssetType(Type assetType)
+        {
+            if (assetType == null) { throw new ArgumentNullException(nameof(assetType)); }
+            if (!typeof(UnityEngine.Object).IsAssignableFrom(assetType)) { throw new ArgumentException($"Asset type '{assetType.FullName}' must inherit UnityEngine.Object.", nameof(assetType)); }
         }
 
         private void GuardLabel(AssetLabelReference label)

@@ -2,6 +2,7 @@ using System;
 using UnityEngine;
 using UnityEngine.UI;
 using Scaffold.MVVM;
+#pragma warning disable SCA0006
 
 namespace Madbox.App.MainMenu
 {
@@ -9,24 +10,28 @@ namespace Madbox.App.MainMenu
     {
         [SerializeField] private Component goldText;
         [SerializeField] private Button addGoldButton;
+        [SerializeField] private Button startGameButton;
 
         protected override void OnBind()
         {
             EnsureUi();
             Bind<int, int>(() => viewModel.Gold, UpdateGoldText);
             BindButton();
+            BindStartButton();
             UpdateGoldText(viewModel.Gold);
         }
 
         protected override void OnUnbind()
         {
             UnbindButton();
+            UnbindStartButton();
         }
 
         private void EnsureUi()
         {
             if (goldText == null) { goldText = CreateGoldText(); }
             if (addGoldButton == null) { addGoldButton = CreateAddButton(); }
+            if (startGameButton == null) { startGameButton = CreateStartButton(); }
         }
 
         private void BindButton()
@@ -40,6 +45,19 @@ namespace Madbox.App.MainMenu
         {
             if (addGoldButton == null) { return; }
             addGoldButton.onClick.RemoveListener(OnAddGoldClicked);
+        }
+
+        private void BindStartButton()
+        {
+            if (startGameButton == null) { return; }
+            startGameButton.onClick.RemoveListener(OnStartGameClicked);
+            startGameButton.onClick.AddListener(OnStartGameClicked);
+        }
+
+        private void UnbindStartButton()
+        {
+            if (startGameButton == null) { return; }
+            startGameButton.onClick.RemoveListener(OnStartGameClicked);
         }
 
         private Component CreateGoldText()
@@ -59,6 +77,18 @@ namespace Madbox.App.MainMenu
             GameObject buttonObject = CreateButtonObject(parent);
             Button button = buttonObject.GetComponent<Button>();
             CreateButtonLabel(buttonObject.transform);
+            return button;
+        }
+
+        private Button CreateStartButton()
+        {
+            RectTransform parent = EnsureContentRoot();
+            GameObject buttonObject = CreateButtonObject(parent);
+            buttonObject.name = "StartGameButton";
+            RectTransform rect = buttonObject.GetComponent<RectTransform>();
+            rect.anchoredPosition = new Vector2(0f, -260f);
+            Button button = buttonObject.GetComponent<Button>();
+            CreateStartButtonLabel(buttonObject.transform);
             return button;
         }
 
@@ -113,6 +143,11 @@ namespace Madbox.App.MainMenu
             viewModel?.AddOneGold();
         }
 
+        private void OnStartGameClicked()
+        {
+            viewModel?.StartGame();
+        }
+
         private void UpdateGoldText(int value)
         {
             if (goldText == null) { return; }
@@ -151,6 +186,20 @@ namespace Madbox.App.MainMenu
             SetTmpFloat(text, "fontSize", 46f);
             SetTmpAlignment(text, 514);
             SetTmpText(text, "Add Gold");
+            SetTmpColor(text, Color.white);
+        }
+
+        private void CreateStartButtonLabel(Transform parent)
+        {
+            Type textType = ResolveTmpType();
+            if (textType == null) { return; }
+            GameObject labelObject = CreateTextObject("Label", textType, parent);
+            RectTransform rect = labelObject.GetComponent<RectTransform>();
+            StretchToParent(rect);
+            Component text = labelObject.GetComponent(textType);
+            SetTmpFloat(text, "fontSize", 46f);
+            SetTmpAlignment(text, 514);
+            SetTmpText(text, "Start Game");
             SetTmpColor(text, Color.white);
         }
 

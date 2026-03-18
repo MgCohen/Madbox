@@ -1,8 +1,10 @@
 using System;
+using CommunityToolkit.Mvvm.ComponentModel;
+using Scaffold.MVVM;
 
 namespace Madbox.Gold
 {
-    public class GoldWallet
+    public partial class GoldWallet : Model
     {
         public GoldWallet(int initialGold = 0)
         {
@@ -14,7 +16,7 @@ namespace Madbox.Gold
             CurrentGold = initialGold;
         }
 
-        public int CurrentGold { get; private set; }
+        [ObservableProperty] private int currentGold;
 
         public bool TrySpend(int amount)
         {

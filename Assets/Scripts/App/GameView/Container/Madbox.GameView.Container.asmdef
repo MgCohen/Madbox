@@ -1,0 +1,19 @@
+{
+    "name": "Madbox.GameView.Container",
+    "rootNamespace": "Madbox.App.GameView.Container",
+    "references": [
+        "Madbox.GameView.Runtime",
+        "Madbox.Battle",
+        "Madbox.Levels",
+        "VContainer"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

@@ -6,7 +6,9 @@
         "Madbox.Levels",
         "Madbox.Gold",
         "Scaffold.MVVM.Model",
-        "Scaffold.Records"
+        "Scaffold.Records",
+        "Scaffold.MVVM.ViewModel",
+        "Scaffold.Navigation"
     ],
     "includePlatforms": [
         "Editor"
@@ -14,11 +16,13 @@
     "excludePlatforms": [],
     "allowUnsafeCode": false,
     "overrideReferences": false,
-    "precompiledReferences": [],
+    "precompiledReferences": [
+        "CommunityToolkit.Mvvm.dll"
+    ],
     "autoReferenced": false,
     "defineConstraints": [],
     "versionDefines": [],
-    "noEngineReferences": true,
+    "noEngineReferences": false,
     "optionalUnityReferences": [
         "TestAssemblies"
     ]
