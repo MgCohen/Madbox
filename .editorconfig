@@ -36,6 +36,9 @@ scaffold.SCA0023.required_folders = Runtime,Tests
 scaffold.SCA0023.exempt_module_roots = Scaffold.Maps|Scaffold.Records|Scaffold.Types
 scaffold.SCA0023.exempt_requirements = Scaffold.Records=Tests
 dotnet_diagnostic.SCA0024.severity = warning   # Module asmdef placement/name convention
+scaffold.SCA0024.suffix_folder_map = .Runtime=Runtime;.Tests=Tests;.PlayModeTests=Tests/PlayMode;.Samples=Samples;.Container=Container;.Editor=Editor;.Authoring=Authoring
+scaffold.SCA0024.disallow_module_root_asmdef = true
+scaffold.SCA0024.allow_unknown_suffix_in_any_subfolder = true
 dotnet_diagnostic.SCA0025.severity = warning   # Boundary interfaces/types should live under Contracts
 dotnet_diagnostic.SCA0026.severity = warning   # Restrict same-layer dependency usage during initialization call chains
 dotnet_diagnostic.SCA0028.severity = warning   # Loop bodies require braces and next-line formatting

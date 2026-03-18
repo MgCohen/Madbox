@@ -3,15 +3,16 @@
 ## TL;DR
 
 - Purpose: provides a minimal gold wallet model for meta progression currency.
-- Location: `Assets/Scripts/Meta/Gold/Runtime/`.
+- Location: `Assets/Scripts/Meta/Gold/Runtime/` and `Assets/Scripts/Meta/Gold/Authoring/`.
 - Depends on: BCL only.
 - Used by: battle reward paths and menu/progression orchestration through meta services.
-- Runtime/Editor: pure C# runtime domain module.
+- Runtime/Editor: pure C# runtime domain module plus module-local Unity authoring config asset.
 
 ## Responsibilities
 
 - Owns wallet state and mutation rules for gold balance updates.
 - Owns guard behavior for invalid add/spend requests.
+- Owns authoring config asset for editor-time initial gold configuration (`GoldConfigSO`).
 - Does not own reward policy decisions, UI display logic, or persistence/remote sync adapters.
 - Boundaries: pure domain behavior, no Unity runtime concerns.
 
@@ -123,3 +124,4 @@ Assert.AreEqual(5, wallet.CurrentGold);
 
 - 2026-03-18: Reworked to module documentation standard, including full API table, setup/usage/examples/testing, and AI context.
 - 2026-03-17: Initial minimal wallet documentation.
+- 2026-03-18: Added note for module-local gold authoring asset location under `Meta/Gold/Authoring`.

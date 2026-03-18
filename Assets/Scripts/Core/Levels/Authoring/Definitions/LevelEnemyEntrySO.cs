@@ -1,4 +1,5 @@
 using System;
+using Madbox.Enemies.Authoring.Definitions;
 using UnityEngine;
 #pragma warning disable SCA0007
 #pragma warning disable SCA0020

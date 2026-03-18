@@ -6,6 +6,7 @@ using Madbox.Addressables.Contracts;
 using Madbox.Levels;
 using Madbox.Levels.Authoring.Catalog;
 using Madbox.Levels.Authoring.Definitions;
+using Madbox.Enemies.Authoring.Definitions;
 using Madbox.Levels.Behaviors;
 using Madbox.Levels.Rules;
 using NUnit.Framework;

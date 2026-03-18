@@ -5,6 +5,7 @@
         "Madbox.Levels",
         "Scaffold.Records",
         "Madbox.Levels.Authoring",
+        "Madbox.Enemies.Authoring",
         "Madbox.Addressables",
         "Unity.Addressables"
     ],

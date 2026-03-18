@@ -1,12 +1,7 @@
 {
-    "name": "Madbox.Levels.Authoring",
-    "rootNamespace": "Madbox.Levels.Authoring",
-    "references": [
-        "Madbox.Levels",
-        "Madbox.Enemies.Authoring",
-        "Madbox.Addressables",
-        "Unity.Addressables"
-    ],
+    "name": "Madbox.Gold.Authoring",
+    "rootNamespace": "Madbox.Gold.Authoring",
+    "references": [],
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,

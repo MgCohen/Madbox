@@ -12,11 +12,10 @@
 - Owns: value records (`LevelId`, `EntityId`) and level/enemy definitions.
 - Owns: enemy behavior definition contracts (`EnemyBehaviorDefinition`, contact/movement definitions).
 - Owns: level game-rule definitions and constructor guard invariants.
-- Owns: module-local authoring assets (`EnemyDefinitionSO`, `LevelDefinitionSO`, `LevelCatalogSO`) and `ToDomain` mapping.
-- Owns: module-local editor tooling for polymorphic behavior-rule authoring (`EnemyDefinitionSOEditor`).
+- Owns: module-local level authoring assets (`LevelDefinitionSO`, `LevelCatalogSO`, `LevelEnemyEntrySO`) and `ToDomain` mapping.
 - Does not own: runtime mutation/state ticking (battle/enemies runtime modules).
 - Does not own: event routing, command execution, or wallet/reward operations.
-- Boundaries: runtime definitions remain pure C#; Unity-facing authoring stays in `Core/Levels/Authoring` and `Core/Levels/Editor`.
+- Boundaries: runtime definitions remain pure C#; Unity-facing level authoring stays in `Core/Levels/Authoring`.
 
 ## Public API
 | Symbol | Purpose | Inputs | Outputs | Failure behavior |
@@ -139,4 +138,4 @@ powershell -NoProfile -ExecutionPolicy Bypass -File ".\.agents\scripts\check-ana
 ## Changelog
 - 2026-03-18: Rewrote module doc to match Module Documentation Standard section order and constraints.
 - 2026-03-18: Updated content for rules/behaviors subfolder organization and level-driven game rules.
-- 2026-03-18: Added module-local authoring/editor structure (`Core/Levels/Authoring` + `Core/Levels/Editor`) and on-demand Addressables note.
+- 2026-03-18: Added module-local level authoring structure (`Core/Levels/Authoring`) and on-demand Addressables note.

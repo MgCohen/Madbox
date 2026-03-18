@@ -8,7 +8,7 @@ using UnityEngine.AddressableAssets;
 #pragma warning disable SCA0007
 #pragma warning disable SCA0020
 
-namespace Madbox.Levels.Authoring.Definitions
+namespace Madbox.Enemies.Authoring.Definitions
 {
     [CreateAssetMenu(menuName = "Madbox/Authoring/Enemy Definition")]
     public sealed class EnemyDefinitionSO : ScriptableObject

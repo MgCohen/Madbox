@@ -1,13 +1,13 @@
 {
-    "name": "Madbox.Levels.Authoring",
-    "rootNamespace": "Madbox.Levels.Authoring",
+    "name": "Madbox.Enemies.Editor",
+    "rootNamespace": "Madbox.Enemies.Editor",
     "references": [
-        "Madbox.Levels",
         "Madbox.Enemies.Authoring",
-        "Madbox.Addressables",
-        "Unity.Addressables"
+        "Madbox.Levels"
     ],
-    "includePlatforms": [],
+    "includePlatforms": [
+        "Editor"
+    ],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
     "overrideReferences": false,

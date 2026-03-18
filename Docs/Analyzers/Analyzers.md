@@ -957,13 +957,24 @@ Expected placement:
 - `<ModuleRoot>/Samples/<Assembly>.asmdef` (`*.Samples`)
 - `<ModuleRoot>/Container/<Assembly>.asmdef` (`*.Container`)
 - `<ModuleRoot>/Editor/<Assembly>.asmdef` (`*.Editor`)
+- `<ModuleRoot>/Authoring/<Assembly>.asmdef` (`*.Authoring`)
 
 Notes:
-- Main module assemblies belong under `Runtime/` (never module root).
+- Module root asmdef is disallowed by default (`<ModuleRoot>/<Assembly>.asmdef` is flagged).
 - Top-level `Contracts` asmdef placement is not part of this convention.
 
 Config:
 - `scaffold.SCA0024.exempt_assemblies` (comma/semicolon list)
+- `scaffold.SCA0024.suffix_folder_map` (custom `suffix=folder` mapping, `;` or `,` separated, supports multiple folders via `|`)
+- `scaffold.SCA0024.disallow_module_root_asmdef` (`true`/`false`, default `true`)
+- `scaffold.SCA0024.allow_unknown_suffix_in_any_subfolder` (`true`/`false`, default `false`)
+
+Example:
+```ini
+scaffold.SCA0024.suffix_folder_map = .Runtime=Runtime;.Tests=Tests;.PlayModeTests=Tests/PlayMode;.Samples=Samples;.Container=Container;.Editor=Editor;.Authoring=Authoring
+scaffold.SCA0024.disallow_module_root_asmdef = true
+scaffold.SCA0024.allow_unknown_suffix_in_any_subfolder = true
+```
 
 ---
 

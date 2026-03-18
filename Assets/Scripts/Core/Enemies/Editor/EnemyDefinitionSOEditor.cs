@@ -1,13 +1,13 @@
 using System;
 using System.Collections.Generic;
 using Madbox.Levels.Behaviors;
-using Madbox.Levels.Authoring.Definitions;
+using Madbox.Enemies.Authoring.Definitions;
 using UnityEditor;
 using UnityEngine;
 #pragma warning disable SCA0003
 #pragma warning disable SCA0006
 
-namespace Madbox.Levels.Editor
+namespace Madbox.Enemies.Editor
 {
     [CustomEditor(typeof(EnemyDefinitionSO))]
     public sealed class EnemyDefinitionSOEditor : UnityEditor.Editor

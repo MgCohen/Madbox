@@ -1,9 +1,9 @@
 using UnityEngine;
-using Madbox.Levels.Authoring.Definitions;
+using Madbox.Enemies.Authoring.Definitions;
 #pragma warning disable SCA0007
 #pragma warning disable SCA0020
 
-namespace Madbox.Levels.Authoring.Components
+namespace Madbox.Enemies.Authoring.Components
 {
     public sealed class EnemyAuthoringReference : MonoBehaviour
     {
