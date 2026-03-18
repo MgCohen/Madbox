@@ -1,26 +1,19 @@
 {
-    "name": "Madbox.Levels.Tests",
-    "rootNamespace": "Madbox.Levels.Tests",
+    "name": "Madbox.Levels.Authoring",
+    "rootNamespace": "Madbox.Levels.Authoring",
     "references": [
         "Madbox.Levels",
-        "Scaffold.Records",
-        "Madbox.Levels.Authoring",
         "Madbox.Enemies.Authoring",
         "Madbox.Addressables",
         "Unity.Addressables"
     ],
-    "includePlatforms": [
-        "Editor"
-    ],
+    "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
     "overrideReferences": false,
     "precompiledReferences": [],
-    "autoReferenced": false,
+    "autoReferenced": true,
     "defineConstraints": [],
     "versionDefines": [],
-    "noEngineReferences": false,
-    "optionalUnityReferences": [
-        "TestAssemblies"
-    ]
+    "noEngineReferences": false
 }

@@ -1,0 +1,17 @@
+{
+    "name": "Madbox.Enemies.Authoring",
+    "rootNamespace": "Madbox.Enemies.Authoring",
+    "references": [
+        "Madbox.Levels",
+        "Unity.Addressables"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

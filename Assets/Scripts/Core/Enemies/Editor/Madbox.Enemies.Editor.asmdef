@@ -1,0 +1,19 @@
+{
+    "name": "Madbox.Enemies.Editor",
+    "rootNamespace": "Madbox.Enemies.Editor",
+    "references": [
+        "Madbox.Enemies.Authoring",
+        "Madbox.Levels"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

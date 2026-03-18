@@ -2,17 +2,18 @@
 
 ## TL;DR
 - Purpose: Owns enemy runtime models, behavior runtimes, and enemy lifecycle/tick service.
-- Location: `Assets/Scripts/Core/Enemies/Runtime/`.
-- Depends on: `Madbox.Levels`, `Scaffold.MVVM.Model`.
+- Location: `Assets/Scripts/Core/Enemies/Runtime/` and `Assets/Scripts/Core/Enemies/Authoring/`.
+- Depends on: `Madbox.Levels`, `Scaffold.MVVM.Model` (runtime), Unity Addressables (authoring).
 - Used by: `Madbox.Battle` and tests in `Madbox.Enemies.Tests`.
-- Runtime/Editor: pure runtime C# module with EditMode tests.
-- Keywords: enemy runtime, behavior runtime, lifecycle service, domain model.
+- Runtime/Editor: pure runtime C# module plus module-local Unity authoring/editor assets.
+- Keywords: enemy runtime, behavior runtime, lifecycle service, domain model, scriptableobject, authoring.
 
 ## Responsibilities
 - Owns: `EnemyRuntimeState` as bindable runtime model.
 - Owns: enemy behavior runtime contracts and implementations.
 - Owns: `EnemyService` responsibilities (initialize, fetch, dispose, tick behaviors).
 - Owns: runtime enemy creation from level definitions (`EnemyRuntimeStateFactory`).
+- Owns: enemy authoring assets/components (`EnemyDefinitionSO`, `EnemyAuthoringReference`) and custom editor support.
 - Does not own: battle intent routing/command mapping.
 - Does not own: player model or game completion evaluation.
 - Does not own: Unity movement/physics/view simulation.
@@ -118,7 +119,9 @@ powershell -NoProfile -ExecutionPolicy Bypass -File ".\.agents\scripts\check-ana
 - `Docs/AutomatedTesting.md`
 - `Docs/Core/Battle.md`
 - `Docs/Core/Levels.md`
+- `Docs/Infra/Addressables.md`
 
 ## Changelog
 - 2026-03-18: Rewrote module doc to match Module Documentation Standard section order and constraints.
 - 2026-03-18: Added Enemy module ownership boundaries after extraction from Battle module.
+- 2026-03-18: Added module-local enemy authoring/editor ownership (`Core/Enemies/Authoring` and `Core/Enemies/Editor`).
