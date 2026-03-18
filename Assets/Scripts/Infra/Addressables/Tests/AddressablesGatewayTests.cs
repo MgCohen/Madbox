@@ -11,14 +11,13 @@ using UnityEngine;
 using UnityEngine.AddressableAssets;
 using VContainer;
 #pragma warning disable SCA0003
+#pragma warning disable SCA0005
 #pragma warning disable SCA0006
 
 namespace Madbox.Addressables.Tests
 {
     public class AddressablesGatewayTests
     {
-        private const string preloadConfigLabel = "addressables-preload-config";
-
         [Test]
         public void LoadAsync_SameKeyTwice_LoadsOnceAndReleasesOnce()
         {
@@ -139,6 +138,23 @@ namespace Madbox.Addressables.Tests
         }
 
         [Test]
+        public void InitializeAsync_MultipleWrappersWithOneInvalid_ThrowsBeforePreloadApply()
+        {
+            TestAddressableAssetClient client = CreateClient();
+            AddressablesPreloadConfigWrapper validWrapper = CreateWrapper(new[] { CreateAssetEntry(typeof(TestAsset), "enemy/bee", PreloadMode.Normal) });
+            AddressablesPreloadConfigWrapper invalidWrapper = CreateWrapper(new[] { CreateAssetEntry(typeof(string), "enemy/slime", PreloadMode.Normal) });
+            ConfigurePreloadBootstrap(client, new Dictionary<string, AddressablesPreloadConfigWrapper>
+            {
+                ["config/preload/valid"] = validWrapper,
+                ["config/preload/invalid"] = invalidWrapper
+            });
+            AddressablesGateway gateway = CreateGateway(client);
+
+            Assert.Throws<InvalidOperationException>(() => InitializeGateway(gateway));
+            Assert.AreEqual(0, client.CountLoadCallsForType(typeof(TestAsset)));
+        }
+
+        [Test]
         public void LoadAsync_ByLabel_ResolvesAndLoadsAll()
         {
             TestAddressableAssetClient client = CreateClient();
@@ -199,10 +215,51 @@ namespace Madbox.Addressables.Tests
         }
 
         [Test]
+        public void Load_ByKey_TransitionsToReadyAndReleasesOnce()
+        {
+            TestAddressableAssetClient client = CreateClient();
+            client.LoadGate = new TaskCompletionSource<bool>();
+            AddressablesGateway gateway = CreateGateway(client);
+
+            IAssetHandle<TestAsset> handle = gateway.Load<TestAsset>(EnemyBeeKey(), CancellationToken.None);
+            Assert.AreEqual(AssetHandleState.Loading, handle.State);
+            Assert.IsFalse(handle.IsReady);
+
+            client.LoadGate.SetResult(true);
+            handle.WhenReady.GetAwaiter().GetResult();
+            Assert.AreEqual(AssetHandleState.Ready, handle.State);
+            Assert.IsTrue(handle.IsReady);
+            Assert.IsNotNull(handle.Asset);
+
+            handle.Release();
+            Assert.AreEqual(1, client.ReleaseCalls.Count);
+        }
+
+        [Test]
+        public void Load_ReleaseBeforeReady_ReleasesUnderlyingHandleAfterCompletion()
+        {
+            TestAddressableAssetClient client = CreateClient();
+            client.LoadGate = new TaskCompletionSource<bool>();
+            AddressablesGateway gateway = CreateGateway(client);
+
+            IAssetHandle<TestAsset> handle = gateway.Load<TestAsset>(EnemyBeeKey(), CancellationToken.None);
+            handle.Release();
+            Assert.AreEqual(AssetHandleState.Loading, handle.State);
+
+            client.LoadGate.SetResult(true);
+            handle.WhenReady.GetAwaiter().GetResult();
+            Assert.AreEqual(AssetHandleState.Released, handle.State);
+            Assert.AreEqual(1, client.ReleaseCalls.Count);
+        }
+
+        [Test]
         public void LayerInitializer_InvokesGatewayInitialize()
         {
             RecordingGateway gateway = new RecordingGateway();
-            AddressablesLayerInitializer initializer = new AddressablesLayerInitializer(gateway);
+            TestAddressableAssetClient client = CreateClient();
+            AddressablesPreloadBootstrapConfig bootstrapConfig = ScriptableObject.CreateInstance<AddressablesPreloadBootstrapConfig>();
+            client.ObjectAssets[AddressablesPreloadConstants.BootstrapConfigAssetKey] = bootstrapConfig;
+            AddressablesLayerInitializer initializer = new AddressablesLayerInitializer(gateway, client);
             NoopInitializationContext context = new NoopInitializationContext();
 
             initializer.InitializeAsync(context, null, CancellationToken.None).GetAwaiter().GetResult();
@@ -247,11 +304,32 @@ namespace Madbox.Addressables.Tests
 
         private void ConfigurePreloadWrapper(TestAddressableAssetClient client, IReadOnlyList<AddressablesPreloadConfigEntry> entries)
         {
+            AddressablesPreloadConfigWrapper wrapper = CreateWrapper(entries);
+            ConfigurePreloadBootstrap(client, new Dictionary<string, AddressablesPreloadConfigWrapper>
+            {
+                ["config/preload/default"] = wrapper
+            });
+        }
+
+        private AddressablesPreloadConfigWrapper CreateWrapper(IReadOnlyList<AddressablesPreloadConfigEntry> entries)
+        {
             AddressablesPreloadConfigWrapper wrapper = ScriptableObject.CreateInstance<AddressablesPreloadConfigWrapper>();
             SetField(wrapper, "entries", new List<AddressablesPreloadConfigEntry>(entries));
-            string wrapperKey = "config/preload/default";
-            client.CatalogToKeys[preloadConfigLabel] = new[] { wrapperKey };
-            client.ObjectAssets[wrapperKey] = wrapper;
+            return wrapper;
+        }
+
+        private void ConfigurePreloadBootstrap(TestAddressableAssetClient client, IReadOnlyDictionary<string, AddressablesPreloadConfigWrapper> wrappersByKey)
+        {
+            AddressablesPreloadBootstrapConfig bootstrapConfig = ScriptableObject.CreateInstance<AddressablesPreloadBootstrapConfig>();
+            List<AssetReferenceT<AddressablesPreloadConfigWrapper>> wrapperRefs = new List<AssetReferenceT<AddressablesPreloadConfigWrapper>>();
+            foreach (KeyValuePair<string, AddressablesPreloadConfigWrapper> pair in wrappersByKey)
+            {
+                client.ObjectAssets[pair.Key] = pair.Value;
+                wrapperRefs.Add(new AssetReferenceT<AddressablesPreloadConfigWrapper>(pair.Key));
+            }
+
+            SetField(bootstrapConfig, "wrappers", wrapperRefs);
+            client.ObjectAssets[AddressablesPreloadConstants.BootstrapConfigAssetKey] = bootstrapConfig;
         }
 
         private AddressablesPreloadConfigEntry CreateAssetEntry(Type assetType, string key, PreloadMode mode)
@@ -321,6 +399,7 @@ namespace Madbox.Addressables.Tests
         {
             public int SyncCalls { get; private set; }
             public bool ThrowOnSync { get; set; }
+            public TaskCompletionSource<bool> LoadGate { get; set; }
             public readonly List<string> LoadCalls = new List<string>();
             public readonly List<string> ReleaseCalls = new List<string>();
             public readonly Dictionary<string, IReadOnlyList<string>> CatalogToKeys = new Dictionary<string, IReadOnlyList<string>>(StringComparer.Ordinal);
@@ -335,13 +414,14 @@ namespace Madbox.Addressables.Tests
                 return Task.CompletedTask;
             }
 
-            public Task<T> LoadAssetAsync<T>(AssetKey key, CancellationToken cancellationToken) where T : UnityEngine.Object
+            public async Task<T> LoadAssetAsync<T>(AssetKey key, CancellationToken cancellationToken) where T : UnityEngine.Object
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 LoadCalls.Add($"{typeof(T).FullName}|{key.Value}");
-                if (ObjectAssets.TryGetValue(key.Value, out UnityEngine.Object existing)) { return Task.FromResult(existing as T); }
+                if (LoadGate != null) { await LoadGate.Task; }
+                if (ObjectAssets.TryGetValue(key.Value, out UnityEngine.Object existing)) { return existing as T; }
                 TestAsset asset = GetOrCreateAsset(key.Value);
-                return Task.FromResult(asset as T);
+                return asset as T;
             }
 
             public Task<IReadOnlyList<AssetKey>> ResolveLabelAsync(Type assetType, AssetLabelReference label, CancellationToken cancellationToken)
@@ -413,6 +493,21 @@ namespace Madbox.Addressables.Tests
             {
                 throw new NotSupportedException();
             }
+
+            public IAssetHandle<T> Load<T>(AssetKey key, CancellationToken cancellationToken = default) where T : UnityEngine.Object
+            {
+                throw new NotSupportedException();
+            }
+
+            public IAssetHandle<T> Load<T>(AssetReference reference, CancellationToken cancellationToken = default) where T : UnityEngine.Object
+            {
+                throw new NotSupportedException();
+            }
+
+            public IAssetHandle<T> Load<T>(AssetReferenceT<T> reference, CancellationToken cancellationToken = default) where T : UnityEngine.Object
+            {
+                throw new NotSupportedException();
+            }
         }
 
         private class TestAsset : ScriptableObject
@@ -433,4 +528,5 @@ namespace Madbox.Addressables.Tests
     }
 }
 #pragma warning restore SCA0006
+#pragma warning restore SCA0005
 #pragma warning restore SCA0003

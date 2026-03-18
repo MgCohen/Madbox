@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Madbox.Addressables.Contracts;
 using UnityEngine.AddressableAssets;
+#pragma warning disable SCA0006
 
 namespace Madbox.Addressables
 {
@@ -62,11 +63,48 @@ namespace Madbox.Addressables
             return LoadAsync<T>((AssetReference)reference, cancellationToken);
         }
 
+        public IAssetHandle<T> Load<T>(AssetKey key, CancellationToken cancellationToken = default) where T : UnityEngine.Object
+        {
+            GuardCancellation(cancellationToken);
+            AddressablesLoadToken token = CreateToken<T>(key);
+            AssetHandle<T> handle = new AssetHandle<T>(token.Id);
+            _ = CompleteLoadAsync(token, handle, cancellationToken);
+            return handle;
+        }
+
+        public IAssetHandle<T> Load<T>(AssetReference reference, CancellationToken cancellationToken = default) where T : UnityEngine.Object
+        {
+            GuardCancellation(cancellationToken);
+            GuardReference(reference);
+            AssetKey key = CreateAssetKeyFromReference(reference);
+            return Load<T>(key, cancellationToken);
+        }
+
+        public IAssetHandle<T> Load<T>(AssetReferenceT<T> reference, CancellationToken cancellationToken = default) where T : UnityEngine.Object
+        {
+            GuardCancellation(cancellationToken);
+            GuardReference(reference);
+            return Load<T>((AssetReference)reference, cancellationToken);
+        }
+
         private async Task<IReadOnlyList<IAssetHandle<T>>> LoadCatalogHandlesAsync<T>(IReadOnlyList<AssetKey> keys, CancellationToken cancellationToken) where T : UnityEngine.Object
         {
             List<IAssetHandle<T>> handles = new List<IAssetHandle<T>>(keys.Count);
             foreach (AssetKey key in keys) { handles.Add(await LoadAsync<T>(key, cancellationToken)); }
             return handles;
+        }
+
+        private async Task CompleteLoadAsync<T>(AddressablesLoadToken token, AssetHandle<T> handle, CancellationToken cancellationToken) where T : UnityEngine.Object
+        {
+            try
+            {
+                IAssetHandle<T> loadedHandle = await leaseStore.AcquireAsync<T>(token, cancellationToken);
+                handle.Complete(loadedHandle);
+            }
+            catch (Exception exception)
+            {
+                handle.Fail(exception);
+            }
         }
 
         private async Task<IReadOnlyList<AssetKey>> ResolveLabelKeysAsync<T>(AssetLabelReference label, CancellationToken cancellationToken) where T : UnityEngine.Object
@@ -123,3 +161,4 @@ namespace Madbox.Addressables
 
     }
 }
+#pragma warning restore SCA0006

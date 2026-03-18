@@ -4,13 +4,13 @@ using System.Threading;
 using System.Threading.Tasks;
 using Madbox.Addressables.Contracts;
 using UnityEngine.AddressableAssets;
+#pragma warning disable SCA0003
+#pragma warning disable SCA0006
 
 namespace Madbox.Addressables
 {
     internal sealed class AddressablesStartupCoordinator
     {
-        private const string preloadConfigLabel = "addressables-preload-config";
-
         public AddressablesStartupCoordinator(IAddressablesAssetClient client, AddressablesLeaseStore leaseStore, AddressablesPreloadConfigRequestBuilder requestBuilder)
         {
             GuardConstructor(client, leaseStore, requestBuilder);
@@ -60,14 +60,28 @@ namespace Madbox.Addressables
 
         private async Task<IReadOnlyList<AddressablesPreloadRequest>> LoadPreloadRequestsAsync(CancellationToken cancellationToken)
         {
-            AssetLabelReference label = CreatePreloadLabel();
-            IReadOnlyList<AssetKey> keys = await client.ResolveLabelAsync(typeof(AddressablesPreloadConfigWrapper), label, cancellationToken);
-            return await BuildRequestsFromWrappersAsync(keys, cancellationToken);
+            AssetKey bootstrapConfigKey = new AssetKey(AddressablesPreloadConstants.BootstrapConfigAssetKey);
+            AddressablesPreloadBootstrapConfig bootstrapConfig = await TryLoadBootstrapConfigAsync(bootstrapConfigKey, cancellationToken);
+            if (bootstrapConfig == null) { return Array.Empty<AddressablesPreloadRequest>(); }
+            try
+            {
+                IReadOnlyList<AssetKey> keys = ResolveWrapperKeys(bootstrapConfig, bootstrapConfigKey);
+                return await BuildRequestsFromWrappersAsync(keys, cancellationToken);
+            }
+            finally
+            {
+                client.Release(bootstrapConfig);
+            }
         }
 
-        private AssetLabelReference CreatePreloadLabel()
+        private async Task<AddressablesPreloadBootstrapConfig> TryLoadBootstrapConfigAsync(AssetKey configKey, CancellationToken cancellationToken)
         {
-            return new AssetLabelReference { labelString = preloadConfigLabel };
+            try { return await client.LoadAssetAsync<AddressablesPreloadBootstrapConfig>(configKey, cancellationToken); }
+            catch (Exception exception) when (exception is not OperationCanceledException)
+            {
+                UnityEngine.Debug.LogWarning($"Addressables preload bootstrap config '{configKey.Value}' was not found or failed to load. Continuing without startup preload. {exception.GetType().Name}: {exception.Message}");
+                return null;
+            }
         }
 
         private async Task<IReadOnlyList<AddressablesPreloadRequest>> BuildRequestsFromWrappersAsync(IReadOnlyList<AssetKey> keys, CancellationToken cancellationToken)
@@ -85,6 +99,26 @@ namespace Madbox.Addressables
             finally { client.Release(wrapper); }
         }
 
+        private IReadOnlyList<AssetKey> ResolveWrapperKeys(AddressablesPreloadBootstrapConfig config, AssetKey configKey)
+        {
+            if (config == null) { throw new InvalidOperationException($"Preload bootstrap config '{configKey.Value}' failed to load."); }
+            IReadOnlyList<AssetReferenceT<AddressablesPreloadConfigWrapper>> references = config.Wrappers;
+            List<AssetKey> keys = new List<AssetKey>(references.Count);
+            for (int i = 0; i < references.Count; i++)
+            {
+                AssetReferenceT<AddressablesPreloadConfigWrapper> reference = references[i];
+                string keyValue = reference?.RuntimeKey?.ToString();
+                if (string.IsNullOrWhiteSpace(keyValue))
+                {
+                    throw new InvalidOperationException($"Invalid preload bootstrap config '{configKey.Value}' at wrapper index {i}. Wrapper reference has no runtime key.");
+                }
+
+                keys.Add(new AssetKey(keyValue));
+            }
+
+            return keys;
+        }
+
         private void GuardConstructor(IAddressablesAssetClient client, AddressablesLeaseStore leaseStore, AddressablesPreloadConfigRequestBuilder requestBuilder)
         {
             if (client == null) { throw new ArgumentNullException(nameof(client)); }
@@ -93,3 +127,5 @@ namespace Madbox.Addressables
         }
     }
 }
+#pragma warning restore SCA0006
+#pragma warning restore SCA0003
