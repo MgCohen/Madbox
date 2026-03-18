@@ -1,9 +1,9 @@
 using Madbox.Scope.Contracts;
-using Scaffold.Addressables.Contracts;
+using Madbox.Addressables.Contracts;
 using VContainer;
 using VContainer.Unity;
 
-namespace Scaffold.Addressables.Container
+namespace Madbox.Addressables.Container
 {
     public sealed class AddressablesInstaller : IInstaller
     {

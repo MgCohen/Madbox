@@ -4,7 +4,7 @@
 
 - Purpose: central gateway for loading Addressables with strict handle ownership and internal reference counting.
 - Location: `Assets/Scripts/Infra/Addressables/Runtime/` (boundary types under `Runtime/Contracts/`).
-- Depends on: `Scaffold.Scope`, `Unity.Addressables`, `Unity.ResourceManager`, `VContainer` (container module).
+- Depends on: `Madbox.Scope`, `Unity.Addressables`, `Unity.ResourceManager`, `VContainer` (container module).
 - Used by: bootstrap startup (`IAsyncLayerInitializable`) and any runtime consumer service that needs assets (for example `EnemiesService`).
 - Runtime/Editor: runtime + container integration + EditMode tests.
 - Keywords: addressables, preload, handle ownership, release, catalog, initialization.
@@ -12,7 +12,9 @@
 ## Responsibilities
 
 - Owns `IAddressablesGateway` and typed `IAssetHandle<T>` contracts.
-- Owns internal asset reference counting and idempotent `Release` behavior.
+- Uses `AddressablesGateway` as an orchestrator and delegates internals to focused runtime services:
+  - `AddressablesStartupCoordinator` for startup sync + preload request application.
+  - `AddressablesLeaseStore` for loaded-entry reference counting, preload handoff ownership, and final release transitions.
 - Owns preload registration (`IAddressablesPreloadRegistry`) with `Normal` and `NeverDie` policies.
 - Owns Scope startup integration via `AddressablesLayerInitializer : IAsyncLayerInitializable`.
 - Does not own feature-level cache policy (for example enemy-specific preload caches).
@@ -24,14 +26,15 @@
 |---|---|---|---|---|
 | `IAddressablesGateway.InitializeAsync` | Initialize gateway and run preloads | `CancellationToken` | `Task` | throws on preload/load failures |
 | `IAddressablesGateway.LoadAsync<T>(AssetKey)` | Load one typed asset by key | key + token | `IAssetHandle<T>` | throws on missing/invalid key |
-| `IAddressablesGateway.LoadAsync<T>(CatalogKey)` | Load all typed assets for catalog key | catalog + token | list of `IAssetHandle<T>` | returns empty list when no locations |
-| `IAddressablesGateway.LoadAsync<T>(AssetReferenceKey)` | Load one typed asset by reference key | reference + token | `IAssetHandle<T>` | throws on invalid reference |
+| `IAddressablesGateway.LoadAsync<T>(AssetLabelReference)` | Load all typed assets for label | label + token | list of `IAssetHandle<T>` | returns empty list when no locations |
+| `IAddressablesGateway.LoadAsync<T>(AssetReference)` | Load one typed asset by Unity reference | reference + token | `IAssetHandle<T>` | throws on invalid reference |
+| `IAddressablesGateway.LoadAsync<T>(AssetReferenceT<T>)` | Load one typed asset by strongly typed Unity reference | typed reference + token | `IAssetHandle<T>` | throws on invalid reference |
 | `IAssetHandle.Release()` | Release exactly one owner reference | none | void | second call is safe no-op |
-| `IAddressablesPreloadRegistry` | Register preload requests | key/catalog + mode (+ optional generic type) | registration state | duplicates are tolerated |
+| `IAddressablesPreloadRegistry` | Register preload requests | key/reference/label + mode (+ optional generic type) | registration state | duplicates are tolerated |
 
 ## Setup / Integration
 
-1. Add references to `Scaffold.Addressables` (runtime consumers) or `Scaffold.Addressables.Container` (composition roots).
+1. Add references to `Madbox.Addressables` (runtime consumers) or `Madbox.Addressables.Container` (composition roots).
 2. Register `AddressablesInstaller` in Infra/bootstrap installer flow.
 3. Ensure `ScopeInitializer` executes `IAsyncLayerInitializable` implementations so `AddressablesLayerInitializer` runs.
 4. Register preload entries through `IAddressablesPreloadRegistry` in a container build callback or dedicated installer.
@@ -73,7 +76,9 @@ public sealed class EnemiesService
 
     public Task<IReadOnlyList<IAssetHandle<Enemy>>> LoadAllEnemiesAsync(CancellationToken ct)
     {
-        return gateway.LoadAsync<Enemy>(new CatalogKey("enemy"), ct);
+        AssetLabelReference label = new AssetLabelReference();
+        label.labelString = "enemy";
+        return gateway.LoadAsync<Enemy>(label, ct);
     }
 }
 ```
@@ -97,7 +102,9 @@ public sealed class AddressablesPreloadInstaller : ILayerInstaller
         {
             IAddressablesPreloadRegistry preloads = container.Resolve<IAddressablesPreloadRegistry>();
             preloads.Register<Enemy>(new AssetKey("enemy/bee"), PreloadMode.Normal);
-            preloads.Register<Enemy>(new CatalogKey("enemy"), PreloadMode.NeverDie);
+            AssetLabelReference label = new AssetLabelReference();
+            label.labelString = "enemy";
+            preloads.Register<Enemy>(label, PreloadMode.NeverDie);
         });
     }
 }
@@ -122,11 +129,11 @@ public sealed class AddressablesPreloadInstaller : ILayerInstaller
 
 ## Testing
 
-- Test assembly: `Scaffold.Addressables.Tests`.
+- Test assembly: `Madbox.Addressables.Tests`.
 - Run from repo root:
 
 ```powershell
-& ".\.agents\scripts\run-editmode-tests.ps1" -AssemblyNames "Scaffold.Addressables.Tests"
+& ".\.agents\scripts\run-editmode-tests.ps1" -AssemblyNames "Madbox.Addressables.Tests"
 ```
 
 - Expected: all tests pass with zero failures.
@@ -139,8 +146,9 @@ public sealed class AddressablesPreloadInstaller : ILayerInstaller
   - underlying asset release occurs only when final owner reference is released.
   - `PreloadMode.Normal` handoff transfers owner handle to first consumer.
   - `PreloadMode.NeverDie` keeps gateway-owned resident reference.
+  - `AddressablesGateway` should stay thin and orchestrate small internal services instead of accumulating all startup/load logic.
 - Allowed Dependencies:
-  - `Scaffold.Scope`, Unity Addressables packages, VContainer container module.
+  - `Madbox.Scope`, Unity Addressables packages, VContainer container module.
 - Forbidden Dependencies:
   - feature-specific gameplay modules.
   - direct UI/presentation coupling in runtime contracts.
@@ -163,3 +171,5 @@ public sealed class AddressablesPreloadInstaller : ILayerInstaller
 ## Changelog
 
 - 2026-03-17: Initial module documentation for generic Addressables gateway, preload modes, strict handle ownership, and scope startup integration.
+- 2026-03-18: Documented gateway-thinning architecture (`AddressablesStartupCoordinator`, `AddressablesLeaseStore`, `AddressablesPreloadBuffer`) while keeping the same public contracts and startup adapter seam.
+- 2026-03-18: Migrated primary reference APIs to Unity-native types (`AssetReference`, `AssetReferenceT<T>`, `AssetLabelReference`) and marked legacy wrappers as compatibility-only.

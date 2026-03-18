@@ -61,7 +61,7 @@ Top-level directories:
   - Events: `Scaffold.Events`, `Scaffold.Events.Container`, `Scaffold.Events.Samples`, `Scaffold.Events.Tests`
   - Model: `Scaffold.MVVM.Model`, `Scaffold.MVVM.Model.Tests`
   - Navigation: `Scaffold.Navigation`, `Scaffold.Navigation.Container`, `Scaffold.Navigation.Samples`, `Scaffold.Navigation.Tests`
-  - Scope: `Scaffold.Scope`, `Scaffold.Scope.Tests`
+  - Scope: `Madbox.Scope`, `Madbox.Scope.Tests`
 - `Tools`
   - Maps: `Scaffold.Maps`, `Scaffold.Maps.Samples`, `Scaffold.Maps.Tests`
   - Records: `Scaffold.Records`, `Scaffold.Records.Samples`, `Scaffold.Records.Tests`
@@ -71,12 +71,12 @@ Primary production dependency direction:
 
 - `Scaffold.MVVM.Model` <- `Scaffold.MVVM.ViewModel` <- `Scaffold.MVVM.View` <- `Madbox.Bootstrap.Runtime`
 - `Scaffold.Navigation` <- `Scaffold.MVVM.ViewModel` / `Scaffold.MVVM.View` / `Madbox.Bootstrap.Runtime`
-- `Scaffold.Scope` <- `Madbox.Bootstrap.Runtime`
+- `Madbox.Scope` <- `Madbox.Bootstrap.Runtime`
 - `Scaffold.Events` <- `Scaffold.Navigation` / `Scaffold.Events.Container` <- `Madbox.Bootstrap.Runtime`
 - `Scaffold.Records` <- `Scaffold.Maps` <- `Scaffold.MVVM.ViewModel`
 - `Scaffold.Types` <- `Scaffold.MVVM.View` and `Scaffold.Navigation`
 - `Scaffold.Schemas` (package assembly from `com.scaffold.schemas`) <- `Scaffold.Navigation`
-- `VContainer` / `VContainer.Unity` are consumed by `Scaffold.Scope.*`, `Scaffold.Navigation.Container`, `Scaffold.Events.Container`, and `Madbox.Bootstrap.Runtime`
+- `VContainer` / `VContainer.Unity` are consumed by `Madbox.Scope.*`, `Scaffold.Navigation.Container`, `Scaffold.Events.Container`, and `Madbox.Bootstrap.Runtime`
 
 Notes:
 - Tests are split into Editor tests and PlayMode tests where applicable.

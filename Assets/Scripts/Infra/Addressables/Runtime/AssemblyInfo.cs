@@ -1,3 +1,9 @@
 using System.Runtime.CompilerServices;
 
-[assembly: InternalsVisibleTo("Scaffold.Addressables.Tests")]
+[assembly: InternalsVisibleTo("Madbox.Addressables.Tests")]
+namespace Madbox.Addressables
+{
+    internal static class AssemblyInfoNamespaceMarker
+    {
+    }
+}

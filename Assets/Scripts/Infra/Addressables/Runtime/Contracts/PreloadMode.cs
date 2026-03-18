@@ -1,4 +1,4 @@
-namespace Scaffold.Addressables.Contracts
+namespace Madbox.Addressables.Contracts
 {
     public enum PreloadMode
     {

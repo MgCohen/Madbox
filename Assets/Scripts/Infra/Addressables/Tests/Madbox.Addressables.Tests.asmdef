@@ -1,8 +1,9 @@
 {
-    "name": "Scaffold.Addressables.Tests",
-    "rootNamespace": "Scaffold.Addressables.Tests",
+    "name": "Madbox.Addressables.Tests",
+    "rootNamespace": "Madbox.Addressables.Tests",
     "references": [
-        "Scaffold.Addressables"
+        "Madbox.Addressables",
+        "Unity.Addressables"
     ],
     "includePlatforms": [
         "Editor"

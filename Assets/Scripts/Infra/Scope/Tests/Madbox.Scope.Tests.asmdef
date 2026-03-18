@@ -1,8 +1,8 @@
 {
-    "name":  "Scaffold.Scope.Tests",
-    "rootNamespace":  "Scaffold.Scope.Tests",
+    "name":  "Madbox.Scope.Tests",
+    "rootNamespace":  "Madbox.Scope.Tests",
     "references":  [
-                       "Scaffold.Scope"
+                       "Madbox.Scope"
                    ],
     "includePlatforms":  [
                              "Editor"

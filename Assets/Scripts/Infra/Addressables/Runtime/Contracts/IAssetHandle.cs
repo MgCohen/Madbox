@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-namespace Scaffold.Addressables.Contracts
+namespace Madbox.Addressables.Contracts
 {
     public interface IAssetHandle
     {

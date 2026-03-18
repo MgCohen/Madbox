@@ -1,6 +1,6 @@
 using System;
 using Madbox.Scope.Contracts;
-using Scaffold.Addressables.Container;
+using Madbox.Addressables.Container;
 using Scaffold.Events.Container;
 using Scaffold.Navigation;
 using Scaffold.Navigation.Container;
@@ -23,15 +23,27 @@ namespace Madbox.App.Bootstrap
         public void Install(IContainerBuilder builder)
         {
             ValidateBuilder(builder);
+            InstallEvents(builder);
+            InstallAddressables(builder);
+            InstallNavigation(builder);
+        }
 
-            EventsInstaller eventsInstaller = new EventsInstaller();
-            eventsInstaller.Install(builder);
+        private void InstallEvents(IContainerBuilder builder)
+        {
+            EventsInstaller installer = new EventsInstaller();
+            installer.Install(builder);
+        }
 
-            AddressablesInstaller addressablesInstaller = new AddressablesInstaller();
-            addressablesInstaller.Install(builder);
+        private void InstallAddressables(IContainerBuilder builder)
+        {
+            AddressablesInstaller installer = new AddressablesInstaller();
+            installer.Install(builder);
+        }
 
-            NavigationInstaller navigationInstaller = new NavigationInstaller(navigationSettings, viewHolder);
-            navigationInstaller.Install(builder);
+        private void InstallNavigation(IContainerBuilder builder)
+        {
+            NavigationInstaller installer = new NavigationInstaller(navigationSettings, viewHolder);
+            installer.Install(builder);
         }
 
         private void ValidateBuilder(object builder)

@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace Scaffold.Addressables
+namespace Madbox.Addressables
 {
     internal interface IAddressablesPreloadSource
     {

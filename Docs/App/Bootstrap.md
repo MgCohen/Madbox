@@ -4,7 +4,7 @@
 
 - Purpose: compose runtime scopes and open the first app screen.
 - Location: `Assets/Scripts/App/Bootstrap/Runtime/`.
-- Depends on: `Scaffold.Navigation`, `Scaffold.Navigation.Container`, `Scaffold.Events.Container`, `Scaffold.Scope`, `Scaffold.MVVM.Model`, `Scaffold.MVVM.ViewModel`, `VContainer`.
+- Depends on: `Scaffold.Navigation`, `Scaffold.Navigation.Container`, `Scaffold.Events.Container`, `Madbox.Scope`, `Scaffold.MVVM.Model`, `Scaffold.MVVM.ViewModel`, `VContainer`, `Madbox.Addressables.Container`.
 - Used by: scene startup.
 - Runtime/Editor: runtime only.
 - Keywords: bootstrap, composition root, vcontainer, startup flow.
@@ -26,7 +26,7 @@
 
 1. Add `BootstrapScope` to the startup scene.
 2. Assign navigation settings and `viewHolder` in inspector.
-3. Ensure required assemblies are present in asmdef references (`Scaffold.Navigation`, `Scaffold.Navigation.Container`, `Scaffold.Events.Container`, `Scaffold.Scope`, `Scaffold.MVVM.Model`, `Scaffold.MVVM.ViewModel`, `VContainer`).
+3. Ensure required assemblies are present in asmdef references (`Scaffold.Navigation`, `Scaffold.Navigation.Container`, `Scaffold.Events.Container`, `Madbox.Scope`, `Scaffold.MVVM.Model`, `Scaffold.MVVM.ViewModel`, `VContainer`, `Madbox.Addressables.Container`).
 4. Press Play and confirm main menu opens only after layer initialization completes.
 
 ## How to Use
@@ -60,7 +60,7 @@ sequenceDiagram
 
 ## Best Practices
 
-- Keep the reusable startup lifecycle in Infra Scope (`Scaffold.Scope`).
+- Keep the reusable startup lifecycle in Infra Scope (`Madbox.Scope`).
 - Keep app-specific layer installers and first-screen behavior in `BootstrapScope`.
 - Register only module-owned services per layer.
 - Add new layers with one additional layer-initialization line in bootstrap startup orchestration.
@@ -94,7 +94,7 @@ sequenceDiagram
   - startup ordering remains infra -> meta -> core/app with awaited layer barriers.
   - first screen is opened through navigation, not direct view activation.
 - Allowed Dependencies:
-  - `Scaffold.Navigation`, `Scaffold.Navigation.Container`, `Scaffold.Events.Container`, `Scaffold.Scope`, `Scaffold.MVVM.Model`, `Scaffold.MVVM.ViewModel`, `VContainer`.
+  - `Scaffold.Navigation`, `Scaffold.Navigation.Container`, `Scaffold.Events.Container`, `Madbox.Scope`, `Scaffold.MVVM.Model`, `Scaffold.MVVM.ViewModel`, `VContainer`, `Madbox.Addressables.Container`.
 - Forbidden Dependencies:
   - gameplay rules and domain state mutation in bootstrap.
 - Change Checklist:
@@ -117,4 +117,4 @@ sequenceDiagram
 
 - 2026-03-16: Expanded bootstrap validation coverage for missing serialized fields (`navigationSettings`, `viewHolder`, `levelIds`) and valid configuration path.
 - 2026-03-16: Added layer-serial async initialization barriers via `IAsyncLayerInitializable` and fail-fast startup behavior before opening Main Menu.
-- 2026-03-16: Refactored Bootstrap to project-specific composition only; moved generic layered startup orchestration to `Scaffold.Scope`.
+- 2026-03-16: Refactored Bootstrap to project-specific composition only; moved generic layered startup orchestration to `Madbox.Scope`.

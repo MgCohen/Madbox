@@ -1,6 +1,6 @@
 using System;
 
-namespace Scaffold.Addressables.Contracts
+namespace Madbox.Addressables.Contracts
 {
     public readonly struct AssetKey : IEquatable<AssetKey>
     {
@@ -16,14 +16,15 @@ namespace Scaffold.Addressables.Contracts
 
         public string Value { get; }
 
-        public bool Equals(AssetKey other)
-        {
-            return string.Equals(Value, other.Value, StringComparison.Ordinal);
-        }
-
         public override bool Equals(object obj)
         {
             return obj is AssetKey other && Equals(other);
+        }
+
+        public bool Equals(AssetKey other)
+        {
+            if (string.IsNullOrWhiteSpace(Value) || string.IsNullOrWhiteSpace(other.Value)) { return false; }
+            return string.Equals(Value, other.Value, StringComparison.Ordinal);
         }
 
         public override int GetHashCode()

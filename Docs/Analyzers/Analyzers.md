@@ -358,6 +358,7 @@ Files under a `Contracts/` path segment (for example `Runtime/Contracts/`) are e
 This rule applies only to files under `Assets/Scripts/` and skips generated files (e.g., `obj/`, `bin/`, `*.g.cs`).
 All top-level namespace declarations in a file are validated (not just the first declaration).
 `Assets/Scripts/Tools/Records/Runtime/IsExternalInit.cs` is explicitly exempted for C# record compatibility.
+Compilation units that contain only assembly/module attributes (for example `AssemblyInfo.cs` with `[assembly: ...]`) are also exempt.
 
 Root namespace resolution order:
 1. `scaffold.SCA0007.root_namespace` from `.editorconfig` (explicit override)
@@ -398,6 +399,7 @@ Files under `Assets/Scripts/` must declare exactly one top-level namespace.
 This prevents sibling namespace declarations from bypassing namespace/folder conventions.
 
 `Assets/Scripts/Tools/Records/Runtime/IsExternalInit.cs` is explicitly exempted for C# record compatibility.
+Assembly/module-attributes-only files (for example `AssemblyInfo.cs`) are exempt as metadata-only files.
 
 ```csharp
 // VIOLATION

@@ -4,7 +4,8 @@ namespace Scaffold.MVVM.Binding
     {
         public virtual bool CanConvert(TSource source)
         {
-            return source is not null;
+            if (source is null) { return false; }
+            return true;
         }
 
         public abstract TTarget Convert(TSource source);

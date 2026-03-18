@@ -1,20 +1,18 @@
 using System;
 using System.Threading;
-using Scaffold.Addressables.Contracts;
+using Madbox.Addressables.Contracts;
 using UnityEngine;
 
-namespace Scaffold.Addressables
+namespace Madbox.Addressables
 {
     internal sealed class AssetHandle<T> : IAssetHandle<T> where T : UnityEngine.Object
     {
-        private readonly Action onRelease;
-        private int releasedFlag;
-
         public AssetHandle(string id, T asset, Action onRelease)
         {
-            Id = id ?? throw new ArgumentNullException(nameof(id));
-            Asset = asset ? asset : throw new ArgumentNullException(nameof(asset));
-            this.onRelease = onRelease ?? throw new ArgumentNullException(nameof(onRelease));
+            GuardConstructor(id, asset, onRelease);
+            Id = id;
+            Asset = asset;
+            this.onRelease = onRelease;
         }
 
         public string Id { get; }
@@ -22,6 +20,9 @@ namespace Scaffold.Addressables
         public UnityEngine.Object UntypedAsset => Asset;
         public T Asset { get; }
         public bool IsReleased => releasedFlag != 0;
+
+        private readonly Action onRelease;
+        private int releasedFlag;
 
         public void Release()
         {
@@ -31,6 +32,13 @@ namespace Scaffold.Addressables
             }
 
             onRelease();
+        }
+
+        private void GuardConstructor(string id, T asset, Action onRelease)
+        {
+            if (string.IsNullOrWhiteSpace(id)) { throw new ArgumentException("Handle id cannot be empty.", nameof(id)); }
+            if (asset == null) { throw new ArgumentNullException(nameof(asset)); }
+            if (onRelease == null) { throw new ArgumentNullException(nameof(onRelease)); }
         }
     }
 }

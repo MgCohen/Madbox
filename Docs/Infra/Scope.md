@@ -36,12 +36,12 @@
 ## Testing
 
 - Scope runtime tests:
-  - `Scaffold.Scope.Tests`
+  - `Madbox.Scope.Tests`
 - Also validated by bootstrap behavior tests and analyzer tests.
 - Run from repo root:
 
 ```powershell
-& ".\.agents\scripts\run-editmode-tests.ps1" -AssemblyNames "Scaffold.Scope.Tests"
+& ".\.agents\scripts\run-editmode-tests.ps1" -AssemblyNames "Madbox.Scope.Tests"
 & ".\.agents\scripts\run-editmode-tests.ps1" -AssemblyNames "Madbox.Bootstrap.Tests"
 dotnet test "Analyzers/Scaffold/Scaffold.Analyzers.Tests/Scaffold.Analyzers.Tests.csproj"
 ```
@@ -54,5 +54,5 @@ dotnet test "Analyzers/Scaffold/Scaffold.Analyzers.Tests/Scaffold.Analyzers.Test
 
 ## Changelog
 
-- 2026-03-17: Consolidated `Scaffold.Scope.Contracts` + `Scaffold.Scope.Runtime` into `Scaffold.Scope` and moved boundary types to `Runtime/Contracts/`.
+- 2026-03-17: Consolidated `Madbox.Scope.Contracts` + `Madbox.Scope.Runtime` into `Madbox.Scope` and moved boundary types to `Runtime/Contracts/`.
 - 2026-03-16: Renamed module to Scope and moved shared `LayeredScope`/`ScopeInitializer` orchestration from App Bootstrap to Infra Scope runtime.
