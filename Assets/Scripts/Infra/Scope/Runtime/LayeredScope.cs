@@ -66,7 +66,6 @@ namespace Madbox.Scope
 
         private async Task StartAsync(CancellationToken cancellationToken)
         {
-            ValidateBootstrapState();
             scopeInitializer.Reset();
             LifetimeScope finalScope = await InitializeLayersAsync(cancellationToken);
             OnBootstrapCompleted(finalScope);
@@ -100,7 +99,6 @@ namespace Madbox.Scope
             installer.Install(builder);
         }
 
-        protected abstract void ValidateBootstrapState();
         protected abstract IReadOnlyList<ILayerInstaller> BuildLayerInstallers();
         protected abstract void OnBootstrapCompleted(LifetimeScope finalScope);
     }

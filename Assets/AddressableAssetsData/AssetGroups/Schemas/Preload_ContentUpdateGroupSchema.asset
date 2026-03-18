@@ -9,8 +9,8 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 65bb29ac87114da46bd521a7dad649a0, type: 3}
-  m_Name: Navigation Settings
+  m_Script: {fileID: 11500000, guid: 5834b5087d578d24c926ce20cd31e6d6, type: 3}
+  m_Name: Preload_ContentUpdateGroupSchema
   m_EditorClassIdentifier: 
-  screens:
-  - {fileID: 11400000, guid: 608cda73e3eb20d44be650026efdb708, type: 2}
+  m_Group: {fileID: 11400000, guid: 4f892f151a6717a4995459a68d7d78d8, type: 2}
+  m_StaticContent: 0

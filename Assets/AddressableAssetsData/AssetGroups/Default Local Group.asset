@@ -17,18 +17,18 @@ MonoBehaviour:
     m_SerializedData: []
   m_GUID: 258c332eb00663641841ccb2eaaf820e
   m_SerializeEntries:
-  - m_GUID: fe189c0006577944eaa12ec9bdff3f0f
-    m_Address: UI Atlas
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: bac79aa2a0057e5429a664d3f336da3d
-    m_Address: LongSword
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 17cf6e9fc28f3a544bc062d510f66f4a
     m_Address: GreatSword
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 37bd65c58ad7825418d39ce3103f9d51
+    m_Address: Assets/Data/AddressablesPreloadConfig.asset
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 44b03c24ec1888b45b3fec2bd00ef1cf
+    m_Address: Navigation/BaseView
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -37,8 +37,8 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 44b03c24ec1888b45b3fec2bd00ef1cf
-    m_Address: Navigation/BaseView
+  - m_GUID: bac79aa2a0057e5429a664d3f336da3d
+    m_Address: LongSword
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -52,9 +52,14 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: fe189c0006577944eaa12ec9bdff3f0f
+    m_Address: UI Atlas
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   m_ReadOnly: 0
   m_Settings: {fileID: 11400000, guid: 2c2a01d9444a5c343a774372540cda35, type: 2}
   m_SchemaSet:
     m_Schemas:
-    - {fileID: 11400000, guid: 1f08e74f9ba263b44b409ac7d4f6e31a, type: 2}
     - {fileID: 11400000, guid: df4d44f587e8fe7479bca094b65d7994, type: 2}
+    - {fileID: 11400000, guid: 1f08e74f9ba263b44b409ac7d4f6e31a, type: 2}

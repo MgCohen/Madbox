@@ -1,0 +1,31 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bbb281ee3bf0b054c82ac2347e9e782c, type: 3}
+  m_Name: Preload
+  m_EditorClassIdentifier: 
+  m_GroupName: Preload
+  m_Data:
+    m_SerializedData: []
+  m_GUID: e3102d62867bd1749a22083b5eb613ea
+  m_SerializeEntries:
+  - m_GUID: 137da207fe7ec1345a5d209afdac17bd
+    m_Address: Assets/Data/Navigation/Navigation Settings.asset
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - addressables/preload/config
+    FlaggedDuringContentUpdateRestriction: 0
+  m_ReadOnly: 0
+  m_Settings: {fileID: 11400000, guid: 2c2a01d9444a5c343a774372540cda35, type: 2}
+  m_SchemaSet:
+    m_Schemas:
+    - {fileID: 11400000, guid: 53a04d5a9902bca428a90327ecbf2476, type: 2}
+    - {fileID: 11400000, guid: 08b5a4e6fd9417f4dad321f92b9bae6b, type: 2}
