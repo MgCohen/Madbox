@@ -15,7 +15,7 @@ namespace Scaffold.Analyzers
         private const string Category = "Style";
 
         private static readonly LocalizableString Title = "Methods should be in order of usage";
-        private static readonly LocalizableString MessageFormat = "Error SCA0002: Method '{0}' is called by '{1}'. Move the declaration of '{0}' so it appears sequentially *after* '{1}' in the file.";
+        private static readonly LocalizableString MessageFormat = "Error SCA0002: Method '{0}' is out of order relative to caller '{1}' and dependency '{2}'. Keep dependency blocks contiguous beneath callers.";
         private static readonly LocalizableString Description = "Methods must be declared after the methods that use them. Internal classes stay at the end.";
 
         private static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(
@@ -54,58 +54,184 @@ namespace Scaffold.Analyzers
             if (AnalyzerConfig.ShouldSuppress(options, DiagnosticId)) return;
             var rule = AnalyzerConfig.GetEffectiveDescriptor(options, DiagnosticId, Rule);
 
-            var methods = typeDeclaration.Members.OfType<MethodDeclarationSyntax>().ToList();
-            var methodNames = new HashSet<string>(methods.Select(m => m.Identifier.Text));
-            
-            // Map method name to the earliest method that calls it
-            var firstCallers = new Dictionary<string, MethodDeclarationSyntax>();
-
-            foreach (var callerMethod in methods)
+            var methodNodes = typeDeclaration.Members
+                .OfType<MethodDeclarationSyntax>()
+                .Where(IsInstanceOrdinaryMethod)
+                .ToList();
+            if (methodNodes.Count < 2)
             {
-                if (callerMethod.Body == null)
+                return;
+            }
+
+            var methodSymbols = new List<IMethodSymbol>(methodNodes.Count);
+            var symbolToNode = new Dictionary<IMethodSymbol, MethodDeclarationSyntax>(SymbolEqualityComparer.Default);
+            var symbolToIndex = new Dictionary<IMethodSymbol, int>(SymbolEqualityComparer.Default);
+            for (var i = 0; i < methodNodes.Count; i++)
+            {
+                var symbol = context.SemanticModel.GetDeclaredSymbol(methodNodes[i], context.CancellationToken);
+                if (symbol == null)
+                {
                     continue;
-
-                // Find all simple calls by name inside the method body
-                var invocations = callerMethod.Body.DescendantNodes().OfType<InvocationExpressionSyntax>();
-                foreach (var invocation in invocations)
-                {
-                    string calledName = null;
-                    if (invocation.Expression is IdentifierNameSyntax id)
-                    {
-                        calledName = id.Identifier.Text;
-                    }
-                    else if (invocation.Expression is MemberAccessExpressionSyntax memberAccess && memberAccess.Expression is ThisExpressionSyntax)
-                    {
-                        calledName = memberAccess.Name.Identifier.Text;
-                    }
-
-                    if (calledName != null && methodNames.Contains(calledName))
-                    {
-                        if (!firstCallers.ContainsKey(calledName))
-                        {
-                            firstCallers[calledName] = callerMethod;
-                        }
-                    }
                 }
+
+                var normalized = NormalizeMethod(symbol);
+                methodSymbols.Add(normalized);
+                symbolToNode[normalized] = methodNodes[i];
+                symbolToIndex[normalized] = i;
             }
 
-            // Verify order
-            for (int i = 0; i < methods.Count; i++)
+            var directDependencies = BuildDirectDependencies(context, methodNodes, symbolToNode);
+            var closureCache = new Dictionary<IMethodSymbol, HashSet<IMethodSymbol>>(SymbolEqualityComparer.Default);
+
+            foreach (var callerSymbol in methodSymbols)
             {
-                var method = methods[i];
-                var name = method.Identifier.Text;
-
-                if (firstCallers.TryGetValue(name, out var caller))
+                if (!directDependencies.TryGetValue(callerSymbol, out var callees))
                 {
-                    var callerIndex = methods.IndexOf(caller);
-                    if (callerIndex > i)
+                    continue;
+                }
+
+                foreach (var calleeSymbol in callees)
+                {
+                    var callerIndex = symbolToIndex[callerSymbol];
+                    var calleeIndex = symbolToIndex[calleeSymbol];
+
+                    if (calleeIndex <= callerIndex)
                     {
-                        // The method appears before the method that calls it!
-                        var diagnostic = Diagnostic.Create(rule, method.Identifier.GetLocation(), name, caller.Identifier.Text);
-                        context.ReportDiagnostic(diagnostic);
+                        ReportDiagnostic(context, rule, symbolToNode[calleeSymbol], calleeSymbol.Name, callerSymbol.Name, calleeSymbol.Name);
+                        continue;
+                    }
+
+                    for (var index = callerIndex + 1; index < calleeIndex; index++)
+                    {
+                        var middleSymbol = methodSymbols[index];
+                        if (DependsOn(middleSymbol, calleeSymbol, directDependencies, closureCache))
+                        {
+                            continue;
+                        }
+
+                        ReportDiagnostic(context, rule, symbolToNode[middleSymbol], middleSymbol.Name, callerSymbol.Name, calleeSymbol.Name);
+                        break;
                     }
                 }
             }
+        }
+
+        private static Dictionary<IMethodSymbol, HashSet<IMethodSymbol>> BuildDirectDependencies(
+            SyntaxNodeAnalysisContext context,
+            List<MethodDeclarationSyntax> methods,
+            Dictionary<IMethodSymbol, MethodDeclarationSyntax> methodLookup)
+        {
+            var dependencies = new Dictionary<IMethodSymbol, HashSet<IMethodSymbol>>(SymbolEqualityComparer.Default);
+            foreach (var method in methods)
+            {
+                var callerSymbol = context.SemanticModel.GetDeclaredSymbol(method, context.CancellationToken);
+                if (callerSymbol == null)
+                {
+                    continue;
+                }
+
+                var caller = NormalizeMethod(callerSymbol);
+                if (!dependencies.TryGetValue(caller, out var callees))
+                {
+                    callees = new HashSet<IMethodSymbol>(SymbolEqualityComparer.Default);
+                    dependencies[caller] = callees;
+                }
+
+                foreach (var invocation in method.DescendantNodes().OfType<InvocationExpressionSyntax>())
+                {
+                    var targetSymbol = context.SemanticModel.GetSymbolInfo(invocation, context.CancellationToken).Symbol as IMethodSymbol;
+                    if (targetSymbol == null)
+                    {
+                        continue;
+                    }
+
+                    var normalizedTarget = NormalizeMethod(targetSymbol);
+                    if (!methodLookup.ContainsKey(normalizedTarget))
+                    {
+                        continue;
+                    }
+
+                    if (SymbolEqualityComparer.Default.Equals(caller, normalizedTarget))
+                    {
+                        continue;
+                    }
+
+                    callees.Add(normalizedTarget);
+                }
+            }
+
+            return dependencies;
+        }
+
+        private static bool DependsOn(
+            IMethodSymbol method,
+            IMethodSymbol target,
+            Dictionary<IMethodSymbol, HashSet<IMethodSymbol>> directDependencies,
+            Dictionary<IMethodSymbol, HashSet<IMethodSymbol>> closureCache)
+        {
+            var closure = GetTransitiveDependencies(method, directDependencies, closureCache);
+            return closure.Contains(target, SymbolEqualityComparer.Default);
+        }
+
+        private static HashSet<IMethodSymbol> GetTransitiveDependencies(
+            IMethodSymbol method,
+            Dictionary<IMethodSymbol, HashSet<IMethodSymbol>> directDependencies,
+            Dictionary<IMethodSymbol, HashSet<IMethodSymbol>> closureCache)
+        {
+            if (closureCache.TryGetValue(method, out var cached))
+            {
+                return cached;
+            }
+
+            var result = new HashSet<IMethodSymbol>(SymbolEqualityComparer.Default);
+            closureCache[method] = result;
+            if (!directDependencies.TryGetValue(method, out var direct))
+            {
+                return result;
+            }
+
+            foreach (var callee in direct)
+            {
+                if (result.Add(callee))
+                {
+                    var nested = GetTransitiveDependencies(callee, directDependencies, closureCache);
+                    result.UnionWith(nested);
+                }
+            }
+
+            return result;
+        }
+
+        private static bool IsInstanceOrdinaryMethod(MethodDeclarationSyntax method)
+        {
+            if (method.Modifiers.Any(SyntaxKind.StaticKeyword))
+            {
+                return false;
+            }
+
+            if (method.ExplicitInterfaceSpecifier != null)
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        private static IMethodSymbol NormalizeMethod(IMethodSymbol methodSymbol)
+        {
+            return methodSymbol.OriginalDefinition;
+        }
+
+        private static void ReportDiagnostic(
+            SyntaxNodeAnalysisContext context,
+            DiagnosticDescriptor rule,
+            MethodDeclarationSyntax node,
+            string method,
+            string caller,
+            string dependency)
+        {
+            var diagnostic = Diagnostic.Create(rule, node.Identifier.GetLocation(), method, caller, dependency);
+            context.ReportDiagnostic(diagnostic);
         }
     }
 }

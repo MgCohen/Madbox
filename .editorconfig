@@ -37,6 +37,9 @@ scaffold.SCA0023.exempt_requirements = Scaffold.Records=Tests
 dotnet_diagnostic.SCA0024.severity = warning   # Module asmdef placement/name convention
 dotnet_diagnostic.SCA0025.severity = warning   # Boundary interfaces/types should live under Contracts
 dotnet_diagnostic.SCA0026.severity = warning   # Restrict same-layer dependency usage during initialization call chains
+dotnet_diagnostic.SCA0028.severity = warning   # Loop bodies require braces and next-line formatting
+dotnet_diagnostic.SCA0029.severity = warning   # Conditionals require braces except inline single-statement if
+dotnet_diagnostic.SCA0030.severity = warning   # Runtime dead code detection for non-public members
 scaffold.SCA0025.enforced_kinds = interface
 scaffold.SCA0025.exempt_module_roots = Scaffold.Records
 

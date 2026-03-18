@@ -62,4 +62,52 @@ namespace Demo
 
         Assert.Empty(diagnostics);
     }
+
+    [Fact]
+    public async Task Diagnostic_WhenConstructorSignatureSpansMultipleLines()
+    {
+        const string source = @"
+namespace Demo
+{
+    public class Sample
+    {
+        public Sample(
+            string value)
+        {
+        }
+    }
+}";
+
+        var diagnostics = await AnalyzerTestHarness.GetDiagnosticsByIdAsync(
+            source,
+            @"C:\Repo\Assets\Scripts\Core\Sample.cs",
+            new LineBreakAnalyzer(),
+            LineBreakAnalyzer.DiagnosticId);
+
+        Assert.Single(diagnostics);
+    }
+
+    [Fact]
+    public async Task Diagnostic_WhenMethodWhereClauseSpansMultipleLines()
+    {
+        const string source = @"
+namespace Demo
+{
+    public class Sample
+    {
+        public void Execute<T>(T value)
+            where T : class
+        {
+        }
+    }
+}";
+
+        var diagnostics = await AnalyzerTestHarness.GetDiagnosticsByIdAsync(
+            source,
+            @"C:\Repo\Assets\Scripts\Core\Sample.cs",
+            new LineBreakAnalyzer(),
+            LineBreakAnalyzer.DiagnosticId);
+
+        Assert.Single(diagnostics);
+    }
 }
