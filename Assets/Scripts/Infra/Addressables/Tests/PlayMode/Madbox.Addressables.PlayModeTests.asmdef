@@ -1,0 +1,23 @@
+{
+    "name": "Madbox.Addressables.PlayModeTests",
+    "rootNamespace": "Madbox.Addressables.Tests.PlayMode",
+    "references": [
+        "Madbox.Addressables",
+        "Madbox.Bootstrap.Runtime",
+        "Madbox.Scope",
+        "Unity.Addressables",
+        "VContainer"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false,
+    "optionalUnityReferences": [
+        "TestAssemblies"
+    ]
+}

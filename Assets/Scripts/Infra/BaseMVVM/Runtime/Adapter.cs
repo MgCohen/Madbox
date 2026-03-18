@@ -4,7 +4,8 @@ namespace Scaffold.MVVM.Binding
     {
         public virtual bool CanAdapt(TTarget target)
         {
-            return target is not null;
+            if (target is null) { return false; }
+            return true;
         }
 
         public abstract TTarget Resolve(TTarget target);

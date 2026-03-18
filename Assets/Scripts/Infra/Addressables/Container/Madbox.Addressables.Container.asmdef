@@ -1,9 +1,10 @@
 {
-    "name": "Scaffold.Scope",
-    "rootNamespace": "Scaffold.Scope",
+    "name": "Madbox.Addressables.Container",
+    "rootNamespace": "Madbox.Addressables.Container",
     "references": [
-        "VContainer",
-        "VContainer.Unity"
+        "Madbox.Addressables",
+        "Madbox.Scope",
+        "VContainer"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
