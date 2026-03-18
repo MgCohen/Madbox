@@ -6,6 +6,7 @@
     <AssemblyName>Scaffold.Analyzers.Tests</AssemblyName>
     <RootNamespace>Scaffold.Analyzers.Tests</RootNamespace>
     <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
   </PropertyGroup>
 
   <ItemGroup>
