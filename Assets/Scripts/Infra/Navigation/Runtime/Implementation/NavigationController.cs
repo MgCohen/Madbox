@@ -102,7 +102,10 @@ namespace Scaffold.Navigation
 
         private void ForceClosePoint(NavigationPoint point)
         {
-            point.View.Close();
+            if (point?.View != null)
+            {
+                point.View.Close();
+            }
             point.Dispose();
         }
 
@@ -142,7 +145,10 @@ namespace Scaffold.Navigation
             foreach (var oPoint in substack)
             {
                 stack.RemoveFromStack(oPoint);
-                oPoint.View.Close();
+                if (oPoint?.View != null)
+                {
+                    oPoint.View.Close();
+                }
                 oPoint.Dispose();
             }
         }

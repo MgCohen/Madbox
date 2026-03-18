@@ -8,41 +8,43 @@ namespace Scaffold.Navigation
     public class NavigationPoint
     {
         public NavigationPoint(IView view, IViewController controller, ViewConfig config, bool isSceneView, NavigationOptions options, Action<NavigationPoint> disposeAction = null)
-            : this(controller, config, isSceneView, options, disposeAction)
+            : this(view, controller, config, isSceneView, options, disposeAction, true)
         {
-            if (view is null) { throw new ArgumentNullException(nameof(view)); }
-            View = view;
-            readyTask = Task.CompletedTask;
         }
 
-        internal NavigationPoint(IViewController controller, ViewConfig config, bool isSceneView, NavigationOptions options, Task<IView> viewLoadTask, Action<NavigationPoint> disposeAction = null)
-            : this(controller, config, isSceneView, options, disposeAction)
+        internal NavigationPoint(IViewController controller, ViewConfig config, bool isSceneView, NavigationOptions options, Action<NavigationPoint> disposeAction = null)
+            : this(null, controller, config, isSceneView, options, disposeAction, false)
         {
-            readyTask = CreateReadyTask(viewLoadTask);
         }
 
-        private NavigationPoint(IViewController controller, ViewConfig config, bool isSceneView, NavigationOptions options, Action<NavigationPoint> disposeAction)
+        private NavigationPoint(IView view, IViewController controller, ViewConfig config, bool isSceneView, NavigationOptions options, Action<NavigationPoint> disposeAction, bool ready)
         {
             if (controller is null) { throw new ArgumentNullException(nameof(controller)); }
             if (config is null) { throw new ArgumentNullException(nameof(config)); }
             if (options is null) { throw new ArgumentNullException(nameof(options)); }
             ViewModel = controller;
             Config = config;
+            View = view;
             IsSceneView = isSceneView;
             Options = options;
             this.disposeAction = disposeAction;
+            if (ready)
+            {
+                readyCompletion.TrySetResult(true);
+            }
         }
 
-        public IView View { get; private set; }
+        public IView View { get; internal set; }
         public IViewController ViewModel { get; private set; }
         public ViewConfig Config { get; private set; }
         public bool IsSceneView { get; private set; }
         public int Depth { get; private set; }
         public NavigationOptions Options { get; private set; }
         public bool Disposed { get; private set; }
+        public bool IsReady => View != null;
 
         private readonly Action<NavigationPoint> disposeAction;
-        private readonly Task readyTask;
+        private readonly TaskCompletionSource<bool> readyCompletion = new TaskCompletionSource<bool>();
 
         public void SetDepth(int depth, NavigationOptions options)
         {
@@ -52,9 +54,24 @@ namespace Scaffold.Navigation
             ApplyDepth(options);
         }
 
-        internal Task EnsureReadyAsync()
+        internal Task AwaitReadyAsync()
         {
-            return readyTask;
+            return readyCompletion.Task;
+        }
+
+        internal void CompleteReady(IView view)
+        {
+            if (view == null) { throw new ArgumentNullException(nameof(view)); }
+            if (Disposed) { return; }
+            View = view;
+            ApplyDepth(Options);
+            readyCompletion.TrySetResult(true);
+        }
+
+        internal void FailReady(Exception exception)
+        {
+            if (exception == null) { throw new ArgumentNullException(nameof(exception)); }
+            readyCompletion.TrySetException(exception);
         }
 
         public void Dispose()
@@ -65,20 +82,7 @@ namespace Scaffold.Navigation
             ViewModel = null;
             Config = null;
             Disposed = true;
-        }
-
-        private Task CreateReadyTask(Task<IView> viewLoadTask)
-        {
-            if (viewLoadTask == null) { throw new ArgumentNullException(nameof(viewLoadTask)); }
-            return ResolveViewAsync(viewLoadTask);
-        }
-
-        private async Task ResolveViewAsync(Task<IView> viewLoadTask)
-        {
-            IView loadedView = await viewLoadTask;
-            if (loadedView == null) { throw new InvalidOperationException("Navigation view load returned null."); }
-            View = loadedView;
-            ApplyDepth(Options);
+            readyCompletion.TrySetResult(true);
         }
 
         private void ApplyDepth(NavigationOptions options)

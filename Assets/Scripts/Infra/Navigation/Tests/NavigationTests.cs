@@ -341,18 +341,7 @@ namespace Scaffold.Navigation.Tests
         {
             NavigationPoint point = navigation.CurrentPoint;
             if (point == null) { return "Navigation point did not become ready in time (point is null)."; }
-            Task task = ResolvePointReadyTask(point);
-            if (task == null) { return "Navigation point did not become ready in time (ready task missing)."; }
-            if (!task.IsFaulted) { return "Navigation point did not become ready in time."; }
-            Exception error = task.Exception?.GetBaseException();
-            return $"Navigation point failed to become ready: {error?.GetType().Name}: {error?.Message}";
-        }
-
-        private Task ResolvePointReadyTask(NavigationPoint point)
-        {
-            BindingFlags flags = BindingFlags.Instance | BindingFlags.NonPublic;
-            FieldInfo field = typeof(NavigationPoint).GetField("readyTask", flags);
-            return field?.GetValue(point) as Task;
+            return "Navigation point did not become ready in time.";
         }
 
         private void ConfigureGateway(FakeAddressablesGateway gateway, int loadDelayMs, bool holdLoads)
@@ -574,7 +563,7 @@ namespace Scaffold.Navigation.Tests
             public int AssetReferenceLoadCalls { get; private set; }
             public FakeAssetHandle LastIssuedHandle { get; private set; }
             private readonly Dictionary<string, GameObject> prefabs = new Dictionary<string, GameObject>();
-            private readonly List<Action> pendingLoadCompletions = new List<Action>();
+            private readonly List<FakeAssetHandle> pendingHandles = new List<FakeAssetHandle>();
             private int loadDelayMilliseconds;
             private bool holdLoads;
 
@@ -585,7 +574,8 @@ namespace Scaffold.Navigation.Tests
 
             public Task<IAssetHandle<T>> LoadAsync<T>(AssetKey key, CancellationToken cancellationToken = default) where T : UnityEngine.Object
             {
-                throw new NotSupportedException();
+                IAssetHandle<T> handle = Load<T>(key, cancellationToken);
+                return AwaitReadyAsync(handle, cancellationToken);
             }
 
             public Task<IAssetGroupHandle<T>> LoadAsync<T>(AssetLabelReference label, CancellationToken cancellationToken = default) where T : UnityEngine.Object
@@ -595,12 +585,34 @@ namespace Scaffold.Navigation.Tests
 
             public Task<IAssetHandle<T>> LoadAsync<T>(AssetReference reference, CancellationToken cancellationToken = default) where T : UnityEngine.Object
             {
-                return LoadReferenceAsync<T>(reference, cancellationToken);
+                IAssetHandle<T> handle = Load<T>(reference, cancellationToken);
+                return AwaitReadyAsync(handle, cancellationToken);
             }
 
             public Task<IAssetHandle<T>> LoadAsync<T>(AssetReferenceT<T> reference, CancellationToken cancellationToken = default) where T : UnityEngine.Object
             {
                 return LoadAsync<T>((AssetReference)reference, cancellationToken);
+            }
+
+            public IAssetHandle<T> Load<T>(AssetKey key, CancellationToken cancellationToken = default) where T : UnityEngine.Object
+            {
+                throw new NotSupportedException();
+            }
+
+            public IAssetHandle<T> Load<T>(AssetReference reference, CancellationToken cancellationToken = default) where T : UnityEngine.Object
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                AssetReferenceLoadCalls++;
+                GameObject prefab = ResolvePrefab(reference);
+                FakeAssetHandle handle = new FakeAssetHandle();
+                LastIssuedHandle = handle;
+                _ = CompleteHandleAsync(handle, prefab, cancellationToken);
+                return CastHandle<T>(handle);
+            }
+
+            public IAssetHandle<T> Load<T>(AssetReferenceT<T> reference, CancellationToken cancellationToken = default) where T : UnityEngine.Object
+            {
+                return Load<T>((AssetReference)reference, cancellationToken);
             }
 
             public void RegisterPrefab(AssetReference reference, GameObject prefab)
@@ -622,22 +634,23 @@ namespace Scaffold.Navigation.Tests
             public void ReleaseHeldLoads()
             {
                 holdLoads = false;
-                foreach (Action complete in pendingLoadCompletions)
+                foreach (FakeAssetHandle handle in pendingHandles)
                 {
-                    complete();
+                    handle.CompleteIfWaiting();
                 }
-                pendingLoadCompletions.Clear();
+                pendingHandles.Clear();
             }
 
-            private async Task<IAssetHandle<T>> LoadReferenceAsync<T>(AssetReference reference, CancellationToken cancellationToken) where T : UnityEngine.Object
+            private async Task CompleteHandleAsync(FakeAssetHandle handle, GameObject prefab, CancellationToken cancellationToken)
             {
-                AssetReferenceLoadCalls++;
                 await DelayIfNeeded(cancellationToken);
-                GameObject prefab = ResolvePrefab(reference);
-                FakeAssetHandle handle = new FakeAssetHandle(prefab);
-                LastIssuedHandle = handle;
-                IAssetHandle<T> typed = CastHandle<T>(handle);
-                return await HoldIfNeeded(typed);
+                if (holdLoads)
+                {
+                    handle.Hold(prefab);
+                    pendingHandles.Add(handle);
+                    return;
+                }
+                handle.Complete(prefab);
             }
 
             private async Task DelayIfNeeded(CancellationToken cancellationToken)
@@ -646,12 +659,11 @@ namespace Scaffold.Navigation.Tests
                 await Task.Delay(loadDelayMilliseconds, cancellationToken);
             }
 
-            private async Task<IAssetHandle<T>> HoldIfNeeded<T>(IAssetHandle<T> typed) where T : UnityEngine.Object
+            private async Task<IAssetHandle<T>> AwaitReadyAsync<T>(IAssetHandle<T> handle, CancellationToken cancellationToken) where T : UnityEngine.Object
             {
-                if (!holdLoads) { return typed; }
-                TaskCompletionSource<IAssetHandle<T>> tcs = new TaskCompletionSource<IAssetHandle<T>>();
-                pendingLoadCompletions.Add(() => tcs.TrySetResult(typed));
-                return await tcs.Task;
+                cancellationToken.ThrowIfCancellationRequested();
+                await handle.WhenReady;
+                return handle;
             }
 
             private GameObject ResolvePrefab(AssetReference reference)
@@ -673,22 +685,57 @@ namespace Scaffold.Navigation.Tests
 
         private sealed class FakeAssetHandle : IAssetHandle<GameObject>
         {
-            public FakeAssetHandle(GameObject asset)
+            public FakeAssetHandle()
             {
                 Id = Guid.NewGuid().ToString("N");
-                Asset = asset;
+                state = AssetHandleState.Loading;
             }
 
             public string Id { get; }
             public Type AssetType => typeof(GameObject);
-            public UnityEngine.Object UntypedAsset => Asset;
-            public bool IsReleased => ReleaseCalls > 0;
-            public GameObject Asset { get; }
+            public UnityEngine.Object UntypedAsset => IsReady ? asset : null;
+            public bool IsReleased => state == AssetHandleState.Released;
+            public AssetHandleState State => state;
+            public bool IsReady => state == AssetHandleState.Ready;
+            public Task WhenReady => completion.Task;
+            public GameObject Asset
+            {
+                get
+                {
+                    if (!IsReady) { throw new InvalidOperationException("Fake asset handle is not ready."); }
+                    return asset;
+                }
+            }
             public int ReleaseCalls { get; private set; }
+            private readonly TaskCompletionSource<bool> completion = new TaskCompletionSource<bool>();
+            private AssetHandleState state;
+            private GameObject asset;
+            private GameObject heldAsset;
+
+            public void Hold(GameObject prefab)
+            {
+                heldAsset = prefab;
+            }
+
+            public void CompleteIfWaiting()
+            {
+                if (heldAsset == null) { return; }
+                Complete(heldAsset);
+                heldAsset = null;
+            }
+
+            public void Complete(GameObject prefab)
+            {
+                if (state == AssetHandleState.Released) { return; }
+                asset = prefab;
+                state = AssetHandleState.Ready;
+                completion.TrySetResult(true);
+            }
 
             public void Release()
             {
                 ReleaseCalls++;
+                state = AssetHandleState.Released;
             }
         }
     }

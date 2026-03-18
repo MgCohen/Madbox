@@ -59,7 +59,7 @@ namespace Scaffold.Navigation
         private async Task EnsureTargetPointReady(ViewTransitionData transition)
         {
             if (transition?.To == null) { return; }
-            await transition.To.EnsureReadyAsync();
+            await transition.To.AwaitReadyAsync();
         }
 
         private void GuardTransitionRequest(NavigationPoint from, NavigationPoint to)

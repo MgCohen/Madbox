@@ -14,15 +14,14 @@ namespace Scaffold.Navigation
             GuardConstructor(settings, viewHolder, addressables);
             this.settings = settings;
             this.viewHolder = viewHolder;
-            prefabStore = new NavigationPrefabStore(addressables, settings.Screens);
+            this.addressables = addressables;
             instanceBuffer = new NavigationViewInstanceBuffer(viewHolder);
             FetchContextViews();
-            prefabStore.Warmup();
         }
 
         private readonly Transform viewHolder;
         private readonly NavigationSettings settings;
-        private readonly NavigationPrefabStore prefabStore;
+        private readonly IAddressablesGateway addressables;
         private readonly NavigationViewInstanceBuffer instanceBuffer;
         private readonly Dictionary<Type, IView> contextViews = new Dictionary<Type, IView>();
 
@@ -49,16 +48,48 @@ namespace Scaffold.Navigation
             {
                 return new NavigationPoint(cachedView, controller, config, false, options, ReturnToBuffer);
             }
-            Task<IView> loadTask = LoadViewFromPrefabAsync(config);
-            return new NavigationPoint(controller, config, false, options, loadTask, ReturnToBuffer);
+            IAssetHandle<GameObject> handle = addressables.Load<GameObject>(config.Asset);
+            NavigationPoint point = new NavigationPoint(controller, config, false, options, disposedPoint =>
+            {
+                if (handle != null)
+                {
+                    handle.Release();
+                    handle = null;
+                }
+                ReturnToBuffer(disposedPoint);
+            });
+            _ = MaterializePointAsync(point, () => handle, () => handle = null);
+            return point;
         }
 
-        private async Task<IView> LoadViewFromPrefabAsync(ViewConfig config)
+        private async Task MaterializePointAsync(NavigationPoint point, Func<IAssetHandle<GameObject>> getHandle, Action clearHandle)
         {
-            IAssetHandle<GameObject> prefabHandle = await prefabStore.GetHandleAsync(config);
-            GameObject instance = CreateInstance(prefabHandle);
-            return ResolveView(instance);
+            try
+            {
+                IAssetHandle<GameObject> handle = getHandle();
+                if (point == null || point.Disposed || handle == null) { return; }
+                await handle.WhenReady;
+                handle = getHandle();
+                if (point.Disposed || handle == null) { return; }
+                GameObject instance = CreateInstance(handle);
+                IView view = ResolveView(instance);
+                point.CompleteReady(view);
+            }
+            catch (Exception exception)
+            {
+                point?.FailReady(exception);
+            }
+            finally
+            {
+                IAssetHandle<GameObject> handle = getHandle();
+                if (handle != null)
+                {
+                    handle.Release();
+                    clearHandle();
+                }
+            }
         }
+
 
         private GameObject CreateInstance(IAssetHandle<GameObject> prefabHandle)
         {
