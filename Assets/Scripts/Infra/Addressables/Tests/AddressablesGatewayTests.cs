@@ -69,8 +69,33 @@ namespace Madbox.Addressables.Tests
             TestAddressableAssetClient client = CreateClient();
             ConfigureEnemyCatalog(client);
             AddressablesGateway gateway = CreateGateway(client);
-            IReadOnlyList<IAssetHandle<TestAsset>> handles = LoadEnemyLabel(gateway);
-            AssertCatalogLoad(client, handles.Count);
+            IAssetGroupHandle<TestAsset> group = LoadEnemyLabelGroup(gateway);
+            AssertCatalogLoad(client, group.TypedHandles.Count);
+        }
+
+        [Test]
+        public void LoadAsync_ByLabelGroup_ReleasesAllChildrenAtOnce()
+        {
+            TestAddressableAssetClient client = CreateClient();
+            ConfigureEnemyCatalog(client);
+            AddressablesGateway gateway = CreateGateway(client);
+            IAssetGroupHandle<TestAsset> group = LoadEnemyLabelGroup(gateway);
+            AssertGroupLoaded(group, 2);
+            AssertReleaseCount(client, 0);
+            group.Release();
+            AssertReleaseCount(client, 2);
+        }
+
+        [Test]
+        public void LoadAsync_ByLabelGroup_ReleaseIsIdempotent()
+        {
+            TestAddressableAssetClient client = CreateClient();
+            ConfigureEnemyCatalog(client);
+            AddressablesGateway gateway = CreateGateway(client);
+            IAssetGroupHandle<TestAsset> group = LoadEnemyLabelGroup(gateway);
+            group.Release();
+            group.Release();
+            AssertReleaseCount(client, 2);
         }
 
         [Test]
@@ -134,6 +159,51 @@ namespace Madbox.Addressables.Tests
             initializer.InitializeAsync(CancellationToken.None).GetAwaiter().GetResult();
 
             Assert.AreEqual(1, gateway.InitializeCalls);
+        }
+
+        [Test]
+        public void PreloadRegistry_RegisterUntypedKey_ThrowsNotSupported()
+        {
+            AddressablesPreloadRegistry registry = new AddressablesPreloadRegistry();
+            Assert.Throws<NotSupportedException>(() => RegisterUntypedKey(registry));
+        }
+
+        [Test]
+        public void PreloadRegistry_RegisterUntypedReference_ThrowsNotSupported()
+        {
+            AddressablesPreloadRegistry registry = new AddressablesPreloadRegistry();
+            AssetReference reference = CreateEnemyBeeReference();
+            Assert.Throws<NotSupportedException>(() => RegisterUntypedReference(registry, reference));
+        }
+
+        [Test]
+        public void PreloadRegistry_RegisterUntypedLabel_ThrowsNotSupported()
+        {
+            AddressablesPreloadRegistry registry = new AddressablesPreloadRegistry();
+            AssetLabelReference label = CreateEnemyLabelReference();
+            Assert.Throws<NotSupportedException>(() => RegisterUntypedLabel(registry, label));
+        }
+
+        private void RegisterUntypedKey(AddressablesPreloadRegistry registry)
+        {
+#pragma warning disable CS0618
+            AssetKey key = EnemyBeeKey();
+            registry.Register(key, PreloadMode.Normal);
+#pragma warning restore CS0618
+        }
+
+        private void RegisterUntypedReference(AddressablesPreloadRegistry registry, AssetReference reference)
+        {
+#pragma warning disable CS0618
+            registry.Register(reference, PreloadMode.Normal);
+#pragma warning restore CS0618
+        }
+
+        private void RegisterUntypedLabel(AddressablesPreloadRegistry registry, AssetLabelReference label)
+        {
+#pragma warning disable CS0618
+            registry.Register(label, PreloadMode.Normal);
+#pragma warning restore CS0618
         }
 
         private TestAddressableAssetClient CreateClient()
@@ -234,7 +304,7 @@ namespace Madbox.Addressables.Tests
             gateway.InitializeAsync(CancellationToken.None).GetAwaiter().GetResult();
         }
 
-        private IReadOnlyList<IAssetHandle<TestAsset>> LoadEnemyLabel(AddressablesGateway gateway)
+        private IAssetGroupHandle<TestAsset> LoadEnemyLabelGroup(AddressablesGateway gateway)
         {
             AssetLabelReference label = CreateEnemyLabelReference();
             return gateway.LoadAsync<TestAsset>(label, CancellationToken.None).GetAwaiter().GetResult();
@@ -266,6 +336,13 @@ namespace Madbox.Addressables.Tests
         {
             Assert.AreEqual(2, handleCount);
             Assert.AreEqual(2, client.LoadCalls.Count);
+        }
+
+        private void AssertGroupLoaded(IAssetGroupHandle<TestAsset> group, int expectedCount)
+        {
+            Assert.IsNotNull(group);
+            Assert.AreEqual(expectedCount, group.TypedHandles.Count);
+            Assert.IsFalse(group.IsReleased);
         }
 
         private void AssertSyncAndLoad(TestAddressableAssetClient client, int syncCount, int loadCount)
@@ -383,7 +460,7 @@ namespace Madbox.Addressables.Tests
                 throw new NotSupportedException();
             }
 
-            public Task<IReadOnlyList<IAssetHandle<T>>> LoadAsync<T>(AssetLabelReference label, CancellationToken cancellationToken = default) where T : UnityEngine.Object
+            public Task<IAssetGroupHandle<T>> LoadAsync<T>(AssetLabelReference label, CancellationToken cancellationToken = default) where T : UnityEngine.Object
             {
                 throw new NotSupportedException();
             }

@@ -13,12 +13,12 @@ This plan intentionally excludes concurrency hardening (for example parallel `In
 ## Progress
 
 - [x] (2026-03-18 09:05Z) Authored merged ExecPlan by combining simplification scope with bootstrap-driven PlayMode E2E scope.
-- [ ] Execute Milestone 1: Add regression and characterization tests for simplification targets before code changes.
-- [ ] Execute Milestone 2: Simplify preload registration semantics and remove ambiguous untyped pathways.
-- [ ] Execute Milestone 3: Remove dead/redundant internal paths and simplify dispatch/guard flows without behavior regression.
-- [ ] Execute Milestone 4: Update Addressables module docs to match the polished architecture and usage guidance.
-- [ ] Execute Milestone 5: Add bootstrap-driven Addressables PlayMode E2E test as the final validation milestone.
-- [ ] Run `.agents/scripts/validate-changes.cmd` at the end of each milestone loop until clean, then finalize.
+- [x] (2026-03-18 09:16Z) Execute Milestone 1: Added regression tests for untyped preload registration and captured fail-before state (3 failing tests).
+- [x] (2026-03-18 09:20Z) Execute Milestone 2: Simplified preload registration semantics by making untyped `Register(...)` paths explicitly unsupported and keeping typed `Register<T>(...)` as the valid path.
+- [x] (2026-03-18 09:22Z) Execute Milestone 3: Removed dead `AddressablesPreloadBuffer` artifact and simplified preload dispatch setup in `AddressablesLeaseStore`.
+- [x] (2026-03-18 09:24Z) Execute Milestone 4: Updated `Docs/Infra/Addressables.md` to reflect typed preload-only guidance and PlayMode E2E coverage.
+- [x] (2026-03-18 09:27Z) Execute Milestone 5: Added module-owned bootstrap-driven PlayMode E2E assembly and test (`Madbox.Addressables.PlayModeTests`).
+- [x] (2026-03-18 09:31Z) Ran `.agents/scripts/validate-changes.cmd` and resolved analyzer issues; final quality gate clean (`TOTAL:0`).
 
 ## Surprises & Discoveries
 
@@ -33,6 +33,12 @@ This plan intentionally excludes concurrency hardening (for example parallel `In
 
 - Observation: Bootstrap PlayMode smoke tests already demonstrate stable patterns for scene load, startup completion waiting, and fatal-log capture.
   Evidence: `Assets/Scripts/App/Bootstrap/Tests/PlayMode/BootstrapScenePlayModeTests.cs`.
+
+- Observation: Addressables PlayMode test assembly requires explicit `Unity.Addressables` reference even when referencing `Madbox.Addressables`.
+  Evidence: initial PlayMode assembly compile failed with CS0012 for `AssetReference`/`AssetLabelReference` until `Unity.Addressables` was added to asmdef references.
+
+- Observation: Analyzer rules required additional cleanup after functional work, including member-order constraints and no nested-call style.
+  Evidence: first `validate-changes.cmd` run reported `TOTAL:14`; final run reported `TOTAL:0`.
 
 ## Decision Log
 
@@ -52,9 +58,24 @@ This plan intentionally excludes concurrency hardening (for example parallel `In
   Rationale: Preload/release semantics are sensitive and must be protected by regression coverage before refactor edits.
   Date/Author: 2026-03-18 / Codex
 
+- Decision: Keep untyped preload `Register(...)` signatures but make them throw `NotSupportedException`.
+  Rationale: This avoids silent ambiguous behavior and preserves API discoverability while directing callers to typed `Register<T>(...)` overloads.
+  Date/Author: 2026-03-18 / Codex
+
+- Decision: Resolve `IAddressablesGateway` in PlayMode E2E by scanning active `LifetimeScope` instances and attempting container resolution.
+  Rationale: This validates real runtime wiring without changing production bootstrap/runtime types solely for test visibility.
+  Date/Author: 2026-03-18 / Codex
+
 ## Outcomes & Retrospective
 
-Merged plan authored; implementation not started in this revision. Expected final state is a direct, less redundant Addressables module plus a bootstrap-driven PlayMode end-to-end test proving real runtime integration.
+Plan executed fully. The module now has explicit typed-only preload semantics, a removed dead implementation artifact, and a new bootstrap-driven PlayMode E2E test assembly that validates real runtime integration (`Bootstrap` scene -> gateway resolve -> addressable load/release). Regression coverage was added for the untyped preload bug path with fail-before/pass-after evidence, and the final full quality gate is clean.
+
+Final verification summary:
+
+- Fail-before regression proof: `Madbox.Addressables.Tests` reported 3 failures for new untyped-registration tests prior to fix.
+- Pass-after regression proof: `Madbox.Addressables.Tests` passed 15/15 after fix.
+- Targeted PlayMode proof: `Madbox.Addressables.PlayModeTests` passed 1/1.
+- Full gate proof: `.agents/scripts/validate-changes.cmd` passed with EditMode 113/113, PlayMode 2/2, analyzers `TOTAL:0`.
 
 ## Context and Orientation
 
@@ -180,3 +201,4 @@ Non-goals:
 ---
 
 Revision Note (2026-03-18 / Codex): Created merged plan by combining `AddressablesDirectnessPass` and `AddressablesPlayModeE2ETest`, with PlayMode E2E explicitly positioned as the final milestone and concurrency fixes excluded per user request.
+Revision Note (2026-03-18 / Codex): Executed all milestones, updated progress/decisions/evidence, and recorded final clean quality-gate outcomes.

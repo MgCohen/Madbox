@@ -42,12 +42,13 @@ namespace Madbox.Addressables
             return await leaseStore.AcquireAsync<T>(token, cancellationToken);
         }
 
-        public async Task<IReadOnlyList<IAssetHandle<T>>> LoadAsync<T>(AssetLabelReference label, CancellationToken cancellationToken = default) where T : UnityEngine.Object
+        public async Task<IAssetGroupHandle<T>> LoadAsync<T>(AssetLabelReference label, CancellationToken cancellationToken = default) where T : UnityEngine.Object
         {
             GuardCancellation(cancellationToken);
             GuardLabel(label);
-            IReadOnlyList<AssetKey> keys = await client.ResolveLabelAsync(typeof(T), label, cancellationToken);
-            return await LoadCatalogHandlesAsync<T>(keys, cancellationToken);
+            IReadOnlyList<AssetKey> keys = await ResolveLabelKeysAsync<T>(label, cancellationToken);
+            IReadOnlyList<IAssetHandle<T>> handles = await LoadCatalogHandlesAsync<T>(keys, cancellationToken);
+            return CreateGroupHandle(label, handles, typeof(T));
         }
 
         public Task<IAssetHandle<T>> LoadAsync<T>(AssetReference reference, CancellationToken cancellationToken = default) where T : UnityEngine.Object
@@ -70,6 +71,22 @@ namespace Madbox.Addressables
             List<IAssetHandle<T>> handles = new List<IAssetHandle<T>>(keys.Count);
             foreach (AssetKey key in keys) { handles.Add(await LoadAsync<T>(key, cancellationToken)); }
             return handles;
+        }
+
+        private async Task<IReadOnlyList<AssetKey>> ResolveLabelKeysAsync<T>(AssetLabelReference label, CancellationToken cancellationToken) where T : UnityEngine.Object
+        {
+            return await client.ResolveLabelAsync(typeof(T), label, cancellationToken);
+        }
+
+        private IAssetGroupHandle<T> CreateGroupHandle<T>(AssetLabelReference label, IReadOnlyList<IAssetHandle<T>> handles, Type assetType) where T : UnityEngine.Object
+        {
+            string id = CreateGroupId(assetType, label);
+            return new AssetGroupHandle<T>(id, handles);
+        }
+
+        private string CreateGroupId(Type assetType, AssetLabelReference label)
+        {
+            return $"{assetType.FullName}|label:{label.labelString}";
         }
 
         private AddressablesLoadToken CreateToken<T>(AssetKey key) where T : UnityEngine.Object

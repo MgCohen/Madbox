@@ -13,20 +13,17 @@ namespace Madbox.Addressables
 
         public void Register(AssetKey key, PreloadMode mode)
         {
-            GuardAssetKey(key);
-            Register<UnityEngine.Object>(key, mode);
+            EnsureTypedRegistrationOnly();
         }
 
         public void Register(AssetReference reference, PreloadMode mode)
         {
-            GuardReference(reference);
-            Register<UnityEngine.Object>(reference, mode);
+            EnsureTypedRegistrationOnly();
         }
 
         public void Register(AssetLabelReference label, PreloadMode mode)
         {
-            GuardLabel(label);
-            Register<UnityEngine.Object>(label, mode);
+            EnsureTypedRegistrationOnly();
         }
 
         public void Register<T>(AssetKey key, PreloadMode mode) where T : UnityEngine.Object
@@ -92,6 +89,11 @@ namespace Madbox.Addressables
             object runtimeKey = reference.RuntimeKey;
             string keyValue = runtimeKey?.ToString();
             return new AssetKey(keyValue);
+        }
+
+        private void EnsureTypedRegistrationOnly()
+        {
+            throw new NotSupportedException("Untyped preload registration is not supported. Use Register<T>(...) overloads.");
         }
     }
 }

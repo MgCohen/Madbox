@@ -18,6 +18,7 @@ namespace Madbox.Addressables
         private readonly IAddressablesAssetClient client;
         private readonly Dictionary<AddressablesLoadToken, AddressablesLoadedEntry> loaded = new Dictionary<AddressablesLoadToken, AddressablesLoadedEntry>();
         private readonly Dictionary<AddressablesLoadToken, IAssetHandle> normalPreloaded = new Dictionary<AddressablesLoadToken, IAssetHandle>();
+        private static readonly MethodInfo preloadTypedMethod = CreatePreloadTypedMethod();
 
         public async Task<IAssetHandle<T>> AcquireAsync<T>(AddressablesLoadToken token, System.Threading.CancellationToken cancellationToken) where T : UnityEngine.Object
         {
@@ -34,10 +35,14 @@ namespace Madbox.Addressables
         public async Task PreloadByTypeAsync(Type assetType, AssetKey key, PreloadMode mode, System.Threading.CancellationToken cancellationToken)
         {
             GuardPreload(assetType);
-            MethodInfo method = typeof(AddressablesLeaseStore).GetMethod(nameof(PreloadTypedAsync), BindingFlags.NonPublic | BindingFlags.Instance);
-            MethodInfo genericMethod = method.MakeGenericMethod(assetType);
-            Task task = (Task)genericMethod.Invoke(this, new object[] { key, mode, cancellationToken });
+            Task task = CreatePreloadTask(assetType, key, mode, cancellationToken);
             await task;
+        }
+
+        private Task CreatePreloadTask(Type assetType, AssetKey key, PreloadMode mode, System.Threading.CancellationToken cancellationToken)
+        {
+            MethodInfo genericMethod = preloadTypedMethod.MakeGenericMethod(assetType);
+            return (Task)genericMethod.Invoke(this, new object[] { key, mode, cancellationToken });
         }
 
         private async Task PreloadTypedAsync<T>(AssetKey key, PreloadMode mode, System.Threading.CancellationToken cancellationToken) where T : UnityEngine.Object
@@ -120,6 +125,13 @@ namespace Madbox.Addressables
         private void GuardPreload(Type assetType)
         {
             if (assetType == null) { throw new ArgumentNullException(nameof(assetType)); }
+        }
+
+        private static MethodInfo CreatePreloadTypedMethod()
+        {
+            MethodInfo method = typeof(AddressablesLeaseStore).GetMethod(nameof(PreloadTypedAsync), BindingFlags.NonPublic | BindingFlags.Instance);
+            if (method == null) { throw new InvalidOperationException("Unable to resolve preload dispatch method."); }
+            return method;
         }
     }
 }
