@@ -71,6 +71,26 @@ namespace Madbox.Levels.Tests
             Assert.AreEqual("level-1", gateway.LastReference.RuntimeKey.ToString());
         }
 
+        [Test]
+        public void LevelCatalogSO_TryGetLevelReference_WhenLevelsListIsNull_ReturnsFalse()
+        {
+            LevelCatalogSO catalog = ScriptableObject.CreateInstance<LevelCatalogSO>();
+            SetPrivateField(catalog, "levels", null);
+
+            bool found = catalog.TryGetLevelReference("level-1", out AssetReferenceT<LevelDefinitionSO> reference);
+
+            Assert.IsFalse(found);
+            Assert.IsNull(reference);
+        }
+
+        [Test]
+        public void EnemyBehaviorDefinitions_AreMarkedSerializable_ForSerializeReferenceSupport()
+        {
+            Assert.IsTrue(IsSerializable(typeof(EnemyBehaviorDefinition)));
+            Assert.IsTrue(IsSerializable(typeof(MovementBehaviorDefinition)));
+            Assert.IsTrue(IsSerializable(typeof(ContactAttackBehaviorDefinition)));
+        }
+
         private void ConfigureEnemy(EnemyDefinitionSO enemy, string enemyId, int maxHealth)
         {
             SetPrivateField(enemy, "enemyTypeId", enemyId);
@@ -122,6 +142,11 @@ namespace Madbox.Levels.Tests
             }
 
             field.SetValue(target, value);
+        }
+
+        private bool IsSerializable(Type type)
+        {
+            return type.IsDefined(typeof(SerializableAttribute), inherit: false);
         }
 
         private sealed class RecordingGateway : IAddressablesGateway

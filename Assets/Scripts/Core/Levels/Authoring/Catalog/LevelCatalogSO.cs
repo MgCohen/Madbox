@@ -24,6 +24,12 @@ namespace Madbox.Levels.Authoring.Catalog
                 return false;
             }
 
+            if (levels == null || levels.Count == 0)
+            {
+                levelReference = null;
+                return false;
+            }
+
             for (int i = 0; i < levels.Count; i++)
             {
                 LevelCatalogEntry entry = levels[i];

@@ -102,9 +102,12 @@ namespace Madbox.Enemies.Editor
 
         private void AddRule(Type ruleType)
         {
+            serializedObject.Update();
             behaviorRules.arraySize++;
             SerializedProperty element = behaviorRules.GetArrayElementAtIndex(behaviorRules.arraySize - 1);
             element.managedReferenceValue = Activator.CreateInstance(ruleType);
+            serializedObject.ApplyModifiedProperties();
+            EditorUtility.SetDirty(target);
         }
     }
 }

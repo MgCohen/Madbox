@@ -156,6 +156,36 @@ public sealed class ModuleAsmdefConventionAnalyzerTests
     }
 
     [Fact]
+    public async Task Diagnostic_WhenUnknownSuffixAsmdefIsInSubfolderAndUnknownSuffixesAreNotAllowed()
+    {
+        var workspace = CreateTempWorkspace();
+        try
+        {
+            var filePath = Path.Combine(workspace, "Assets", "Scripts", "Core", "Levels", "Runtime", "LevelModel.cs");
+            var asmdefPath = Path.Combine(workspace, "Assets", "Scripts", "Core", "Levels", "Authoring", "Madbox.Levels.CustomPack.asmdef");
+            Directory.CreateDirectory(Path.GetDirectoryName(filePath)!);
+            Directory.CreateDirectory(Path.GetDirectoryName(asmdefPath)!);
+            await File.WriteAllTextAsync(filePath, "namespace Madbox.Levels { public sealed class LevelModel { } }");
+            await File.WriteAllTextAsync(asmdefPath, "{ \"name\": \"Madbox.Levels.CustomPack\" }");
+
+            var diagnostics = await AnalyzerTestHarness.GetDiagnosticsByIdAsync(
+                "namespace Madbox.Levels { public sealed class LevelModel { } }",
+                filePath,
+                new ModuleAsmdefConventionAnalyzer(),
+                ModuleAsmdefConventionAnalyzer.DiagnosticId,
+                new Dictionary<string, string>(),
+                compilationAssemblyName: "Madbox.Levels.CustomPack");
+
+            var diagnostic = Assert.Single(diagnostics);
+            Assert.Contains("Madbox.Levels.CustomPack", diagnostic.GetMessage());
+        }
+        finally
+        {
+            DeleteTempWorkspace(workspace);
+        }
+    }
+
+    [Fact]
     public async Task Diagnostic_WhenUnknownSuffixAsmdefIsAtModuleRootEvenIfUnknownSuffixesAreAllowed()
     {
         var workspace = CreateTempWorkspace();
