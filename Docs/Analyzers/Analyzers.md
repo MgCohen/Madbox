@@ -353,7 +353,7 @@ public void ProcessOrder(Order order)
 
 Namespaces must end with the file's feature/scope folder path. Unity-specific segments (`Assets`, `Scripts`), the first folder under `Scripts` (the domain segment, e.g. `Core`, `Infra`), and the folders `Runtime` and `Implementation` are excluded from the required namespace path.
 
-With the contracts-first module layout, files under top-level `Contracts/` are expected to include `.Contracts` in namespace suffixes.
+Files under a `Contracts/` path segment (for example `Runtime/Contracts/`) are expected to include `.Contracts` in namespace suffixes.
 
 This rule applies only to files under `Assets/Scripts/` and skips generated files (e.g., `obj/`, `bin/`, `*.g.cs`).
 All top-level namespace declarations in a file are validated (not just the first declaration).
@@ -380,8 +380,8 @@ namespace Scaffold.MVVM.Binding { }
 ```
 
 ```csharp
-// File: Assets/Scripts/Infra/Navigation/Contracts/INavigation.cs
-// COMPLIANT (top-level Contracts segment is kept)
+// File: Assets/Scripts/Infra/Navigation/Runtime/Contracts/INavigation.cs
+// COMPLIANT (Contracts path segment is kept)
 namespace Scaffold.Navigation.Contracts { }
 ```
 
@@ -872,10 +872,10 @@ public sealed class InventoryView : ViewElement<InventoryViewModel>
 
 Assemblies must not reference another module's `*.Runtime` assembly unless they are composition roots (bootstrap assemblies) or module-local assemblies (same module root, for example `Madbox.Meta.Gold.Tests` referencing `Madbox.Meta.Gold.Runtime`).
 
-This rule enforces contracts-first dependency direction:
-- Depend on `*.Contracts` across module boundaries.
-- Reserve `*.Runtime` references for bootstrap wiring and same-module internals.
-- Exception: if the referenced module has no top-level `Contracts/` folder (and no contracts asmdef), the runtime reference is allowed.
+This rule enforces cross-module runtime dependency direction:
+- Non-bootstrap modules should avoid cross-module `*.Runtime` references.
+- Use non-runtime module assemblies for cross-module dependencies when available.
+- Exception: if the referenced module has no contracts surface, the runtime reference is allowed.
 
 Optional config for explicit exceptions when repository layout cannot be resolved:
 - `scaffold.SCA0022.no_contract_modules` (comma/semicolon list of module roots such as `Madbox.Legacy.Module;Scaffold.SomeTool`)
@@ -890,7 +890,7 @@ Optional config for explicit exceptions when repository layout cannot be resolve
 ```csharp
 // COMPLIANT context:
 // Assembly: Madbox.MainMenu.Runtime
-// References: Madbox.Meta.Gold.Contracts
+// References: Madbox.Meta.Gold
 ```
 
 ```csharp
@@ -904,7 +904,7 @@ Optional config for explicit exceptions when repository layout cannot be resolve
 // COMPLIANT context:
 // Assembly: Madbox.MainMenu.Runtime
 // References: Madbox.Meta.Gold.Runtime
-// Madbox.Meta.Gold has Runtime only (no top-level Contracts folder)
+// Madbox.Meta.Gold has Runtime only (no contracts surface)
 ```
 
 ---
@@ -914,19 +914,18 @@ Optional config for explicit exceptions when repository layout cannot be resolve
 Each module under `Assets/Scripts/<Layer>/<Module>/` must contain required top-level folders.
 
 Defaults:
-- `Contracts`
 - `Runtime`
 - `Tests`
 
 Config:
 - `scaffold.SCA0023.required_folders` (comma/semicolon list)
 - `scaffold.SCA0023.exempt_module_roots` (skip entire module roots, e.g. `Scaffold.Records`)
-- `scaffold.SCA0023.exempt_requirements` (per-module folder exemptions, format `ModuleRoot=FolderA|FolderB;Other.Module=Contracts`)
+- `scaffold.SCA0023.exempt_requirements` (per-module folder exemptions, format `ModuleRoot=FolderA|FolderB;Other.Module=Runtime`)
 
 ```ini
 [*.cs]
-scaffold.SCA0023.required_folders = Contracts,Runtime,Tests
-scaffold.SCA0023.exempt_requirements = Scaffold.Records=Contracts|Tests
+scaffold.SCA0023.required_folders = Runtime,Tests
+scaffold.SCA0023.exempt_requirements = Scaffold.Records=Runtime|Tests
 ```
 
 ---
@@ -937,13 +936,14 @@ Each assembly must declare its `.asmdef` in the expected module-relative locatio
 
 Expected placement:
 - `<ModuleRoot>/Runtime/<Assembly>.asmdef` (default modules)
-- `<ModuleRoot>/Contracts/<Assembly>.asmdef` (`*.Contracts`)
-- `<ModuleRoot>/Runtime/<Assembly>.asmdef` (`*.Runtime`)
 - `<ModuleRoot>/Tests/<Assembly>.asmdef` (`*.Tests`)
 - `<ModuleRoot>/Tests/PlayMode/<Assembly>.asmdef` (`*.PlayModeTests`)
 - `<ModuleRoot>/Samples/<Assembly>.asmdef` (`*.Samples`)
 - `<ModuleRoot>/Container/<Assembly>.asmdef` (`*.Container`)
 - `<ModuleRoot>/Editor/<Assembly>.asmdef` (`*.Editor`)
+- Optional legacy placement still recognized:
+  - `<ModuleRoot>/Contracts/<Assembly>.asmdef` (`*.Contracts`)
+  - `<ModuleRoot>/Runtime/<Assembly>.asmdef` (`*.Runtime`)
 
 Config:
 - `scaffold.SCA0024.exempt_assemblies` (comma/semicolon list)
