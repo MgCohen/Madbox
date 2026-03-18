@@ -1,0 +1,22 @@
+{
+    "name": "Madbox.Levels.Tests",
+    "rootNamespace": "Madbox.Levels.Tests",
+    "references": [
+        "Madbox.Levels",
+        "Scaffold.Records"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": true,
+    "optionalUnityReferences": [
+        "TestAssemblies"
+    ]
+}

@@ -1,0 +1,19 @@
+{
+    "name": "Madbox.Battle",
+    "rootNamespace": "Madbox.Battle",
+    "references": [
+        "Madbox.Levels",
+        "Madbox.Gold",
+        "Scaffold.MVVM.Model",
+        "Scaffold.Records"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": true
+}
