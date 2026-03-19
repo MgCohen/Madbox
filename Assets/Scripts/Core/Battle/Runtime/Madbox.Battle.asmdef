@@ -6,7 +6,9 @@
         "Madbox.Levels",
         "Madbox.Gold",
         "Scaffold.MVVM.Model",
-        "Scaffold.Records"
+        "Scaffold.Records",
+        "Scaffold.MVVM.ViewModel",
+        "VContainer"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
@@ -16,5 +18,5 @@
     "autoReferenced": true,
     "defineConstraints": [],
     "versionDefines": [],
-    "noEngineReferences": true
+    "noEngineReferences": false
 }

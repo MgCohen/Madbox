@@ -10,16 +10,17 @@ namespace Madbox.Gold
             wallet = new GoldWallet();
         }
 
-        public int CurrentGold => wallet.CurrentGold;
-
         private readonly GoldWallet wallet;
-        public event Action<int> GoldChanged;
+
+        public GoldWallet GetWallet()
+        {
+            return wallet;
+        }
 
         public void Add(int amount)
         {
             GuardAmount(amount);
             wallet.Add(amount);
-            GoldChanged?.Invoke(wallet.CurrentGold);
         }
 
         private void GuardAmount(int amount)

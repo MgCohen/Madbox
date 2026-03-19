@@ -1,4 +1,5 @@
 using System;
+using Madbox.App.GameView.Container;
 using Madbox.Gold.Container;
 using Madbox.Scope.Contracts;
 using Scaffold.Events.Container;
@@ -26,6 +27,7 @@ namespace Madbox.App.Bootstrap
             InstallEvents(builder);
             InstallNavigation(builder);
             InstallGold(builder);
+            InstallGameView(builder);
         }
 
         private void InstallEvents(IContainerBuilder builder)
@@ -43,6 +45,12 @@ namespace Madbox.App.Bootstrap
         private void InstallGold(IContainerBuilder builder)
         {
             GoldInstaller installer = new GoldInstaller();
+            installer.Install(builder);
+        }
+
+        private void InstallGameView(IContainerBuilder builder)
+        {
+            GameViewInstaller installer = new GameViewInstaller();
             installer.Install(builder);
         }
 

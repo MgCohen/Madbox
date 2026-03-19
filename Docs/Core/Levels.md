@@ -13,6 +13,7 @@
 - Owns: enemy behavior definition contracts (`EnemyBehaviorDefinition`, contact/movement definitions).
 - Owns: level game-rule definitions and constructor guard invariants.
 - Owns: module-local level authoring assets (`LevelDefinitionSO`, `LevelCatalogSO`, `LevelEnemyEntrySO`) and `ToDomain` mapping.
+- Owns: level loading contract `ILevelService` (runtime) and authoring-backed implementation `LevelService`.
 - Does not own: runtime mutation/state ticking (battle/enemies runtime modules).
 - Does not own: event routing, command execution, or wallet/reward operations.
 - Boundaries: runtime definitions remain pure C#; Unity-facing level authoring stays in `Core/Levels/Authoring`.
@@ -26,6 +27,7 @@
 | `LevelGameRuleDefinition` + concrete definitions (`EnemyEliminatedWinRuleDefinition`, `TimeLimitLoseRuleDefinition`, `PlayerDefeatedLoseRuleDefinition`) | Declares match end conditions | `BattleContext` in `CheckRule` | `bool` + `GameEndReason` | Returns false when condition not met |
 | `EnemyBehaviorDefinition` + concrete definitions (`MovementBehaviorDefinition`, `ContactAttackBehaviorDefinition`) | Declares enemy behavior configuration | constructor params per behavior | immutable behavior config | Ctor/record guards via consumer validation |
 | `LevelId`, `EntityId` | Strongly typed IDs | string value | immutable record value | Guarded by consuming ctors |
+| `ILevelService` / `LevelService` | Load a domain `LevelDefinition` by id | `LevelId`, cancellation token | resolved `LevelDefinition` | throws on null id; falls back to white-box level if authored data is invalid |
 
 ## Setup / Integration
 1. Add asmdef dependency to `Madbox.Levels` from consumer module.

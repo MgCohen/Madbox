@@ -14,6 +14,8 @@
                        "Scaffold.Navigation.Container",
                        "Madbox.Addressables.Container",
                        "Madbox.Gold.Container",
+                       "Madbox.GameView.Container",
+                       "Madbox.GameView.Runtime",
                        "Madbox.MainMenu.Runtime",
                        "Scaffold.Types",
                        "Unity.Addressables"

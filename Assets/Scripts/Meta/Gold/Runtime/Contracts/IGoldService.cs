@@ -1,12 +1,8 @@
-using System;
-
 namespace Madbox.Gold.Contracts
 {
     public interface IGoldService
     {
-        int CurrentGold { get; }
-
-        event Action<int> GoldChanged;
+        GoldWallet GetWallet();
 
         void Add(int amount);
     }
