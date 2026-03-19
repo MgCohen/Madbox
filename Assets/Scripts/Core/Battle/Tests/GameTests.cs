@@ -257,7 +257,7 @@ namespace Madbox.Battle.Tests
             Assert.That(emitted, Has.Some.InstanceOf<PlayerAttack>());
             Assert.That(emitted, Has.None.InstanceOf<EnemyKilled>());
 
-            game.Tick(0.5f);
+            game.Tick(0.6f);
             game.Trigger(new PlayerAutoAttackObserved(new EntityId("player-1"), new EntityId("enemy-1")));
             PlayerProjectileSpawned secondProjectile = emitted.FindLast(e => e is PlayerProjectileSpawned) as PlayerProjectileSpawned;
             Assert.IsNotNull(secondProjectile);

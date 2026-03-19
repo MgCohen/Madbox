@@ -31,6 +31,7 @@ Directory layout, module relationships, and architectural structure are document
 8. **New source generators go in `Generators/`**.
 9. **Analyzer compliance**: Fix all Roslyn analyzer warnings/errors before committing.
 10. **Bugfixes require regression tests**: Every bug fix must add or update an automated test that fails before the fix and passes after it.
+11. **Pragma suppression approval**: Never introduce a new `#pragma warning disable` unless the user explicitly approves it in the same thread. Approved suppressions must include a one-line reason comment and an immediate matching `#pragma warning restore <ID>`.
 
 ## How to Build
 

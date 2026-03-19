@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using NUnit.Framework;
 
 namespace Madbox.Gold.Tests
@@ -10,17 +9,16 @@ namespace Madbox.Gold.Tests
         {
             GoldService service = new GoldService();
             service.Add(1);
-            Assert.AreEqual(1, service.CurrentGold);
+            Assert.AreEqual(1, service.GetWallet().CurrentGold);
         }
 
         [Test]
-        public void Add_WhenCalled_RaisesGoldChangedWithUpdatedValue()
+        public void GetWallet_WhenCalled_ReturnsStableModelInstance()
         {
             GoldService service = new GoldService();
-            List<int> observedValues = new List<int>();
-            service.GoldChanged += value => observedValues.Add(value);
-            service.Add(2);
-            CollectionAssert.AreEqual(new[] { 2 }, observedValues);
+            GoldWallet first = service.GetWallet();
+            GoldWallet second = service.GetWallet();
+            Assert.AreSame(first, second);
         }
     }
 }

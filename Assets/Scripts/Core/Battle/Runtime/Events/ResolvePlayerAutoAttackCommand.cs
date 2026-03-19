@@ -9,8 +9,6 @@ namespace Madbox.Battle.Events
 {
     internal sealed class ResolvePlayerAutoAttackCommand : IBattleCommand
     {
-        private const float autoAttackCooldownSeconds = 0.5f;
-
         public ResolvePlayerAutoAttackCommand(EntityId sourceId, EntityId targetId)
         {
             if (sourceId == null)
@@ -36,7 +34,7 @@ namespace Madbox.Battle.Events
             PlayerAutoAttackBehaviorState autoAttackBehavior = ResolveAutoAttackBehavior(context.Player);
             if (autoAttackBehavior == null) return;
             if (TrySpawnProjectile(context, out PlayerProjectileSpawned spawnedEvent) == false) return;
-            autoAttackBehavior.StartCooldown(autoAttackCooldownSeconds);
+            autoAttackBehavior.StartCooldown(context.Player.AttackCooldownSeconds);
             context.EmitEvent(spawnedEvent);
         }
 

@@ -1,7 +1,10 @@
 {
     "name": "Madbox.Gold",
     "rootNamespace": "Madbox.Gold",
-    "references": [],
+    "references": [
+        "Scaffold.MVVM.Base",
+        "Scaffold.MVVM.Model"
+    ],
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,

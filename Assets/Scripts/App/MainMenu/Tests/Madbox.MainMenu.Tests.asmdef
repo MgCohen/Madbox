@@ -3,10 +3,13 @@
     "rootNamespace": "Madbox.App.MainMenu.Tests",
     "references": [
         "Madbox.MainMenu.Runtime",
+        "Madbox.Battle",
+        "Madbox.Levels",
         "Madbox.Gold",
+        "Scaffold.MVVM.Base",
+        "Scaffold.MVVM.Model",
         "Scaffold.MVVM.View",
         "Scaffold.MVVM.ViewModel",
-        "Scaffold.MVVM.Base",
         "Scaffold.Navigation"
     ],
     "includePlatforms": [

@@ -2,7 +2,9 @@
     "name": "Madbox.Gold.Tests",
     "rootNamespace": "Madbox.Gold.Tests",
     "references": [
-        "Madbox.Gold"
+        "Madbox.Gold",
+        "Scaffold.MVVM.Base",
+        "Scaffold.MVVM.Model"
     ],
     "includePlatforms": [
         "Editor"
@@ -10,7 +12,9 @@
     "excludePlatforms": [],
     "allowUnsafeCode": false,
     "overrideReferences": false,
-    "precompiledReferences": [],
+    "precompiledReferences": [
+        "CommunityToolkit.Mvvm.dll"
+    ],
     "autoReferenced": false,
     "defineConstraints": [],
     "versionDefines": [],

@@ -4,6 +4,7 @@ using System.Threading;
 using Madbox.Addressables.Contracts;
 using NUnit.Framework;
 using UnityEngine;
+using UnityEngine.AddressableAssets;
 using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
 using VContainer;
@@ -117,8 +118,8 @@ namespace Madbox.Addressables.Tests.PlayMode
 
         private IEnumerator LoadLongSword(IAddressablesGateway gateway, System.Action<IAssetHandle<GameObject>> onLoaded)
         {
-            AssetKey key = new AssetKey("LongSword");
-            var task = gateway.LoadAsync<GameObject>(key, CancellationToken.None);
+            AssetReference reference = new AssetReference("LongSword");
+            var task = gateway.LoadAsync<GameObject>(reference, CancellationToken.None);
             while (!task.IsCompleted) { yield return null; }
             Assert.IsFalse(task.IsFaulted, task.Exception?.ToString());
             onLoaded(task.Result);

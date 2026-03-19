@@ -47,6 +47,16 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: d1d8d7d8e4f24e6aa0aa0c1c4c5d9e25
+    m_Address: levels/whitebox-level-1
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: e1d8d7d8e4f24e6aa0aa0c1c4c5d9e22
+    m_Address: Navigation/GameView
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: fe189c0006577944eaa12ec9bdff3f0f
     m_Address: UI Atlas
     m_ReadOnly: 0

@@ -21,8 +21,9 @@
 |---|---|---|---|---|
 | `Game` | Runs a single battle instance | `LevelDefinition`, `GoldWallet`, `Player` in ctor; `Start/Tick/Trigger` calls | Emits `EventTriggered` and `OnCompleted` | Ctor throws on nulls/invalid level id; ignores tick/trigger when not running |
 | `Player` | Player runtime model used by battle commands and rules | `EntityId`, initial health | Mutable health and behavior runtime list | Ctor guards invalid args; damage methods clamp/ignore invalid values |
+| `WeaponId`, `WeaponProfile`, `WeaponProfiles` | Player weapon/loadout domain definitions | weapon key + cooldown/range/move-speed/timing values | typed weapon data used by battle state and intents | profile assignment falls back to default profile when needed |
 | `GameState` | Exposes lifecycle state | N/A | `NotRunning`, `Running`, `Done` | N/A |
-| `BattleEvent` records (`TryPlayerAttack`, `EnemyHitObserved`, `PlayerAutoAttackObserved`, `PlayerProjectileHitObserved`, `PlayerAttack`, `PlayerProjectileSpawned`, `EnemyKilled`, `PlayerDamaged`, `PlayerKilled`) | Input intents and output domain events | Record fields per event type | Immutable event payloads | Router ignores unknown/unroutable events |
+| `BattleEvent` records (`TryPlayerAttack`, `EquipPlayerWeaponIntent`, `PlayerMovementStarted`, `PlayerMovementStopped`, `TargetSelected`, `TargetCleared`, `AutoAttackTriggered`, `EnemyHitObserved`, `PlayerAutoAttackObserved`, `PlayerProjectileHitObserved`, `PlayerAttack`, `PlayerProjectileSpawned`, `EnemyKilled`, `PlayerDamaged`, `PlayerKilled`, `PlayerWeaponEquipped`, `PlayerMovementChanged`, `PlayerTargetChanged`, `PlayerAutoAttackDataUpdated`, `SpawnArchetypeDefined`, `SpawnReported`) | Input intents and output domain events | Record fields per event type | Immutable event payloads | Router ignores unknown/unroutable events |
 
 ## Setup / Integration
 1. Add asmdef dependency to `Madbox.Battle` and its required modules (`Madbox.Enemies`, `Madbox.Levels`, `Madbox.Gold`).
@@ -105,6 +106,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File ".\.agents\scripts\check-ana
   - `Game` is a single battle instance; create a new `Game` instead of resetting.
   - Completion is determined by level rule definitions evaluated in `GameRuleEvaluator`.
   - Enemy attack resolution remains presentation-driven through observed hit events.
+  - Movement/collision/world-space checks remain presentation-driven; battle core receives intents/events and updates domain state.
 - Allowed Dependencies:
   - `Madbox.Enemies`
   - `Madbox.Levels`
@@ -134,3 +136,4 @@ powershell -NoProfile -ExecutionPolicy Bypass -File ".\.agents\scripts\check-ana
 ## Changelog
 - 2026-03-18: Rewrote module doc to match Module Documentation Standard section order and constraints.
 - 2026-03-18: Updated content for intent-command pipeline, level-defined rules, and Enemies module extraction.
+- 2026-03-19: Added weapon/loadout domain definitions plus movement/target/attack contract intents/events for component-simulation integration.

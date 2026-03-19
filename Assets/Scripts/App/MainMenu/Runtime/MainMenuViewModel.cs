@@ -1,6 +1,8 @@
 using CommunityToolkit.Mvvm.ComponentModel;
+using Madbox.Battle.Services;
 using Madbox.Gold;
 using Madbox.Gold.Contracts;
+using Madbox.Levels;
 using Scaffold.MVVM;
 using VContainer;
 
@@ -9,22 +11,22 @@ namespace Madbox.App.MainMenu
     public partial class MainMenuViewModel : ViewModel
     {
         [ObservableProperty] private int gold;
+        [ObservableProperty] private string selectedLevelId = "whitebox-level-1";
+        [ObservableProperty] private GoldWallet wallet = new GoldWallet();
 
         private IGoldService goldService;
-        private GoldWallet wallet = new GoldWallet();
 
         [Inject] public void Construct(IGoldService goldService)
         {
             if (goldService == null) { return; }
-            UnregisterGoldService();
             this.goldService = goldService;
-            RegisterGoldService();
-            SyncGold(goldService.CurrentGold);
+            Wallet = goldService.GetWallet();
         }
 
         protected override void Initialize()
         {
-            Gold = wallet.CurrentGold;
+            Bind(() => Wallet.CurrentGold, () => Gold);
+            Gold = Wallet.CurrentGold;
         }
 
         public void AddOneGold()
@@ -33,31 +35,13 @@ namespace Madbox.App.MainMenu
             goldService.Add(1);
         }
 
-        protected override void OnClosed()
+        public void StartGame()
         {
-            UnregisterGoldService();
+            if (navigation == null) { return; }
+            LevelId levelId = new LevelId(SelectedLevelId);
+            GameViewModel controller = new GameViewModel(levelId);
+            navigation.Open(controller);
         }
 
-        private void RegisterGoldService()
-        {
-            goldService.GoldChanged += HandleGoldChanged;
-        }
-
-        private void UnregisterGoldService()
-        {
-            if (goldService == null) { return; }
-            goldService.GoldChanged -= HandleGoldChanged;
-        }
-
-        private void HandleGoldChanged(int value)
-        {
-            SyncGold(value);
-        }
-
-        private void SyncGold(int value)
-        {
-            wallet = new GoldWallet(value);
-            Gold = wallet.CurrentGold;
-        }
     }
 }

@@ -6,7 +6,6 @@ namespace Madbox.Addressables.Contracts
 {
     public interface IAssetHandle
     {
-        string Id { get; }
         Type AssetType { get; }
         UnityEngine.Object UntypedAsset { get; }
         bool IsReleased { get; }
