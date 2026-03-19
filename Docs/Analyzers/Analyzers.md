@@ -551,7 +551,6 @@ dotnet_diagnostic.SCA0021.severity = warning
 dotnet_diagnostic.SCA0022.severity = warning
 dotnet_diagnostic.SCA0023.severity = warning
 dotnet_diagnostic.SCA0024.severity = warning
-dotnet_diagnostic.SCA0025.severity = warning
 dotnet_diagnostic.SCA0026.severity = warning
 dotnet_diagnostic.SCA0028.severity = warning
 dotnet_diagnostic.SCA0029.severity = warning
@@ -974,26 +973,6 @@ Example:
 scaffold.SCA0024.suffix_folder_map = .Runtime=Runtime;.Tests=Tests;.PlayModeTests=Tests/PlayMode;.Samples=Samples;.Container=Container;.Editor=Editor;.Authoring=Authoring
 scaffold.SCA0024.disallow_module_root_asmdef = true
 scaffold.SCA0024.allow_unknown_suffix_in_any_subfolder = true
-```
-
----
-
-### SCA0025 - Boundary Interfaces/Types Must Live Under Contracts
-
-Public boundary declarations should live under a `Contracts/` path segment (recommended: `Runtime/Contracts/`).
-
-Default enforced kinds:
-- `interface`
-
-Config:
-- `scaffold.SCA0025.enforced_kinds` (values: `interface`, `class`, `struct`, `record`, `enum`, `delegate`)
-- `scaffold.SCA0025.exempt_module_roots` (comma/semicolon list)
-- `scaffold.SCA0025.exempt_types` (full type names or short names)
-
-```ini
-[*.cs]
-scaffold.SCA0025.enforced_kinds = interface
-scaffold.SCA0025.exempt_module_roots = Scaffold.Records
 ```
 
 ---

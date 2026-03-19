@@ -23,7 +23,7 @@ The change is observable when:
 - [x] (2026-03-17 22:52Z) Executed Milestone 3: Navigation module consolidation (`Scaffold.Navigation.Contracts` into `Scaffold.Navigation`).
 - [x] (2026-03-17 22:52Z) Executed Milestone 4: ViewModel module consolidation (`Scaffold.MVVM.ViewModel.Contracts` into `Scaffold.MVVM.ViewModel`).
 - [x] (2026-03-17 22:52Z) Executed Milestone 5: View module consolidation (`Scaffold.MVVM.View.Contracts` into `Scaffold.MVVM.View`).
-- [x] (2026-03-17 22:52Z) Executed Milestone 6: Analyzer rule updates for unified modules (`SCA0022`, `SCA0023`, `SCA0024`, `SCA0025`) and analyzer tests.
+- [x] (2026-03-17 22:52Z) Executed Milestone 6: Analyzer rule updates for unified modules (`SCA0022`, `SCA0023`, `SCA0024`) and analyzer tests.
 - [x] (2026-03-17 22:52Z) Executed Milestone 7: Repository-wide asmdef reference replacement and docs updates.
 - [ ] (2026-03-17 22:52Z) Full quality gate clean pass is still blocked by environment issues (`Scaffold.Analyzers.Tests.csproj` missing; Unity compile precheck detected project lock).
 
@@ -75,8 +75,7 @@ Key analyzer files that enforce current contracts-first assumptions:
 1. `Analyzers/Scaffold/Scaffold.Analyzers/RuntimeAssemblyBoundaryAnalyzer.cs` (`SCA0022`)
 2. `Analyzers/Scaffold/Scaffold.Analyzers/ModuleRequiredFoldersAnalyzer.cs` (`SCA0023`)
 3. `Analyzers/Scaffold/Scaffold.Analyzers/ModuleAsmdefConventionAnalyzer.cs` (`SCA0024`)
-4. `Analyzers/Scaffold/Scaffold.Analyzers/ContractsBoundaryTypeAnalyzer.cs` (`SCA0025`)
-5. `.editorconfig` analyzer settings (`scaffold.SCA0023.required_folders`, `scaffold.SCA0025.enforced_kinds`, severities)
+4. `.editorconfig` analyzer settings (`scaffold.SCA0023.required_folders`, severities)
 
 Terms used in this plan:
 
