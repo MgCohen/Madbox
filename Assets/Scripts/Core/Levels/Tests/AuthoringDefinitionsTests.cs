@@ -211,8 +211,6 @@ namespace Madbox.Levels.Tests
                 Asset = asset;
             }
 
-            public string Id => "test";
-
             public Type AssetType => typeof(T);
 
             public UnityEngine.Object UntypedAsset => Asset;

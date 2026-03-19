@@ -681,11 +681,9 @@ namespace Scaffold.Navigation.Tests
         {
             public FakeAssetHandle()
             {
-                Id = Guid.NewGuid().ToString("N");
                 state = AssetHandleState.Loading;
             }
 
-            public string Id { get; }
             public Type AssetType => typeof(GameObject);
             public UnityEngine.Object UntypedAsset => IsReady ? asset : null;
             public bool IsReleased => state == AssetHandleState.Released;

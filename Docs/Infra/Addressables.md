@@ -10,7 +10,8 @@
 ## Responsibilities
 - Exposes and owns the public loading contract: `IAddressablesGateway`.
 - Owns startup flow inside `AddressablesGateway` (catalog sync + preload config load + preload apply).
-- Owns reference tracking and release policy in `AddressablesLeaseStore`.
+- Owns reference tracking and release policy in `IAssetReferenceHandler` (`AddressablesAssetReferenceHandler`).
+- Owns preload registration building in `IAssetPreloadHandler` (`AddressablesAssetPreloadHandler`).
 - Owns preload config schema (`AddressablesPreloadConfig`, `AddressablesPreloadConfigEntry`) and `PreloadMode` semantics.
 - Prevents feature modules from calling static Unity Addressables APIs directly.
 
@@ -21,6 +22,7 @@ This module no longer uses:
 - `AddressablesPreloadConfigRequestBuilder`
 - `AddressablesLayerInitializer`
 - `AddressablesLoadToken`
+- `AddressablesLeaseStore` (replaced by handler)
 
 ## Public API
 | Symbol | Purpose | Inputs | Outputs | Failure behavior |
@@ -40,8 +42,8 @@ This module no longer uses:
 3. Gateway startup sequence:
    - best-effort `SyncCatalogAndContentAsync`
    - load preload config from key `addressables/preload/config`
-   - build registrations from config entries (asset reference or label reference)
-   - apply preloads through lease store with policy (`Normal`/`NeverDie`)
+   - build registrations from config entries through `IAssetPreloadHandler`
+   - apply preloads through `IAssetReferenceHandler` with policy (`Normal`/`NeverDie`)
 4. Runtime asset loads use gateway `LoadAsync`/`Load` APIs only.
 
 Notes:
@@ -167,7 +169,8 @@ Milestone quality gate:
 - `Docs/Infra/Scope.md`
 - `Assets/Scripts/Infra/Addressables/Runtime/Contracts/IAddressablesGateway.cs`
 - `Assets/Scripts/Infra/Addressables/Runtime/Implementation/AddressablesGateway.cs`
-- `Assets/Scripts/Infra/Addressables/Runtime/Implementation/AddressablesLeaseStore.cs`
+- `Assets/Scripts/Infra/Addressables/Runtime/Implementation/AddressablesAssetReferenceHandler.cs`
+- `Assets/Scripts/Infra/Addressables/Runtime/Implementation/AddressablesAssetPreloadHandler.cs`
 - `Assets/Scripts/Infra/Addressables/Runtime/Implementation/AddressablesLoadedEntry.cs`
 
 ## Changelog

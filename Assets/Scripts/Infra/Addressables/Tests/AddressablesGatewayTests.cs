@@ -281,7 +281,9 @@ namespace Madbox.Addressables.Tests
 
         private AddressablesGateway CreateGateway(TestAddressableAssetClient client)
         {
-            return new AddressablesGateway(client);
+            IAssetReferenceHandler assetReferenceHandler = new AddressablesAssetReferenceHandler(client);
+            IAssetPreloadHandler assetPreloadHandler = new AddressablesAssetPreloadHandler(client);
+            return new AddressablesGateway(client, assetReferenceHandler, assetPreloadHandler);
         }
 
         private IAssetHandle<TestAsset> LoadEnemyBee(AddressablesGateway gateway)

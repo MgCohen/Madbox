@@ -7,9 +7,9 @@ using UnityEngine;
 
 namespace Madbox.Addressables
 {
-    internal sealed class AddressablesLeaseStore
+    public sealed class AddressablesAssetReferenceHandler : IAssetReferenceHandler
     {
-        public AddressablesLeaseStore(IAddressablesAssetClient client)
+        public AddressablesAssetReferenceHandler(IAddressablesAssetClient client)
         {
             if (client == null) { throw new ArgumentNullException(nameof(client)); }
             this.client = client;
@@ -50,8 +50,7 @@ namespace Madbox.Addressables
 
         private IAssetHandle CreateHandle(Type assetType, string key, UnityEngine.Object asset)
         {
-            string id = CreateId(assetType, key);
-            return new AssetHandle<UnityEngine.Object>(id, asset, () => Release(assetType, key));
+            return new AssetHandle<UnityEngine.Object>(asset, () => Release(assetType, key));
         }
 
         private IAssetHandle<T> CreateTypedHandle<T>(string key, UnityEngine.Object asset) where T : UnityEngine.Object
@@ -61,19 +60,13 @@ namespace Madbox.Addressables
                 throw new InvalidOperationException($"Loaded asset type mismatch. Requested '{typeof(T).FullName}', actual '{asset?.GetType().FullName ?? "null"}'.");
             }
 
-            string id = CreateId(typeof(T), key);
-            return new AssetHandle<T>(id, typed, () => Release(typeof(T), key));
+            return new AssetHandle<T>(typed, () => Release(typeof(T), key));
         }
 
         private void Release(Type assetType, string key)
         {
             if (!TryRemoveReleasableEntry(assetType, key, out AddressablesLoadedEntry entry)) { return; }
             client.Release(entry.Asset);
-        }
-
-        private string CreateId(Type assetType, string key)
-        {
-            return $"{assetType.FullName}|{key}";
         }
 
         private void GuardAcquireRequest(Type assetType, string key, CancellationToken cancellationToken)
