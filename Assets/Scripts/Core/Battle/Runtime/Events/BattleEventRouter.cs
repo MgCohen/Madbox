@@ -91,7 +91,28 @@ namespace Madbox.Battle.Events
 
         private void RegisterHandlers()
         {
+            RegisterCoreCombatHandlers();
+            RegisterPlayerContractHandlers();
+            RegisterObservedCombatHandlers();
+        }
+
+        private void RegisterCoreCombatHandlers()
+        {
             Register<TryPlayerAttack, ResolvePlayerAttackCommand>(intent => new ResolvePlayerAttackCommand(intent.ActorId, intent.TargetId));
+            Register<EquipPlayerWeaponIntent, ResolveEquipPlayerWeaponCommand>(intent => new ResolveEquipPlayerWeaponCommand(intent.ActorId, intent.Weapon));
+        }
+
+        private void RegisterPlayerContractHandlers()
+        {
+            Register<PlayerMovementStarted, ResolvePlayerMovementStartedCommand>(intent => new ResolvePlayerMovementStartedCommand(intent.ActorId, intent.Speed));
+            Register<PlayerMovementStopped, ResolvePlayerMovementStoppedCommand>(intent => new ResolvePlayerMovementStoppedCommand(intent.ActorId));
+            Register<TargetSelected, ResolveTargetSelectedCommand>(intent => new ResolveTargetSelectedCommand(intent.ActorId, intent.TargetId));
+            Register<TargetCleared, ResolveTargetClearedCommand>(intent => new ResolveTargetClearedCommand(intent.ActorId));
+            Register<AutoAttackTriggered, ResolveAutoAttackTriggeredCommand>(intent => new ResolveAutoAttackTriggeredCommand(intent.ActorId));
+        }
+
+        private void RegisterObservedCombatHandlers()
+        {
             Register<EnemyHitObserved, ResolveEnemyHitObservedCommand>(intent => new ResolveEnemyHitObservedCommand(intent.EnemyId, intent.PlayerId, intent.RawDamage));
             Register<PlayerAutoAttackObserved, ResolvePlayerAutoAttackCommand>(intent => new ResolvePlayerAutoAttackCommand(intent.ActorId, intent.TargetId));
             Register<PlayerProjectileHitObserved, ResolvePlayerProjectileHitCommand>(intent => new ResolvePlayerProjectileHitCommand(intent.ProjectileId, intent.ActorId, intent.TargetId));
