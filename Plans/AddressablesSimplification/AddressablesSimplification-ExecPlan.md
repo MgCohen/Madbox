@@ -13,12 +13,12 @@ The target is simplification, not feature expansion. We will keep required owner
 ## Progress
 
 - [x] (2026-03-18 23:30Z) Authored the initial ExecPlan covering all nine requested simplifications, conflict checks, migration snippets, and validation strategy.
-- [ ] Execute Milestone 1: Baseline behavior characterization for current Addressables startup/load/release semantics, including regression safety for known cancellation/logging paths.
-- [ ] Execute Milestone 2: Remove preload builder/provider pipeline and merge preload request creation into a simpler gateway-owned startup path.
-- [ ] Execute Milestone 3: Remove layer initializer class and move initialization/startup preload orchestration into gateway only (registered as both gateway and async initializer).
-- [ ] Execute Milestone 4: Replace `AssetKey` with Unity-native references for public API, keeping an internal lightweight lookup key string only where needed.
-- [ ] Execute Milestone 5: Replace token/reflection-heavy lease logic with map-backed reference-counter entries and non-reflection typed dispatch.
-- [ ] Execute Milestone 6: Update docs/tests/contracts, run full `.agents/scripts/validate-changes.cmd`, and finalize retrospective.
+- [x] (2026-03-18) Execute Milestone 1: Baseline behavior characterization for current Addressables startup/load/release semantics, including regression safety for known cancellation/logging paths.
+- [x] (2026-03-18) Execute Milestone 2: Remove preload builder/provider pipeline and merge preload request creation into a simpler gateway-owned startup path.
+- [x] (2026-03-18) Execute Milestone 3: Remove layer initializer class and move initialization/startup preload orchestration into gateway only (registered as both gateway and async initializer).
+- [x] (2026-03-18) Execute Milestone 4: Replace `AssetKey` with Unity-native references for public API, keeping an internal lightweight lookup key string only where needed.
+- [x] (2026-03-18) Execute Milestone 5: Replace token/reflection-heavy lease logic with map-backed reference-counter entries and non-reflection typed dispatch.
+- [x] (2026-03-18) Execute Milestone 6: Update docs/tests/contracts, run full `.agents/scripts/validate-changes.cmd`, and finalize retrospective.
 
 ## Surprises & Discoveries
 
@@ -30,6 +30,9 @@ The target is simplification, not feature expansion. We will keep required owner
 
 - Observation: `AssetKey` is used broadly inside Addressables contracts and tests, but feature callers already rely heavily on `AssetReference`/`AssetReferenceT<T>` and label references.
   Evidence: `IAddressablesGateway` has both key and reference overloads; `AddressableLevelDefinitionProvider` already uses `AssetReferenceT<T>`.
+
+- Observation: VContainer tried to resolve `AddressablesGateway` via the internal test constructor in PlayMode and failed due missing `IAddressablesAssetClient` registration.
+  Evidence: PlayMode gate failure showed `No such registration of type: Madbox.Addressables.Contracts.IAddressablesAssetClient`.
 
 ## Decision Log
 
@@ -49,9 +52,26 @@ The target is simplification, not feature expansion. We will keep required owner
   Rationale: This removes custom key wrapper overhead while preserving authoring friendliness.
   Date/Author: 2026-03-18 / Codex
 
+- Decision: Mark the parameterless gateway constructor with `[Inject]` so runtime DI resolves the self-contained gateway constructor, while keeping the internal constructor for tests.
+  Rationale: Prevents runtime container from selecting a constructor that requires services no longer registered by installer design.
+  Date/Author: 2026-03-18 / Codex
+
 ## Outcomes & Retrospective
 
-This section will be completed after Milestone 6 with final behavior parity evidence, simplification impact summary, and residual tradeoffs.
+The simplification target was achieved with behavior parity preserved across startup, editmode, and playmode validation.
+
+Delivered outcomes:
+
+1. Gateway-centered startup/runtime flow with removed coordinator/provider/builder/layer-initializer/token layers.
+2. `AssetKey` removed from public gateway contracts and updated usages/tests moved to Unity references/labels.
+3. Lease ownership simplified to map-backed entry tracking (`Map<Type, string, AddressablesLoadedEntry>`) with explicit retention policy and no reflection dispatch.
+4. Installer simplified to register gateway only.
+5. Full quality gate passes (`validate-changes.cmd`): compilation, EditMode tests, PlayMode tests, and analyzers.
+
+Residual tradeoffs:
+
+1. Gateway owns more internal workflow directly; method grouping/guards were kept to preserve readability.
+2. Label-resolution preload path remains synchronous inside config build path for startup simplicity.
 
 ## Context and Orientation
 
@@ -288,6 +308,13 @@ During execution, this section must store concise evidence snippets for each com
 
 Do not store long logs; include only acceptance-relevant excerpts.
 
+- 2026-03-18: `run-editmode-tests.ps1 -AssemblyNames "Madbox.Addressables.Tests"` -> `Total:20 Passed:20 Failed:0`.
+- 2026-03-18: `run-editmode-tests.ps1 -AssemblyNames "Scaffold.Navigation.Tests"` -> `Total:16 Passed:16 Failed:0`.
+- 2026-03-18: `run-editmode-tests.ps1 -AssemblyNames "Madbox.Levels.Tests"` -> `Total:15 Passed:15 Failed:0`.
+- 2026-03-18: `run-playmode-tests.ps1` -> `Total:2 Passed:2 Failed:0`.
+- 2026-03-18: `check-analyzers.ps1` -> `TOTAL:0`.
+- 2026-03-18: `validate-changes.cmd` -> all gates `PASS`, analyzers `TOTAL:0`.
+
 ## Interfaces and Dependencies
 
 Interfaces expected at completion:
@@ -313,3 +340,4 @@ Potentially impacted modules/tests to update in same milestone sequence:
 
 Revision Note (2026-03-18 / Codex): Created new simplification-focused ExecPlan per user request, covering all nine requested changes, conflict checks, API migration snippets, and milestone validation loops.
 Revision Note (2026-03-18 / Codex): Updated API and storage snippets per review feedback: added sync group-handle API shape, changed concurrency mitigation to minimal lock strategy, switched migration example to `new AssetReference("bee")`, and replaced boolean retention flag with policy field on `RefEntry`.
+Revision Note (2026-03-18 / Codex): Executed plan end-to-end, including gateway-centered refactor, API migration, analyzer-driven cleanup, and full quality-gate validation pass.

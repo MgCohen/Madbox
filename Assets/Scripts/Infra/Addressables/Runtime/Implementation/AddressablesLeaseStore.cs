@@ -1,8 +1,8 @@
 using System;
-using System.Collections.Generic;
-using System.Reflection;
+using System.Threading;
 using System.Threading.Tasks;
 using Madbox.Addressables.Contracts;
+using Scaffold.Maps;
 using UnityEngine;
 
 namespace Madbox.Addressables
@@ -11,127 +11,159 @@ namespace Madbox.Addressables
     {
         public AddressablesLeaseStore(IAddressablesAssetClient client)
         {
-            GuardClient(client);
+            if (client == null) { throw new ArgumentNullException(nameof(client)); }
             this.client = client;
         }
 
         private readonly IAddressablesAssetClient client;
-        private readonly Dictionary<AddressablesLoadToken, AddressablesLoadedEntry> loaded = new Dictionary<AddressablesLoadToken, AddressablesLoadedEntry>();
-        private readonly Dictionary<AddressablesLoadToken, IAssetHandle> normalPreloaded = new Dictionary<AddressablesLoadToken, IAssetHandle>();
-        private static readonly MethodInfo preloadTypedMethod = CreatePreloadTypedMethod();
+        private readonly Map<Type, string, AddressablesLoadedEntry> loaded = new Map<Type, string, AddressablesLoadedEntry>();
+        private readonly object sync = new object();
 
-        public async Task<IAssetHandle<T>> AcquireAsync<T>(AddressablesLoadToken token, System.Threading.CancellationToken cancellationToken) where T : UnityEngine.Object
+        public async Task<IAssetHandle<T>> AcquireAsync<T>(string key, CancellationToken cancellationToken) where T : UnityEngine.Object
         {
-            GuardAcquire(token);
-            cancellationToken.ThrowIfCancellationRequested();
-            IAssetHandle<T> preloaded = TryTakeNormalPreloadedTyped<T>(token, token.Key);
-            if (preloaded != null) { return preloaded; }
-            if (TryAcquireExisting(token, out IAssetHandle<T> existing)) { return existing; }
-            T loadedAsset = await client.LoadAssetAsync<T>(token.Key, cancellationToken);
-            loaded[token] = new AddressablesLoadedEntry(loadedAsset);
-            return CreateHandle(token, loadedAsset);
+            Type assetType = typeof(T);
+            GuardAcquireRequest(assetType, key, cancellationToken);
+            if (TryAcquireLoadedEntry(assetType, key, PreloadMode.Normal, false, out AddressablesLoadedEntry existing))
+            {
+                return CreateTypedHandle<T>(key, existing.Asset);
+            }
+
+            return await LoadAndCreateTypedHandleAsync<T>(assetType, key, cancellationToken);
         }
 
-        public async Task PreloadByTypeAsync(Type assetType, AssetKey key, PreloadMode mode, System.Threading.CancellationToken cancellationToken)
+        public async Task<IAssetHandle> AcquireByTypeAsync(Type assetType, string key, PreloadMode preloadMode, bool isPreload, CancellationToken cancellationToken)
         {
-            GuardPreload(assetType);
-            Task task = CreatePreloadTask(assetType, key, mode, cancellationToken);
-            await task;
+            GuardAcquireRequest(assetType, key, cancellationToken);
+            if (TryAcquireLoadedEntry(assetType, key, preloadMode, isPreload, out AddressablesLoadedEntry existing)) { return CreateHandle(assetType, key, existing.Asset); }
+            return await LoadAndCreateHandleAsync(assetType, key, preloadMode, isPreload, cancellationToken);
         }
 
-        private Task CreatePreloadTask(Type assetType, AssetKey key, PreloadMode mode, System.Threading.CancellationToken cancellationToken)
+        private bool TryAcquireLoadedEntry(Type assetType, string key, PreloadMode preloadMode, bool isPreload, out AddressablesLoadedEntry entry)
         {
-            MethodInfo genericMethod = preloadTypedMethod.MakeGenericMethod(assetType);
-            return (Task)genericMethod.Invoke(this, new object[] { key, mode, cancellationToken });
+            lock (sync)
+            {
+                if (!TryGetLoadedEntry(assetType, key, out entry)) { return false; }
+                ApplyAcquirePolicy(entry, preloadMode, isPreload);
+                return true;
+            }
         }
 
-        private async Task PreloadTypedAsync<T>(AssetKey key, PreloadMode mode, System.Threading.CancellationToken cancellationToken) where T : UnityEngine.Object
+        private IAssetHandle CreateHandle(Type assetType, string key, UnityEngine.Object asset)
         {
-            AddressablesLoadToken token = CreateToken<T>(key);
-            IAssetHandle<T> handle = await AcquireAsync<T>(token, cancellationToken);
-            StorePreloadHandle(token, handle, mode);
+            string id = CreateId(assetType, key);
+            return new AssetHandle<UnityEngine.Object>(id, asset, () => Release(assetType, key));
         }
 
-        private AddressablesLoadToken CreateToken<T>(AssetKey key) where T : UnityEngine.Object
+        private IAssetHandle<T> CreateTypedHandle<T>(string key, UnityEngine.Object asset) where T : UnityEngine.Object
         {
-            return new AddressablesLoadToken(typeof(T), key);
+            if (asset is not T typed)
+            {
+                throw new InvalidOperationException($"Loaded asset type mismatch. Requested '{typeof(T).FullName}', actual '{asset?.GetType().FullName ?? "null"}'.");
+            }
+
+            string id = CreateId(typeof(T), key);
+            return new AssetHandle<T>(id, typed, () => Release(typeof(T), key));
         }
 
-        private bool TryAcquireExisting<T>(AddressablesLoadToken token, out IAssetHandle<T> handle) where T : UnityEngine.Object
+        private void Release(Type assetType, string key)
         {
-            if (!loaded.TryGetValue(token, out AddressablesLoadedEntry entry)) { handle = null; return false; }
-            entry.RefCount++;
-            T existingAsset = CastAsset<T>(entry.Asset);
-            handle = CreateHandle(token, existingAsset);
-            return true;
-        }
-
-        private T CastAsset<T>(UnityEngine.Object asset) where T : UnityEngine.Object
-        {
-            if (asset is T typed) { return typed; }
-            throw new InvalidOperationException($"Loaded asset type mismatch. Requested '{typeof(T).FullName}', actual '{asset?.GetType().FullName ?? "null"}'.");
-        }
-
-        private IAssetHandle<T> CreateHandle<T>(AddressablesLoadToken token, T asset) where T : UnityEngine.Object
-        {
-            return new AssetHandle<T>(token.Id, asset, () => Release(token));
-        }
-
-        private IAssetHandle<T> TryTakeNormalPreloadedTyped<T>(AddressablesLoadToken token, AssetKey key) where T : UnityEngine.Object
-        {
-            if (!TryTakeNormalPreloaded(token, out IAssetHandle handle)) { return null; }
-            return CastPreloadedHandle<T>(handle, key);
-        }
-
-        private bool TryTakeNormalPreloaded(AddressablesLoadToken token, out IAssetHandle handle)
-        {
-            bool found = normalPreloaded.TryGetValue(token, out handle);
-            if (found) { normalPreloaded.Remove(token); }
-            return found;
-        }
-
-        private IAssetHandle<T> CastPreloadedHandle<T>(IAssetHandle handle, AssetKey key) where T : UnityEngine.Object
-        {
-            if (handle is IAssetHandle<T> typed) { return typed; }
-            throw new InvalidOperationException($"Preloaded handle type mismatch for key '{key.Value}'.");
-        }
-
-        private void StorePreloadHandle(AddressablesLoadToken token, IAssetHandle handle, PreloadMode mode)
-        {
-            if (mode == PreloadMode.NeverDie) { return; }
-            if (normalPreloaded.ContainsKey(token)) { handle.Release(); return; }
-            normalPreloaded[token] = handle;
-        }
-
-        private void Release(AddressablesLoadToken token)
-        {
-            if (!loaded.TryGetValue(token, out AddressablesLoadedEntry entry)) { return; }
-            if (entry.RefCount > 0) { entry.RefCount--; }
-            if (entry.RefCount > 0) { return; }
-            loaded.Remove(token);
+            if (!TryRemoveReleasableEntry(assetType, key, out AddressablesLoadedEntry entry)) { return; }
             client.Release(entry.Asset);
         }
 
-        private void GuardClient(IAddressablesAssetClient client)
+        private string CreateId(Type assetType, string key)
         {
-            if (client == null) { throw new ArgumentNullException(nameof(client)); }
+            return $"{assetType.FullName}|{key}";
         }
 
-        private void GuardAcquire(AddressablesLoadToken token)
+        private void GuardAcquireRequest(Type assetType, string key, CancellationToken cancellationToken)
         {
-            if (string.IsNullOrWhiteSpace(token.Id)) { throw new ArgumentException("Load token must be valid.", nameof(token)); }
+            cancellationToken.ThrowIfCancellationRequested();
+            GuardAssetType(assetType);
+            GuardKey(key);
         }
 
-        private void GuardPreload(Type assetType)
+        private void GuardAssetType(Type assetType)
         {
             if (assetType == null) { throw new ArgumentNullException(nameof(assetType)); }
+            if (!typeof(UnityEngine.Object).IsAssignableFrom(assetType)) { throw new ArgumentException($"Asset type '{assetType.FullName}' must inherit UnityEngine.Object.", nameof(assetType)); }
         }
 
-        private static MethodInfo CreatePreloadTypedMethod()
+        private void GuardKey(string key)
         {
-            MethodInfo method = typeof(AddressablesLeaseStore).GetMethod(nameof(PreloadTypedAsync), BindingFlags.NonPublic | BindingFlags.Instance);
-            if (method == null) { throw new InvalidOperationException("Unable to resolve preload dispatch method."); }
-            return method;
+            if (string.IsNullOrWhiteSpace(key)) { throw new ArgumentException("Asset key cannot be empty.", nameof(key)); }
+        }
+
+        private bool TryGetLoadedEntry(Type assetType, string key, out AddressablesLoadedEntry entry)
+        {
+            return loaded.TryGetValue(assetType, key, out entry);
+        }
+
+        private void ApplyAcquirePolicy(AddressablesLoadedEntry entry, PreloadMode preloadMode, bool isPreload)
+        {
+            if (preloadMode == PreloadMode.NeverDie) { entry.Policy = PreloadMode.NeverDie; }
+            if (!isPreload) { entry.RefCount++; }
+        }
+
+        private async Task<IAssetHandle<T>> LoadAndCreateTypedHandleAsync<T>(Type assetType, string key, CancellationToken cancellationToken) where T : UnityEngine.Object
+        {
+            UnityEngine.Object loadedAsset = await client.LoadAssetAsync(key, assetType, cancellationToken);
+            AddressablesLoadedEntry created = AddNewEntry(assetType, key, loadedAsset, PreloadMode.Normal, false);
+            created.RefCount = 1;
+            return CreateTypedHandle<T>(key, created.Asset);
+        }
+
+        private async Task<IAssetHandle> LoadAndCreateHandleAsync(Type assetType, string key, PreloadMode preloadMode, bool isPreload, CancellationToken cancellationToken)
+        {
+            UnityEngine.Object loadedAsset = await client.LoadAssetAsync(key, assetType, cancellationToken);
+            AddressablesLoadedEntry entry = AddNewEntry(assetType, key, loadedAsset, preloadMode, isPreload);
+            if (!isPreload) { entry.RefCount = 1; }
+            return CreateHandle(assetType, key, loadedAsset);
+        }
+
+        private AddressablesLoadedEntry AddNewEntry(Type assetType, string key, UnityEngine.Object asset, PreloadMode preloadMode, bool isPreload)
+        {
+            lock (sync)
+            {
+                if (TryGetLoadedEntry(assetType, key, out AddressablesLoadedEntry existing)) { return AcquireExistingEntry(existing, preloadMode, isPreload); }
+                return CreateAndStoreEntry(assetType, key, asset, preloadMode);
+            }
+        }
+
+        private AddressablesLoadedEntry AcquireExistingEntry(AddressablesLoadedEntry existing, PreloadMode preloadMode, bool isPreload)
+        {
+            ApplyAcquirePolicy(existing, preloadMode, isPreload);
+            return existing;
+        }
+
+        private AddressablesLoadedEntry CreateAndStoreEntry(Type assetType, string key, UnityEngine.Object asset, PreloadMode preloadMode)
+        {
+            AddressablesLoadedEntry created = new AddressablesLoadedEntry(asset, preloadMode);
+            loaded.Add(assetType, key, created);
+            return created;
+        }
+
+        private bool TryRemoveReleasableEntry(Type assetType, string key, out AddressablesLoadedEntry entry)
+        {
+            lock (sync)
+            {
+                if (!TryGetLoadedEntry(assetType, key, out entry)) { return false; }
+                DecrementRefCount(entry);
+                if (!CanRelease(entry)) { return false; }
+                loaded.Remove(assetType, key);
+                return true;
+            }
+        }
+
+        private void DecrementRefCount(AddressablesLoadedEntry entry)
+        {
+            if (entry.RefCount > 0) { entry.RefCount--; }
+        }
+
+        private bool CanRelease(AddressablesLoadedEntry entry)
+        {
+            if (entry.RefCount > 0) { return false; }
+            return entry.Policy != PreloadMode.NeverDie;
         }
     }
 }

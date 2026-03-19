@@ -572,12 +572,6 @@ namespace Scaffold.Navigation.Tests
                 return Task.CompletedTask;
             }
 
-            public Task<IAssetHandle<T>> LoadAsync<T>(AssetKey key, CancellationToken cancellationToken = default) where T : UnityEngine.Object
-            {
-                IAssetHandle<T> handle = Load<T>(key, cancellationToken);
-                return AwaitReadyAsync(handle, cancellationToken);
-            }
-
             public Task<IAssetGroupHandle<T>> LoadAsync<T>(AssetLabelReference label, CancellationToken cancellationToken = default) where T : UnityEngine.Object
             {
                 throw new NotSupportedException();
@@ -594,7 +588,7 @@ namespace Scaffold.Navigation.Tests
                 return LoadAsync<T>((AssetReference)reference, cancellationToken);
             }
 
-            public IAssetHandle<T> Load<T>(AssetKey key, CancellationToken cancellationToken = default) where T : UnityEngine.Object
+            public IAssetGroupHandle<T> Load<T>(AssetLabelReference label, CancellationToken cancellationToken = default) where T : UnityEngine.Object
             {
                 throw new NotSupportedException();
             }

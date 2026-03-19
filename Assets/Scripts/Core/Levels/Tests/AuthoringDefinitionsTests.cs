@@ -160,12 +160,6 @@ namespace Madbox.Levels.Tests
                 return System.Threading.Tasks.Task.CompletedTask;
             }
 
-            public System.Threading.Tasks.Task<IAssetHandle<T>> LoadAsync<T>(AssetKey key, CancellationToken cancellationToken = default)
-                where T : UnityEngine.Object
-            {
-                throw new NotSupportedException();
-            }
-
             public System.Threading.Tasks.Task<IAssetGroupHandle<T>> LoadAsync<T>(AssetLabelReference label, CancellationToken cancellationToken = default)
                 where T : UnityEngine.Object
             {
@@ -191,12 +185,6 @@ namespace Madbox.Levels.Tests
                 return System.Threading.Tasks.Task.FromResult(handle);
             }
 
-            public IAssetHandle<T> Load<T>(AssetKey key, CancellationToken cancellationToken = default)
-                where T : UnityEngine.Object
-            {
-                throw new NotSupportedException();
-            }
-
             public IAssetHandle<T> Load<T>(AssetReference reference, CancellationToken cancellationToken = default)
                 where T : UnityEngine.Object
             {
@@ -205,6 +193,11 @@ namespace Madbox.Levels.Tests
 
             public IAssetHandle<T> Load<T>(AssetReferenceT<T> reference, CancellationToken cancellationToken = default)
                 where T : UnityEngine.Object
+            {
+                throw new NotSupportedException();
+            }
+
+            public IAssetGroupHandle<T> Load<T>(AssetLabelReference label, CancellationToken cancellationToken = default) where T : UnityEngine.Object
             {
                 throw new NotSupportedException();
             }
