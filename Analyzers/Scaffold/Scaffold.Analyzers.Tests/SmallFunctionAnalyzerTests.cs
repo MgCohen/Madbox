@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -7,7 +6,7 @@ namespace Scaffold.Analyzers.Tests;
 public sealed class SmallFunctionAnalyzerTests
 {
     [Fact]
-    public async Task Diagnostic_WhenMethodExceedsDefaultLineLimit()
+    public async Task Diagnostic_WhenMethodExceedsDefaultNonEmptyLineLimit()
     {
         const string source = @"
 namespace Demo
@@ -25,6 +24,10 @@ namespace Demo
             Step7();
             Step8();
             Step9();
+            Step10();
+            Step11();
+            Step12();
+            Step13();
         }
 
         private void Step1() { }
@@ -36,6 +39,10 @@ namespace Demo
         private void Step7() { }
         private void Step8() { }
         private void Step9() { }
+        private void Step10() { }
+        private void Step11() { }
+        private void Step12() { }
+        private void Step13() { }
     }
 }";
 
@@ -49,7 +56,7 @@ namespace Demo
     }
 
     [Fact]
-    public async Task NoDiagnostic_WhenCustomLineLimitAllowsMethod()
+    public async Task NoDiagnostic_WhenMethodHasTwelveNonEmptyLinesWithBlankLines()
     {
         const string source = @"
 namespace Demo
@@ -60,13 +67,18 @@ namespace Demo
         {
             Step1();
             Step2();
+
             Step3();
             Step4();
             Step5();
             Step6();
+
             Step7();
             Step8();
             Step9();
+            Step10();
+            Step11();
+            Step12();
         }
 
         private void Step1() { }
@@ -78,20 +90,17 @@ namespace Demo
         private void Step7() { }
         private void Step8() { }
         private void Step9() { }
+        private void Step10() { }
+        private void Step11() { }
+        private void Step12() { }
     }
 }";
-
-        var options = new Dictionary<string, string>
-        {
-            ["scaffold.SCA0006.max_lines"] = "12",
-        };
 
         var diagnostics = await AnalyzerTestHarness.GetDiagnosticsByIdAsync(
             source,
             @"C:\Repo\Assets\Scripts\Core\Sample.cs",
             new SmallFunctionAnalyzer(),
-            SmallFunctionAnalyzer.DiagnosticId,
-            options);
+            SmallFunctionAnalyzer.DiagnosticId);
 
         Assert.Empty(diagnostics);
     }

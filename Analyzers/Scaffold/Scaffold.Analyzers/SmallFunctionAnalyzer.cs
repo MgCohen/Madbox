@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using System.Linq;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -15,7 +16,7 @@ namespace Scaffold.Analyzers
 
         private static readonly LocalizableString Title = "Methods should be small and focused";
         private static readonly LocalizableString MessageFormat = "Error SCA0006: Method '{0}' has {1} lines of code, exceeding the {2}-line limit. Refactor and extract procedural parts into smaller, well-named private methods.";
-        private static readonly LocalizableString Description = "Keep methods under 8 lines of code. Refactor by extracting steps into well-named methods.";
+        private static readonly LocalizableString Description = "Keep methods focused by limiting non-empty body lines (default 12). Refactor by extracting steps into well-named methods.";
 
         private static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(
             DiagnosticId,
@@ -41,7 +42,7 @@ namespace Scaffold.Analyzers
             var options = context.Options.AnalyzerConfigOptionsProvider.GetOptions(context.Node.SyntaxTree);
             if (AnalyzerConfig.ShouldSuppress(options, DiagnosticId)) return;
             var rule = AnalyzerConfig.GetEffectiveDescriptor(options, DiagnosticId, Rule);
-            var maxLines = AnalyzerConfig.GetInt(options, "scaffold.SCA0006.max_lines", 8);
+            var maxLines = AnalyzerConfig.GetInt(options, "scaffold.SCA0006.max_lines", 12);
 
             var methodDeclaration = (MethodDeclarationSyntax)context.Node;
 
@@ -50,21 +51,37 @@ namespace Scaffold.Analyzers
                 return;
             }
 
-            // Count lines inside the body
-            var lineSpan = methodDeclaration.Body.SyntaxTree.GetLineSpan(methodDeclaration.Body.Span);
-            var startLine = lineSpan.StartLinePosition.Line;
-            var endLine = lineSpan.EndLinePosition.Line;
-
-            // Subtract 1 because the braces themselves don't count towards the logic length in typical metrics,
-            // but even if we do simple counting, > 10 lines total might be a good heuristic for "8 lines of logic".
-            // Let's count statements instead, or just direct line numbers inside the block.
-            var lineCount = (endLine - startLine) - 1;
+            var lineCount = CountNonEmptyBodyLines(methodDeclaration.Body);
 
             if (lineCount > maxLines)
             {
                 var diagnostic = Diagnostic.Create(rule, methodDeclaration.Identifier.GetLocation(), methodDeclaration.Identifier.Text, lineCount, maxLines);
                 context.ReportDiagnostic(diagnostic);
             }
+        }
+
+        private static int CountNonEmptyBodyLines(BlockSyntax body)
+        {
+            SourceText text = body.SyntaxTree.GetText();
+            FileLinePositionSpan span = body.GetLocation().GetLineSpan();
+            int firstBodyLine = span.StartLinePosition.Line + 1;
+            int lastBodyLine = span.EndLinePosition.Line - 1;
+            if (lastBodyLine < firstBodyLine)
+            {
+                return 0;
+            }
+
+            int count = 0;
+            for (int line = firstBodyLine; line <= lastBodyLine; line++)
+            {
+                string lineText = text.Lines[line].ToString();
+                if (!string.IsNullOrWhiteSpace(lineText))
+                {
+                    count++;
+                }
+            }
+
+            return count;
         }
     }
 }

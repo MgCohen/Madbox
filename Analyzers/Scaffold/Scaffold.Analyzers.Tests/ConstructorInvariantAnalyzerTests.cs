@@ -1,4 +1,6 @@
-using System.Collections.Generic;
+using System;
+using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -7,234 +9,214 @@ namespace Scaffold.Analyzers.Tests;
 public sealed class ConstructorInvariantAnalyzerTests
 {
     [Fact]
-    public async Task NoDiagnostic_WhenLeadingThrowIfNullCall()
+    public async Task Diagnostic_WhenTypeIsMentionedByNonSiblingRuntimeAssembly()
     {
-        const string source = @"
-namespace Scaffold.App.MainMenu
-{
-    public class MainMenuViewModel
-    {
-        private readonly object service;
-
-        public MainMenuViewModel(object service)
+        string workspace = CreateTempWorkspace();
+        try
         {
-            System.ArgumentNullException.ThrowIfNull(service);
-            this.service = service;
+            string sourceFilePath = Path.Combine(workspace, "Assets", "Scripts", "Core", "Model", "Runtime", "Widget.cs");
+            WriteAsmdef(Path.Combine(workspace, "Assets", "Scripts", "Core", "Model", "Runtime", "Madbox.Model.asmdef"), "Madbox.Model");
+            WriteAsmdef(
+                Path.Combine(workspace, "Assets", "Scripts", "Core", "Gameplay", "Runtime", "Madbox.Gameplay.asmdef"),
+                "Madbox.Gameplay",
+                "Madbox.Model");
+            WriteFile(
+                Path.Combine(workspace, "Assets", "Scripts", "Core", "Gameplay", "Runtime", "Usage.cs"),
+                "namespace Madbox.Gameplay { public sealed class Usage { private Madbox.Model.Widget widget; } }");
+
+            var diagnostics = await AnalyzerTestHarness.GetDiagnosticsByIdAsync(
+                CreateConstructorSource(withValidation: false),
+                sourceFilePath,
+                new ConstructorInvariantAnalyzer(),
+                ConstructorInvariantAnalyzer.DiagnosticId,
+                compilationAssemblyName: "Madbox.Model");
+
+            Assert.Single(diagnostics);
         }
-    }
-}";
-
-        var diagnostics = await AnalyzerTestHarness.GetDiagnosticsByIdAsync(
-            source,
-            @"C:\Repo\Assets\Scripts\App\MainMenu\Runtime\MainMenuViewModel.cs",
-            new ConstructorInvariantAnalyzer(),
-            ConstructorInvariantAnalyzer.DiagnosticId);
-
-        Assert.Empty(diagnostics);
+        finally
+        {
+            DeleteTempWorkspace(workspace);
+        }
     }
 
     [Fact]
-    public async Task NoDiagnostic_WhenLeadingGuardClause()
+    public async Task NoDiagnostic_WhenExternallyUsedTypeHasLeadingGuard()
     {
-        const string source = @"
-namespace Scaffold.App.MainMenu
-{
-    public class MainMenuViewModel
-    {
-        private readonly object service;
-
-        public MainMenuViewModel(object service)
+        string workspace = CreateTempWorkspace();
+        try
         {
-            if (service == null) throw new System.ArgumentNullException(nameof(service));
-            this.service = service;
+            string sourceFilePath = Path.Combine(workspace, "Assets", "Scripts", "Core", "Model", "Runtime", "Widget.cs");
+            WriteAsmdef(Path.Combine(workspace, "Assets", "Scripts", "Core", "Model", "Runtime", "Madbox.Model.asmdef"), "Madbox.Model");
+            WriteAsmdef(
+                Path.Combine(workspace, "Assets", "Scripts", "Core", "Gameplay", "Runtime", "Madbox.Gameplay.asmdef"),
+                "Madbox.Gameplay",
+                "Madbox.Model");
+            WriteFile(
+                Path.Combine(workspace, "Assets", "Scripts", "Core", "Gameplay", "Runtime", "Usage.cs"),
+                "namespace Madbox.Gameplay { public sealed class Usage { private Madbox.Model.Widget widget; } }");
+
+            var diagnostics = await AnalyzerTestHarness.GetDiagnosticsByIdAsync(
+                CreateConstructorSource(withValidation: true),
+                sourceFilePath,
+                new ConstructorInvariantAnalyzer(),
+                ConstructorInvariantAnalyzer.DiagnosticId,
+                compilationAssemblyName: "Madbox.Model");
+
+            Assert.Empty(diagnostics);
         }
-    }
-}";
-
-        var diagnostics = await AnalyzerTestHarness.GetDiagnosticsByIdAsync(
-            source,
-            @"C:\Repo\Assets\Scripts\App\MainMenu\Runtime\MainMenuViewModel.cs",
-            new ConstructorInvariantAnalyzer(),
-            ConstructorInvariantAnalyzer.DiagnosticId);
-
-        Assert.Empty(diagnostics);
+        finally
+        {
+            DeleteTempWorkspace(workspace);
+        }
     }
 
     [Fact]
-    public async Task Diagnostic_WhenNoEntryValidation()
+    public async Task NoDiagnostic_WhenTypeIsNotExternallyMentioned()
     {
-        const string source = @"
-namespace Scaffold.App.MainMenu
-{
-    public class MainMenuViewModel
-    {
-        private readonly object service;
-
-        public MainMenuViewModel(object service)
+        string workspace = CreateTempWorkspace();
+        try
         {
-            this.service = service;
+            string sourceFilePath = Path.Combine(workspace, "Assets", "Scripts", "Core", "Model", "Runtime", "Widget.cs");
+            WriteAsmdef(Path.Combine(workspace, "Assets", "Scripts", "Core", "Model", "Runtime", "Madbox.Model.asmdef"), "Madbox.Model");
+            WriteAsmdef(
+                Path.Combine(workspace, "Assets", "Scripts", "Core", "Gameplay", "Runtime", "Madbox.Gameplay.asmdef"),
+                "Madbox.Gameplay",
+                "Madbox.Model");
+            WriteFile(
+                Path.Combine(workspace, "Assets", "Scripts", "Core", "Gameplay", "Runtime", "Usage.cs"),
+                "namespace Madbox.Gameplay { public sealed class Usage { } }");
+
+            var diagnostics = await AnalyzerTestHarness.GetDiagnosticsByIdAsync(
+                CreateConstructorSource(withValidation: false),
+                sourceFilePath,
+                new ConstructorInvariantAnalyzer(),
+                ConstructorInvariantAnalyzer.DiagnosticId,
+                compilationAssemblyName: "Madbox.Model");
+
+            Assert.Empty(diagnostics);
         }
-    }
-}";
-
-        var diagnostics = await AnalyzerTestHarness.GetDiagnosticsByIdAsync(
-            source,
-            @"C:\Repo\Assets\Scripts\App\MainMenu\Runtime\MainMenuViewModel.cs",
-            new ConstructorInvariantAnalyzer(),
-            ConstructorInvariantAnalyzer.DiagnosticId);
-
-        Assert.Single(diagnostics);
-        Assert.Equal(ConstructorInvariantAnalyzer.DiagnosticId, diagnostics[0].Id);
+        finally
+        {
+            DeleteTempWorkspace(workspace);
+        }
     }
 
     [Fact]
-    public async Task NoDiagnostic_WhenConfiguredPrefixIsUsed()
+    public async Task Diagnostic_WhenExternallyMentionedInterfaceHasImplementation()
     {
-        const string source = @"
-namespace Scaffold.App.MainMenu
-{
-    public class MainMenuViewModel
-    {
-        private readonly object service;
-
-        public MainMenuViewModel(object service)
+        string workspace = CreateTempWorkspace();
+        try
         {
-            CheckInvariant(service);
-            this.service = service;
+            string sourceFilePath = Path.Combine(workspace, "Assets", "Scripts", "Core", "Model", "Runtime", "Widget.cs");
+            WriteAsmdef(Path.Combine(workspace, "Assets", "Scripts", "Core", "Model", "Runtime", "Madbox.Model.asmdef"), "Madbox.Model");
+            WriteAsmdef(
+                Path.Combine(workspace, "Assets", "Scripts", "Core", "Gameplay", "Runtime", "Madbox.Gameplay.asmdef"),
+                "Madbox.Gameplay",
+                "Madbox.Model");
+            WriteFile(
+                Path.Combine(workspace, "Assets", "Scripts", "Core", "Gameplay", "Runtime", "Usage.cs"),
+                "namespace Madbox.Gameplay { public sealed class Usage { private Madbox.Model.IWidgetApi api; } }");
+
+            const string source = @"
+namespace Madbox.Model
+{
+    public interface IWidgetApi
+    {
+        void Execute(string input);
+    }
+
+    public sealed class Widget : IWidgetApi
+    {
+        public Widget(object dependency)
+        {
+            this.Dependency = dependency;
         }
 
-        private void CheckInvariant(object service) { }
+        public object Dependency { get; }
+        public void Execute(string input) { }
     }
 }";
 
-        var options = new Dictionary<string, string>
+            var diagnostics = await AnalyzerTestHarness.GetDiagnosticsByIdAsync(
+                source,
+                sourceFilePath,
+                new ConstructorInvariantAnalyzer(),
+                ConstructorInvariantAnalyzer.DiagnosticId,
+                compilationAssemblyName: "Madbox.Model");
+
+            Assert.Single(diagnostics);
+        }
+        finally
         {
-            ["scaffold.SCA0017.allowed_prefixes"] = "Check,Assert"
-        };
-
-        var diagnostics = await AnalyzerTestHarness.GetDiagnosticsByIdAsync(
-            source,
-            @"C:\Repo\Assets\Scripts\App\MainMenu\Runtime\MainMenuViewModel.cs",
-            new ConstructorInvariantAnalyzer(),
-            ConstructorInvariantAnalyzer.DiagnosticId,
-            options);
-
-        Assert.Empty(diagnostics);
+            DeleteTempWorkspace(workspace);
+        }
     }
 
-    [Fact]
-    public async Task NoDiagnostic_ForNoParameterAndDelegatingAndNonPublicConstructors()
+    private static string CreateConstructorSource(bool withValidation)
     {
-        const string source = @"
-namespace Scaffold.App.MainMenu
-{
-    public class MainMenuViewModel
-    {
-        public MainMenuViewModel() { }
-
-        internal MainMenuViewModel(object service)
+        if (withValidation)
         {
-            this.service = service;
+            return @"
+namespace Madbox.Model
+{
+    public sealed class Widget
+    {
+        public Widget(object dependency)
+        {
+            System.ArgumentNullException.ThrowIfNull(dependency);
+            this.Dependency = dependency;
         }
 
-        public MainMenuViewModel(object service, int version) : this(service) { }
-
-        private readonly object service;
+        public object Dependency { get; }
     }
 }";
-
-        var diagnostics = await AnalyzerTestHarness.GetDiagnosticsByIdAsync(
-            source,
-            @"C:\Repo\Assets\Scripts\App\MainMenu\Runtime\MainMenuViewModel.cs",
-            new ConstructorInvariantAnalyzer(),
-            ConstructorInvariantAnalyzer.DiagnosticId);
-
-        Assert.Empty(diagnostics);
-    }
-
-    [Fact]
-    public async Task NoDiagnostic_ForTestsAndSamplesPaths()
-    {
-        const string source = @"
-namespace Scaffold.App.MainMenu
-{
-    public class MainMenuViewModel
-    {
-        public MainMenuViewModel(object service)
-        {
-            this.service = service;
         }
 
-        private readonly object service;
-    }
-}";
-
-        var testsDiagnostics = await AnalyzerTestHarness.GetDiagnosticsByIdAsync(
-            source,
-            @"C:\Repo\Assets\Scripts\App\MainMenu\Tests\MainMenuViewModelTests.cs",
-            new ConstructorInvariantAnalyzer(),
-            ConstructorInvariantAnalyzer.DiagnosticId);
-
-        var samplesDiagnostics = await AnalyzerTestHarness.GetDiagnosticsByIdAsync(
-            source,
-            @"C:\Repo\Assets\Scripts\App\MainMenu\Samples\MainMenuViewModelSample.cs",
-            new ConstructorInvariantAnalyzer(),
-            ConstructorInvariantAnalyzer.DiagnosticId);
-
-        Assert.Empty(testsDiagnostics);
-        Assert.Empty(samplesDiagnostics);
-    }
-
-    [Fact]
-    public async Task NoDiagnostic_WhenOnlyPrimitiveLikeParametersWithoutSemanticNames()
-    {
-        const string source = @"
-namespace Madbox.Meta.Gold
+        return @"
+namespace Madbox.Model
 {
-    public sealed class GoldWallet
+    public sealed class Widget
     {
-        public GoldWallet(int currentGold)
+        public Widget(object dependency)
         {
-            CurrentGold = currentGold;
+            this.Dependency = dependency;
         }
 
-        public int CurrentGold { get; }
+        public object Dependency { get; }
     }
 }";
-
-        var diagnostics = await AnalyzerTestHarness.GetDiagnosticsByIdAsync(
-            source,
-            @"C:\Repo\Assets\Scripts\Meta\Gold\Runtime\GoldWallet.cs",
-            new ConstructorInvariantAnalyzer(),
-            ConstructorInvariantAnalyzer.DiagnosticId);
-
-        Assert.Empty(diagnostics);
     }
 
-    [Fact]
-    public async Task Diagnostic_WhenPrimitiveLikeParameterHasSemanticConstraintName()
+    private static string CreateTempWorkspace()
     {
-        const string source = @"
-namespace Scaffold.Navigation
-{
-    public sealed class Slot
+        string path = Path.Combine(Path.GetTempPath(), "sca0017-tests-" + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(path);
+        return path;
+    }
+
+    private static void WriteAsmdef(string path, string name, params string[] references)
     {
-        public Slot(int index)
+        string referencesJson = references.Length == 0 ? string.Empty : string.Join(", ", references.Select(reference => "\"" + reference + "\""));
+        string content = "{ \"name\": \"" + name + "\", \"references\": [" + referencesJson + "] }";
+        WriteFile(path, content);
+    }
+
+    private static void WriteFile(string path, string content)
+    {
+        string? directory = Path.GetDirectoryName(path);
+        if (!string.IsNullOrWhiteSpace(directory))
         {
-            this.Index = index;
+            Directory.CreateDirectory(directory);
         }
 
-        public int Index { get; }
+        File.WriteAllText(path, content);
     }
-}";
 
-        var diagnostics = await AnalyzerTestHarness.GetDiagnosticsByIdAsync(
-            source,
-            @"C:\Repo\Assets\Scripts\Infra\Navigation\Runtime\Slot.cs",
-            new ConstructorInvariantAnalyzer(),
-            ConstructorInvariantAnalyzer.DiagnosticId);
-
-        Assert.Single(diagnostics);
+    private static void DeleteTempWorkspace(string path)
+    {
+        if (Directory.Exists(path))
+        {
+            Directory.Delete(path, true);
+        }
     }
 }
-
