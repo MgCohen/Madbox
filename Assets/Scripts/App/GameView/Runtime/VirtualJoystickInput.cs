@@ -1,6 +1,5 @@
 using UnityEngine;
 using UnityEngine.EventSystems;
-using UnityEngine.UI;
 
 namespace Madbox.App.GameView
 {
@@ -16,14 +15,11 @@ namespace Madbox.App.GameView
         [SerializeField] private float maxRadiusOverride;
 
         private Vector2 initialInnerPosition;
-        private Vector2 initialInnerCenterPosition;
-        private Vector2 innerCenterOffset;
-        private Vector2 stickCenterOffset;  
 
         private void Awake()
         {
             ResolveReferences();
-            CacheGeometry();
+            CacheInitialInnerPosition();
             ResetInput();
         }
 
@@ -35,29 +31,9 @@ namespace Madbox.App.GameView
             innerStick = stickRoot.GetChild(0) as RectTransform;
         }
 
-        private void CacheGeometry()
+        private void CacheInitialInnerPosition()
         {
-            innerCenterOffset = ResolveCenterOffset(innerStick);
-            stickCenterOffset = ResolveCenterOffset(stickRoot);
             initialInnerPosition = innerStick == null ? Vector2.zero : innerStick.anchoredPosition;
-            initialInnerCenterPosition = initialInnerPosition + innerCenterOffset;
-        }
-
-        private float ResolveMaxRadius()
-        {
-            if (maxRadiusOverride > 0f) return maxRadiusOverride;
-            if (stickRoot == null || innerStick == null) return 0f;
-            float rootRadius = stickRoot.rect.width * 0.5f;
-            float innerRadius = innerStick.rect.width * 0.5f;
-            return Mathf.Max(0f, rootRadius - innerRadius);
-        }
-
-        private Vector2 ResolveCenterOffset(RectTransform rectTransform)
-        {
-            if (rectTransform == null) return Vector2.zero;
-            Vector2 size = rectTransform.rect.size;
-            Vector2 pivot = rectTransform.pivot;
-            return new Vector2((0.5f - pivot.x) * size.x, (0.5f - pivot.y) * size.y);
         }
 
         public void OnPointerDown(PointerEventData eventData)
@@ -68,7 +44,12 @@ namespace Madbox.App.GameView
 
         private void MoveStickToPointer(PointerEventData eventData)
         {
-            stickRoot.transform.position = eventData.pressPosition;
+            if (stickRoot == null) return;
+            RectTransform parent = stickRoot.parent as RectTransform;
+            if (parent == null) return;
+            bool gotPoint = RectTransformUtility.ScreenPointToLocalPointInRectangle(parent, eventData.position, eventData.pressEventCamera, out Vector2 localPoint);
+            if (gotPoint == false) return;
+            stickRoot.anchoredPosition = localPoint;
         }
 
         public void OnDrag(PointerEventData eventData)
@@ -85,7 +66,7 @@ namespace Madbox.App.GameView
 
         private void SetDirectionFromLocalPoint(Vector2 localPoint)
         {
-            Vector2 offset = localPoint - initialInnerCenterPosition;
+            Vector2 offset = localPoint;
             float radius = ResolveMaxRadius();
             Vector2 clampedOffset = Vector2.ClampMagnitude(offset, radius);
             Vector2 direction = radius <= 0f ? Vector2.zero : clampedOffset / radius;
@@ -97,8 +78,16 @@ namespace Madbox.App.GameView
         {
             Direction = direction;
             Vector2 offset = direction * ResolveMaxRadius();
-            Vector2 centerPosition = initialInnerCenterPosition + offset;
-            UpdateInnerStickPosition(centerPosition - innerCenterOffset);
+            UpdateInnerStickPosition(initialInnerPosition + offset);
+        }
+
+        private float ResolveMaxRadius()
+        {
+            if (maxRadiusOverride > 0f) return maxRadiusOverride;
+            if (stickRoot == null || innerStick == null) return 0f;
+            float rootRadius = stickRoot.rect.width * 0.5f;
+            float innerRadius = innerStick.rect.width * 0.5f;
+            return Mathf.Max(0f, rootRadius - innerRadius);
         }
 
         private void UpdateInnerStickPosition(Vector2 anchoredPosition)
