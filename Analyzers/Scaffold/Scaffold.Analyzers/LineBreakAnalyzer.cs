@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -82,6 +83,7 @@ namespace Scaffold.Analyzers
             var rule = AnalyzerConfig.GetEffectiveDescriptor(options, DiagnosticId, Rule);
 
             var statement = (ExpressionStatementSyntax)context.Node;
+            if (ContainsInitializer(statement)) return;
 
             // Allow builder/fluent patterns which typically look like multiline chained method calls on new lines
             // We'll skip enforcing multi-line purely on InvocationExpression with member access to prevent over-flagging fluent patterns.
@@ -105,6 +107,7 @@ namespace Scaffold.Analyzers
             var rule = AnalyzerConfig.GetEffectiveDescriptor(options, DiagnosticId, Rule);
 
             var statement = (LocalDeclarationStatementSyntax)context.Node;
+            if (ContainsInitializer(statement)) return;
 
             var lineSpan = statement.GetLocation().GetLineSpan();
             if (lineSpan.StartLinePosition.Line != lineSpan.EndLinePosition.Line)
@@ -112,6 +115,11 @@ namespace Scaffold.Analyzers
                 var diagnostic = Diagnostic.Create(rule, statement.GetLocation());
                 context.ReportDiagnostic(diagnostic);
             }
+        }
+
+        private static bool ContainsInitializer(StatementSyntax statement)
+        {
+            return statement.DescendantNodes().OfType<InitializerExpressionSyntax>().Any();
         }
 
         private static int GetMethodSignatureEndLine(MethodDeclarationSyntax methodDeclaration)
