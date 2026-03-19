@@ -43,7 +43,10 @@ namespace Scaffold.Analyzers
             var rule = AnalyzerConfig.GetEffectiveDescriptor(options, DiagnosticId, Rule);
 
             var methodDeclaration = (MethodDeclarationSyntax)context.Node;
-            if (!IsCandidateEntryPoint(context, methodDeclaration)) return;
+            var symbol = context.SemanticModel.GetDeclaredSymbol(methodDeclaration);
+            if (!IsCandidateEntryPoint(methodDeclaration, symbol)) return;
+            if (symbol == null) return;
+            if (!InvariantUsageScope.ShouldValidateForType(context.Compilation, symbol.ContainingType)) return;
 
             var allowedPrefixes = GetAllowedPrefixes(options);
             if (HasEntryValidation(methodDeclaration, allowedPrefixes)) return;
@@ -52,11 +55,9 @@ namespace Scaffold.Analyzers
             context.ReportDiagnostic(diagnostic);
         }
 
-        private static bool IsCandidateEntryPoint(SyntaxNodeAnalysisContext context, MethodDeclarationSyntax methodDeclaration)
+        private static bool IsCandidateEntryPoint(MethodDeclarationSyntax methodDeclaration, IMethodSymbol symbol)
         {
             if (methodDeclaration.Body == null) return false;
-
-            var symbol = context.SemanticModel.GetDeclaredSymbol(methodDeclaration);
             if (symbol == null) return false;
             if (symbol.DeclaredAccessibility != Accessibility.Public) return false;
             if (symbol.IsOverride) return false;

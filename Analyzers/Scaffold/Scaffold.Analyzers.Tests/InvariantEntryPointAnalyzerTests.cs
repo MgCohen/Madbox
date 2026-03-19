@@ -1,4 +1,6 @@
-using System.Collections.Generic;
+using System;
+using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -7,287 +9,227 @@ namespace Scaffold.Analyzers.Tests;
 public sealed class InvariantEntryPointAnalyzerTests
 {
     [Fact]
-    public async Task NoDiagnostic_WhenLeadingValidateCall()
+    public async Task NoDiagnostic_WhenTypeIsNotMentionedByExternalAssembly()
     {
-        const string source = @"
-namespace Scaffold.Infra.NetworkMessages
-{
-    public class Dispatcher
-    {
-        public void Send(string message)
+        string workspace = CreateTempWorkspace();
+        try
         {
-            ValidateMessage(message);
-            Publish(message);
+            string sourceFilePath = Path.Combine(workspace, "Assets", "Scripts", "Core", "Model", "Runtime", "Widget.cs");
+            WriteAsmdef(Path.Combine(workspace, "Assets", "Scripts", "Core", "Model", "Runtime", "Madbox.Model.asmdef"), "Madbox.Model");
+            WriteAsmdef(
+                Path.Combine(workspace, "Assets", "Scripts", "Core", "Gameplay", "Runtime", "Madbox.Gameplay.asmdef"),
+                "Madbox.Gameplay",
+                "Madbox.Model");
+            WriteFile(
+                Path.Combine(workspace, "Assets", "Scripts", "Core", "Gameplay", "Runtime", "Usage.cs"),
+                "namespace Madbox.Gameplay { public sealed class Usage { } }");
+
+            var diagnostics = await AnalyzerTestHarness.GetDiagnosticsByIdAsync(
+                CreateWidgetSource(),
+                sourceFilePath,
+                new InvariantEntryPointAnalyzer(),
+                InvariantEntryPointAnalyzer.DiagnosticId,
+                compilationAssemblyName: "Madbox.Model");
+
+            Assert.Empty(diagnostics);
         }
-
-        private void ValidateMessage(string message) { }
-        private void Publish(string message) { }
-    }
-}";
-
-        var diagnostics = await AnalyzerTestHarness.GetDiagnosticsByIdAsync(
-            source,
-            @"C:\Repo\Assets\Scripts\Infra\NetworkMessages\Runtime\Implementation\Dispatcher.cs",
-            new InvariantEntryPointAnalyzer(),
-            InvariantEntryPointAnalyzer.DiagnosticId);
-        Assert.Empty(diagnostics);
+        finally
+        {
+            DeleteTempWorkspace(workspace);
+        }
     }
 
     [Fact]
-    public async Task NoDiagnostic_WhenLeadingGuardClause()
+    public async Task Diagnostic_WhenTypeIsMentionedByNonSiblingRuntimeAssembly()
     {
-        const string source = @"
-namespace Scaffold.Infra.NetworkMessages
-{
-    public class Dispatcher
-    {
-        public void Send(string message)
+        string workspace = CreateTempWorkspace();
+        try
         {
-            if (message == null) throw new System.ArgumentNullException(nameof(message));
-            Publish(message);
+            string sourceFilePath = Path.Combine(workspace, "Assets", "Scripts", "Core", "Model", "Runtime", "Widget.cs");
+            WriteAsmdef(Path.Combine(workspace, "Assets", "Scripts", "Core", "Model", "Runtime", "Madbox.Model.asmdef"), "Madbox.Model");
+            WriteAsmdef(
+                Path.Combine(workspace, "Assets", "Scripts", "Core", "Gameplay", "Runtime", "Madbox.Gameplay.asmdef"),
+                "Madbox.Gameplay",
+                "Madbox.Model");
+            WriteFile(
+                Path.Combine(workspace, "Assets", "Scripts", "Core", "Gameplay", "Runtime", "Usage.cs"),
+                "namespace Madbox.Gameplay { public sealed class Usage { private Madbox.Model.Widget widget; } }");
+
+            var diagnostics = await AnalyzerTestHarness.GetDiagnosticsByIdAsync(
+                CreateWidgetSource(),
+                sourceFilePath,
+                new InvariantEntryPointAnalyzer(),
+                InvariantEntryPointAnalyzer.DiagnosticId,
+                compilationAssemblyName: "Madbox.Model");
+
+            Assert.Single(diagnostics);
         }
-
-        private void Publish(string message) { }
-    }
-}";
-
-        var diagnostics = await AnalyzerTestHarness.GetDiagnosticsByIdAsync(
-            source,
-            @"C:\Repo\Assets\Scripts\Infra\NetworkMessages\Runtime\Implementation\Dispatcher.cs",
-            new InvariantEntryPointAnalyzer(),
-            InvariantEntryPointAnalyzer.DiagnosticId);
-        Assert.Empty(diagnostics);
+        finally
+        {
+            DeleteTempWorkspace(workspace);
+        }
     }
 
     [Fact]
-    public async Task Diagnostic_WhenNoEntryValidation()
+    public async Task NoDiagnostic_WhenOnlySiblingTestsMentionType()
     {
-        const string source = @"
-namespace Scaffold.Infra.NetworkMessages
-{
-    public class Dispatcher
-    {
-        public void Send(string message)
+        string workspace = CreateTempWorkspace();
+        try
         {
-            Publish(message);
+            string sourceFilePath = Path.Combine(workspace, "Assets", "Scripts", "Core", "Model", "Runtime", "Widget.cs");
+            WriteAsmdef(Path.Combine(workspace, "Assets", "Scripts", "Core", "Model", "Runtime", "Madbox.Model.asmdef"), "Madbox.Model");
+            WriteAsmdef(
+                Path.Combine(workspace, "Assets", "Scripts", "Core", "Model", "Tests", "Madbox.Model.Tests.asmdef"),
+                "Madbox.Model.Tests",
+                "Madbox.Model");
+            WriteFile(
+                Path.Combine(workspace, "Assets", "Scripts", "Core", "Model", "Tests", "WidgetTests.cs"),
+                "namespace Madbox.Model.Tests { public sealed class WidgetTests { private Madbox.Model.Widget widget; } }");
+
+            var diagnostics = await AnalyzerTestHarness.GetDiagnosticsByIdAsync(
+                CreateWidgetSource(),
+                sourceFilePath,
+                new InvariantEntryPointAnalyzer(),
+                InvariantEntryPointAnalyzer.DiagnosticId,
+                compilationAssemblyName: "Madbox.Model");
+
+            Assert.Empty(diagnostics);
         }
-
-        private void Publish(string message) { }
-    }
-}";
-
-        var diagnostics = await AnalyzerTestHarness.GetDiagnosticsByIdAsync(
-            source,
-            @"C:\Repo\Assets\Scripts\Infra\NetworkMessages\Runtime\Implementation\Dispatcher.cs",
-            new InvariantEntryPointAnalyzer(),
-            InvariantEntryPointAnalyzer.DiagnosticId);
-        Assert.Single(diagnostics);
-        Assert.Equal(InvariantEntryPointAnalyzer.DiagnosticId, diagnostics[0].Id);
+        finally
+        {
+            DeleteTempWorkspace(workspace);
+        }
     }
 
     [Fact]
-    public async Task NoDiagnostic_ForNonPublicMethod()
+    public async Task Diagnostic_WhenSiblingContainerMentionsType()
     {
-        const string source = @"
-namespace Scaffold.Infra.NetworkMessages
-{
-    public class Dispatcher
-    {
-        internal void Send(string message)
+        string workspace = CreateTempWorkspace();
+        try
         {
-            Publish(message);
+            string sourceFilePath = Path.Combine(workspace, "Assets", "Scripts", "Core", "Model", "Runtime", "Widget.cs");
+            WriteAsmdef(Path.Combine(workspace, "Assets", "Scripts", "Core", "Model", "Runtime", "Madbox.Model.asmdef"), "Madbox.Model");
+            WriteAsmdef(
+                Path.Combine(workspace, "Assets", "Scripts", "Core", "Model", "Container", "Madbox.Model.Container.asmdef"),
+                "Madbox.Model.Container",
+                "Madbox.Model");
+            WriteFile(
+                Path.Combine(workspace, "Assets", "Scripts", "Core", "Model", "Container", "Installer.cs"),
+                "namespace Madbox.Model.Container { public sealed class Installer { private Madbox.Model.Widget widget; } }");
+
+            var diagnostics = await AnalyzerTestHarness.GetDiagnosticsByIdAsync(
+                CreateWidgetSource(),
+                sourceFilePath,
+                new InvariantEntryPointAnalyzer(),
+                InvariantEntryPointAnalyzer.DiagnosticId,
+                compilationAssemblyName: "Madbox.Model");
+
+            Assert.Single(diagnostics);
         }
-
-        private void Publish(string message) { }
-    }
-}";
-
-        var diagnostics = await AnalyzerTestHarness.GetDiagnosticsByIdAsync(
-            source,
-            @"C:\Repo\Assets\Scripts\Infra\NetworkMessages\Runtime\Implementation\Dispatcher.cs",
-            new InvariantEntryPointAnalyzer(),
-            InvariantEntryPointAnalyzer.DiagnosticId);
-        Assert.Empty(diagnostics);
+        finally
+        {
+            DeleteTempWorkspace(workspace);
+        }
     }
 
     [Fact]
-    public async Task NoDiagnostic_ForPublicParameterlessMethod()
+    public async Task Diagnostic_WhenExternallyMentionedInterfaceHasImplementation()
     {
-        const string source = @"
-namespace Scaffold.Infra.NetworkMessages
-{
-    public class Dispatcher
-    {
-        public void Send()
+        string workspace = CreateTempWorkspace();
+        try
         {
-            Publish();
+            string sourceFilePath = Path.Combine(workspace, "Assets", "Scripts", "Core", "Model", "Runtime", "Widget.cs");
+            WriteAsmdef(Path.Combine(workspace, "Assets", "Scripts", "Core", "Model", "Runtime", "Madbox.Model.asmdef"), "Madbox.Model");
+            WriteAsmdef(
+                Path.Combine(workspace, "Assets", "Scripts", "Core", "Gameplay", "Runtime", "Madbox.Gameplay.asmdef"),
+                "Madbox.Gameplay",
+                "Madbox.Model");
+            WriteFile(
+                Path.Combine(workspace, "Assets", "Scripts", "Core", "Gameplay", "Runtime", "Usage.cs"),
+                "namespace Madbox.Gameplay { public sealed class Usage { private Madbox.Model.IWidgetApi api; } }");
+
+            const string source = @"
+namespace Madbox.Model
+{
+    public interface IWidgetApi
+    {
+        void Execute(string input);
+    }
+
+    public sealed class Widget : IWidgetApi
+    {
+        public void Execute(string input)
+        {
+            Consume(input);
         }
 
-        private void Publish() { }
+        private void Consume(string input) { }
     }
 }";
 
-        var diagnostics = await AnalyzerTestHarness.GetDiagnosticsByIdAsync(
-            source,
-            @"C:\Repo\Assets\Scripts\Infra\NetworkMessages\Runtime\Implementation\Dispatcher.cs",
-            new InvariantEntryPointAnalyzer(),
-            InvariantEntryPointAnalyzer.DiagnosticId);
-        Assert.Empty(diagnostics);
+            var diagnostics = await AnalyzerTestHarness.GetDiagnosticsByIdAsync(
+                source,
+                sourceFilePath,
+                new InvariantEntryPointAnalyzer(),
+                InvariantEntryPointAnalyzer.DiagnosticId,
+                compilationAssemblyName: "Madbox.Model");
+
+            Assert.Single(diagnostics);
+        }
+        finally
+        {
+            DeleteTempWorkspace(workspace);
+        }
     }
 
-    [Fact]
-    public async Task NoDiagnostic_ForTestsAndSamplesPaths()
+    private static string CreateWidgetSource()
     {
-        const string source = @"
-namespace Scaffold.Infra.NetworkMessages
+        return @"
+namespace Madbox.Model
 {
-    public class Dispatcher
+    public sealed class Widget
     {
-        public void Send(string message)
+        public void Execute(string input)
         {
-            Publish(message);
+            Consume(input);
         }
 
-        private void Publish(string message) { }
+        private void Consume(string input) { }
     }
 }";
-
-        var testsDiagnostics = await AnalyzerTestHarness.GetDiagnosticsByIdAsync(
-            source,
-            @"C:\Repo\Assets\Scripts\Infra\NetworkMessages\Tests\DispatcherTests.cs",
-            new InvariantEntryPointAnalyzer(),
-            InvariantEntryPointAnalyzer.DiagnosticId);
-        var samplesDiagnostics = await AnalyzerTestHarness.GetDiagnosticsByIdAsync(
-            source,
-            @"C:\Repo\Assets\Scripts\Infra\NetworkMessages\Samples\DispatcherSample.cs",
-            new InvariantEntryPointAnalyzer(),
-            InvariantEntryPointAnalyzer.DiagnosticId);
-
-        Assert.Empty(testsDiagnostics);
-        Assert.Empty(samplesDiagnostics);
     }
 
-    [Fact]
-    public async Task NoDiagnostic_ForOverrideAndInterfaceMethods()
+    private static string CreateTempWorkspace()
     {
-        const string source = @"
-namespace Scaffold.Infra.NetworkMessages
-{
-    public interface IDispatcher
-    {
-        void Send(string message);
+        string path = Path.Combine(Path.GetTempPath(), "sca0012-tests-" + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(path);
+        return path;
     }
 
-    public abstract class BaseDispatcher
+    private static void WriteAsmdef(string path, string name, params string[] references)
     {
-        public abstract void Send(string message);
+        string referencesJson = references.Length == 0 ? string.Empty : string.Join(", ", references.Select(reference => "\"" + reference + "\""));
+        string content = "{ \"name\": \"" + name + "\", \"references\": [" + referencesJson + "] }";
+        WriteFile(path, content);
     }
 
-    public class Dispatcher : BaseDispatcher
+    private static void WriteFile(string path, string content)
     {
-        public override void Send(string message)
+        string? directory = Path.GetDirectoryName(path);
+        if (!string.IsNullOrWhiteSpace(directory))
         {
-            Publish(message);
+            Directory.CreateDirectory(directory);
         }
 
-        private void Publish(string message) { }
-    }
-}";
-
-        var diagnostics = await AnalyzerTestHarness.GetDiagnosticsByIdAsync(
-            source,
-            @"C:\Repo\Assets\Scripts\Infra\NetworkMessages\Runtime\Implementation\Dispatcher.cs",
-            new InvariantEntryPointAnalyzer(),
-            InvariantEntryPointAnalyzer.DiagnosticId);
-        Assert.Empty(diagnostics);
+        File.WriteAllText(path, content);
     }
 
-    [Fact]
-    public async Task NoDiagnostic_WhenConfiguredPrefixIsUsed()
+    private static void DeleteTempWorkspace(string path)
     {
-        const string source = @"
-namespace Scaffold.Infra.NetworkMessages
-{
-    public class Dispatcher
-    {
-        public void Send(string message)
+        if (Directory.Exists(path))
         {
-            CheckInvariant(message);
-            Publish(message);
+            Directory.Delete(path, true);
         }
-
-        private void CheckInvariant(string message) { }
-        private void Publish(string message) { }
-    }
-}";
-
-        var options = new Dictionary<string, string>
-        {
-            ["scaffold.SCA0012.allowed_prefixes"] = "Check,Assert"
-        };
-
-        var diagnostics = await AnalyzerTestHarness.GetDiagnosticsByIdAsync(
-            source,
-            @"C:\Repo\Assets\Scripts\Infra\NetworkMessages\Runtime\Implementation\Dispatcher.cs",
-            new InvariantEntryPointAnalyzer(),
-            InvariantEntryPointAnalyzer.DiagnosticId,
-            options);
-
-        Assert.Empty(diagnostics);
-    }
-
-    [Fact]
-    public async Task Diagnostic_WhenAbsolutePathContainsTestsButAssetPathIsRuntime()
-    {
-        const string source = @"
-namespace Scaffold.Infra.NetworkMessages
-{
-    public class Dispatcher
-    {
-        public void Send(string message)
-        {
-            Publish(message);
-        }
-
-        private void Publish(string message) { }
-    }
-}";
-
-        var diagnostics = await AnalyzerTestHarness.GetDiagnosticsByIdAsync(
-            source,
-            @"C:\Users\user\Documents\Unity\Tests\Madbox\Assets\Scripts\Infra\NetworkMessages\Runtime\Implementation\Dispatcher.cs",
-            new InvariantEntryPointAnalyzer(),
-            InvariantEntryPointAnalyzer.DiagnosticId);
-
-        Assert.Single(diagnostics);
-    }
-
-    [Fact]
-    public async Task NoDiagnostic_WhenLeadingNullCoalescingAssignmentNormalizesParameter()
-    {
-        const string source = @"
-using System;
-namespace Scaffold.Navigation
-{
-    public class NavigationStack
-    {
-        public void GetAllStackedScreens(Func<int, bool> filter = null)
-        {
-            filter ??= (_) => true;
-            Process(filter);
-        }
-
-        private void Process(Func<int, bool> filter) { }
-    }
-}";
-
-        var diagnostics = await AnalyzerTestHarness.GetDiagnosticsByIdAsync(
-            source,
-            @"C:\Repo\Assets\Scripts\Infra\Navigation\Runtime\Implementation\NavigationStack.cs",
-            new InvariantEntryPointAnalyzer(),
-            InvariantEntryPointAnalyzer.DiagnosticId);
-
-        Assert.Empty(diagnostics);
     }
 
     [Fact]
@@ -328,4 +270,3 @@ namespace Scaffold.App.GameView
         Assert.Empty(diagnostics);
     }
 }
-

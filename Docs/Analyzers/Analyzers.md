@@ -174,7 +174,7 @@ Use this section when you need fast fixes, then use the full rule catalog below 
 3. `SCA0003`: remove nested calls by introducing intermediate locals.
 4. `SCA0020`: reorder class members to expected layout.
 5. `SCA0008` / `SCA0009` / `SCA0010`: normalize naming (`camelCase` private, `PascalCase` public).
-6. `SCA0004` / `SCA0005`: use block bodies and single-line signatures/statements where required.
+6. `SCA0004` / `SCA0005`: use block bodies and keep method/constructor signatures single-line.
 7. `SCA0021`: in MVVM descendants, use bind APIs instead of manual `PropertyChanged` wiring.
 
 ### Rule lookup tip
@@ -288,13 +288,14 @@ public int GetCount()
 
 ---
 
-### SCA0005 - No Multi-Line Signatures or Statements
+### SCA0005 - No Multi-Line Method/Constructor Signatures
 
 Method and constructor signatures must fit on a single line. Method signatures include trailing generic constraints (`where T : ...`) and those constraints must stay on the same line as the signature.
 
-Statements inside a method body must not span multiple lines.
+Multiline initializers are allowed (for example object/collection initializers in local declarations or assignments).
 
 **Exception:** Fluent/builder chains using member access (`.Method().Method()`) are permitted to span lines.
+**Exception:** Local declarations that use object/collection initializers are permitted to span lines.
 
 ```csharp
 // VIOLATION - signature spans multiple lines
@@ -316,13 +317,20 @@ builder
     .WithName("test")
     .WithPriority(1)
     .Build();
+
+// ALLOWED - multiline collection initializer local declaration
+List<int> values = new List<int>
+{
+    1,
+    2
+};
 ```
 
 ---
 
 ### SCA0006 - Small Functions
 
-Methods must not exceed 8 lines of code (configurable). Refactor by extracting steps into well-named helper methods.
+Methods must not exceed 12 non-empty lines of code by default (configurable). Blank lines are ignored. Refactor by extracting steps into well-named helper methods.
 
 **Configuration:** Override the threshold in `.editorconfig`:
 ```ini
@@ -330,7 +338,7 @@ scaffold.SCA0006.max_lines = 12
 ```
 
 ```csharp
-// VIOLATION - 9 lines
+// VIOLATION - 13 non-empty lines (default limit is 12)
 public void ProcessOrder(Order order)
 {
     ValidateOrder(order);
@@ -481,9 +489,14 @@ public async Awaitable LoadSceneAsync(string name) { }
 
 ---
 
-### SCA0012 - Validate Invariants at Public Runtime Entry Points
+### SCA0012 - Validate Invariants for Externally Used Public Runtime Entry Points
 
-Public runtime API methods should validate invariants at the beginning of the method body.
+Public runtime API methods should validate invariants at entry only when their containing type is externally consumed.
+
+External consumption definition:
+- non-sibling assembly references and mentions the type
+- sibling `.Container` assemblies are treated as external consumers
+- if a non-sibling assembly mentions an interface, implementations of that interface are also required to validate invariants
 
 This rule analyzes public, non-override methods in `Runtime/` paths and skips `Tests/` and `Samples/`.
 It also skips parameterless methods.
@@ -551,7 +564,6 @@ dotnet_diagnostic.SCA0021.severity = warning
 dotnet_diagnostic.SCA0022.severity = warning
 dotnet_diagnostic.SCA0023.severity = warning
 dotnet_diagnostic.SCA0024.severity = warning
-dotnet_diagnostic.SCA0025.severity = warning
 dotnet_diagnostic.SCA0026.severity = warning
 dotnet_diagnostic.SCA0028.severity = warning
 dotnet_diagnostic.SCA0029.severity = warning
@@ -706,9 +718,9 @@ public sealed class MainMenuView
 
 ---
 
-### SCA0017 - Validate Invariants at Public Runtime Constructors
+### SCA0017 - Validate Invariants for Externally Used Public Runtime Constructors
 
-Public constructors in `Runtime/` paths should validate invariants at entry when they receive parameters.
+Public constructors in `Runtime/` paths should validate invariants at entry when they receive parameters and the containing type is externally consumed (same scope rules as `SCA0012`).
 
 This rule is intentionally conservative and skips:
 - constructors without parameters
@@ -975,26 +987,6 @@ Example:
 scaffold.SCA0024.suffix_folder_map = .Runtime=Runtime;.Tests=Tests;.PlayModeTests=Tests/PlayMode;.Samples=Samples;.Container=Container;.Editor=Editor;.Authoring=Authoring
 scaffold.SCA0024.disallow_module_root_asmdef = true
 scaffold.SCA0024.allow_unknown_suffix_in_any_subfolder = true
-```
-
----
-
-### SCA0025 - Boundary Interfaces/Types Must Live Under Contracts
-
-Public boundary declarations should live under a `Contracts/` path segment (recommended: `Runtime/Contracts/`).
-
-Default enforced kinds:
-- `interface`
-
-Config:
-- `scaffold.SCA0025.enforced_kinds` (values: `interface`, `class`, `struct`, `record`, `enum`, `delegate`)
-- `scaffold.SCA0025.exempt_module_roots` (comma/semicolon list)
-- `scaffold.SCA0025.exempt_types` (full type names or short names)
-
-```ini
-[*.cs]
-scaffold.SCA0025.enforced_kinds = interface
-scaffold.SCA0025.exempt_module_roots = Scaffold.Records
 ```
 
 ---

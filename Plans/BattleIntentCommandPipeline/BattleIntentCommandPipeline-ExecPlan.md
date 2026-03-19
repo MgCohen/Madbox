@@ -31,7 +31,7 @@ A developer will be able to run battle tests and observe the same gameplay outco
   Evidence: `Assets/Scripts/Core/Battle/Runtime/EnemyService.cs` includes `TryHandleTryPlayerAttack` and `TryHandleEnemyHitObserved` methods.
 
 - Observation: Repository analyzers enforce strict placement/order constraints, so interface/type layering had to stay in analyzer-compliant runtime shape rather than introducing extra public message types outside expected boundaries.
-  Evidence: intermediate diagnostics during implementation (`SCA0015`, `SCA0025`) required consolidation back to single runtime event surface with command routing kept internal.
+  Evidence: intermediate diagnostics during implementation (`SCA0015`) required consolidation back to single runtime event surface with command routing kept internal.
 
 ## Decision Log
 

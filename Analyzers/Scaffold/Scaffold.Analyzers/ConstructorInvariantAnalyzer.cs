@@ -51,6 +51,8 @@ namespace Scaffold.Analyzers
             var constructorDeclaration = (ConstructorDeclarationSyntax)context.Node;
             var symbol = context.SemanticModel.GetDeclaredSymbol(constructorDeclaration);
             if (!IsCandidateEntryPoint(constructorDeclaration, symbol)) return;
+            if (symbol == null) return;
+            if (!InvariantUsageScope.ShouldValidateForType(context.Compilation, symbol.ContainingType)) return;
             if (ShouldSkipForPrimitiveLikeParameters(symbol, options)) return;
 
             var allowedPrefixes = GetAllowedPrefixes(options);
