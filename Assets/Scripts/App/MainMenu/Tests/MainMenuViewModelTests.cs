@@ -1,6 +1,9 @@
 using System;
+using Madbox.Battle.Services;
+using Madbox.Gold;
 using Madbox.Gold.Contracts;
 using NUnit.Framework;
+using Scaffold.Navigation.Contracts;
 using UnityEngine;
 
 namespace Madbox.App.MainMenu.Tests
@@ -37,12 +40,40 @@ namespace Madbox.App.MainMenu.Tests
             Assert.AreEqual("Gold: 2", text);
         }
 
+        [Test]
+        public void StartGame_WhenCalled_OpensGameView()
+        {
+            FakeNavigation navigation = new FakeNavigation();
+            MainMenuViewModel viewModel = CreateStartGameViewModel(navigation, "level-from-menu");
+            viewModel.StartGame();
+            AssertOpenedGameView(navigation, "level-from-menu");
+        }
+
         private MainMenuViewModel CreateBoundViewModel(FakeGoldService service)
         {
             MainMenuViewModel viewModel = new MainMenuViewModel();
             viewModel.Construct(service);
             viewModel.Bind(null);
             return viewModel;
+        }
+
+        private MainMenuViewModel CreateStartGameViewModel(FakeNavigation navigation, string levelId)
+        {
+            FakeGoldService service = new FakeGoldService(0);
+            MainMenuViewModel viewModel = new MainMenuViewModel();
+            viewModel.Construct(service);
+            viewModel.SelectedLevelId = levelId;
+            viewModel.Bind(navigation);
+            return viewModel;
+        }
+
+        private void AssertOpenedGameView(FakeNavigation navigation, string expectedLevelId)
+        {
+            Assert.IsNotNull(navigation.OpenedController);
+            Assert.AreEqual("Madbox.Battle.Services.GameViewModel", navigation.OpenedController.GetType().FullName);
+            GameViewModel gameViewModel = navigation.OpenedController as GameViewModel;
+            Assert.IsNotNull(gameViewModel);
+            Assert.AreEqual(expectedLevelId, gameViewModel.SelectedLevelId.Value);
         }
 
         private ViewFixture CreateViewFixture(MainMenuViewModel viewModel)
@@ -109,17 +140,41 @@ namespace Madbox.App.MainMenu.Tests
         {
             public FakeGoldService(int initialGold)
             {
-                CurrentGold = initialGold;
+                wallet = new GoldWallet(initialGold);
             }
 
-            public int CurrentGold { get; private set; }
-
-            public event Action<int> GoldChanged;
+            private readonly GoldWallet wallet;
 
             public void Add(int amount)
             {
-                CurrentGold += amount;
-                GoldChanged?.Invoke(CurrentGold);
+                wallet.Add(amount);
+            }
+
+            public GoldWallet GetWallet()
+            {
+                return wallet;
+            }
+        }
+
+        private sealed class FakeNavigation : INavigation
+        {
+            public IViewController CurrentController => null;
+
+            public IViewController OpenedController { get; private set; }
+
+            public void Open<TViewController>(TViewController controller, bool closeCurrent = false, NavigationOptions options = null)
+                where TViewController : IViewController
+            {
+                OpenedController = controller;
+            }
+
+            public void Close<TViewController>(TViewController controller) where TViewController : IViewController
+            {
+            }
+
+            public IViewController Return()
+            {
+                return null;
             }
         }
     }

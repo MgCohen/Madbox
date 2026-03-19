@@ -10,12 +10,14 @@
 
 - Owns menu-local viewmodel/view flow for displaying current gold backed by `GoldWallet`.
 - Owns button-to-viewmodel command routing for `+1` gold.
+- Owns Start Game command routing to `GameView`.
 - Does not own economy rules beyond invoking `IGoldService`.
 
 ## Public API
 
 - `MainMenuViewModel.AddOneGold()`: increments gold through injected `IGoldService`.
-- `MainMenuView`: binds `viewModel.Gold` to TextMeshPro text and button click to `AddOneGold`.
+- `MainMenuViewModel.StartGame()`: opens `GameViewModel` through `INavigation`.
+- `MainMenuView`: binds `viewModel.Gold` to TextMeshPro text and button clicks to `AddOneGold` and `StartGame`.
 
 ## Testing
 
