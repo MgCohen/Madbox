@@ -4,6 +4,7 @@
     "references": [
         "Madbox.Scope",
         "Scaffold.Types",
+        "Scaffold.Maps",
         "VContainer",
         "Unity.Addressables",
         "Unity.ResourceManager"

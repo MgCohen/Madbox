@@ -9,31 +9,27 @@ namespace Madbox.Addressables
 {
     internal sealed class AssetHandle<T> : IAssetHandle<T> where T : UnityEngine.Object
     {
-        public AssetHandle(string id, T asset, Action onRelease)
+        public AssetHandle(T asset, Action onRelease)
         {
-            GuardConstructor(id, asset, onRelease);
-            Id = id;
+            GuardConstructor(asset, onRelease);
             this.asset = asset;
             this.onRelease = onRelease;
             state = AssetHandleState.Ready;
             completion.TrySetResult(true);
         }
 
-        public AssetHandle(string id)
+        public AssetHandle()
         {
-            GuardHandleId(id);
-            Id = id;
             state = AssetHandleState.Loading;
         }
 
-        public string Id { get; }
         public Type AssetType => typeof(T);
         public UnityEngine.Object UntypedAsset => IsReady ? asset : null;
         public T Asset
         {
             get
             {
-                if (!IsReady) { throw new InvalidOperationException($"Asset handle '{Id}' is not ready."); }
+                if (!IsReady) { throw new InvalidOperationException("Asset handle is not ready."); }
                 return asset;
             }
         }
@@ -84,16 +80,10 @@ namespace Madbox.Addressables
             onRelease?.Invoke();
         }
 
-        private void GuardConstructor(string id, T asset, Action onRelease)
+        private void GuardConstructor(T asset, Action onRelease)
         {
-            GuardHandleId(id);
             if (asset == null) { throw new ArgumentNullException(nameof(asset)); }
             if (onRelease == null) { throw new ArgumentNullException(nameof(onRelease)); }
-        }
-
-        private void GuardHandleId(string id)
-        {
-            if (string.IsNullOrWhiteSpace(id)) { throw new ArgumentException("Handle id cannot be empty.", nameof(id)); }
         }
     }
 }

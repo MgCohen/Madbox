@@ -8,14 +8,12 @@ namespace Madbox.Addressables
 {
     internal sealed class AssetGroupHandle<T> : IAssetGroupHandle<T> where T : UnityEngine.Object
     {
-        public AssetGroupHandle(string id, IReadOnlyList<IAssetHandle<T>> handles)
+        public AssetGroupHandle(IReadOnlyList<IAssetHandle<T>> handles)
         {
-            GuardConstructor(id, handles);
-            Id = id;
+            GuardConstructor(handles);
             TypedHandles = handles;
         }
 
-        public string Id { get; }
         public bool IsReleased => releasedFlag != 0;
         public IReadOnlyList<IAssetHandle<T>> TypedHandles { get; }
 
@@ -37,9 +35,8 @@ namespace Madbox.Addressables
             foreach (IAssetHandle<T> handle in TypedHandles) { handle.Release(); }
         }
 
-        private void GuardConstructor(string id, IReadOnlyList<IAssetHandle<T>> handles)
+        private void GuardConstructor(IReadOnlyList<IAssetHandle<T>> handles)
         {
-            if (string.IsNullOrWhiteSpace(id)) { throw new ArgumentException("Group handle id cannot be empty.", nameof(id)); }
             if (handles == null) { throw new ArgumentNullException(nameof(handles)); }
         }
     }
