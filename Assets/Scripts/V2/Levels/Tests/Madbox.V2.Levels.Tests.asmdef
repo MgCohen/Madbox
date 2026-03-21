@@ -3,7 +3,8 @@
     "rootNamespace": "Madbox.V2.Levels.Tests",
     "references": [
         "Madbox.V2.Levels",
-        "Madbox.V2.Enemies"
+        "Madbox.V2.Enemies",
+        "Unity.Addressables"
     ],
     "includePlatforms": [
         "Editor"

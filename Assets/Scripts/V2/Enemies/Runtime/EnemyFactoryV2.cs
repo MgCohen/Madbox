@@ -5,15 +5,15 @@ namespace Madbox.V2.Enemies
 {
     public class EnemyFactoryV2
     {
-        public EnemyActor Create(EnemyActor prefab, EnemySpawnRequestV2 request)
+        public EnemyActor Create(EnemyActor prefab, Vector3 position, Quaternion rotation, Transform parent = null)
         {
             if (prefab == null)
             {
                 throw new ArgumentNullException(nameof(prefab));
             }
 
-            EnemyActor instance = UnityEngine.Object.Instantiate(prefab, request.Position, request.Rotation, request.Parent);
-            instance.Initialize(request);
+            EnemyActor instance = UnityEngine.Object.Instantiate(prefab, position, rotation, parent);
+            instance.Initialize();
             return instance;
         }
     }

@@ -2,7 +2,8 @@
     "name": "Madbox.V2.Levels",
     "rootNamespace": "Madbox.V2.Levels",
     "references": [
-        "Madbox.V2.Enemies"
+        "Madbox.V2.Enemies",
+        "Unity.Addressables"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

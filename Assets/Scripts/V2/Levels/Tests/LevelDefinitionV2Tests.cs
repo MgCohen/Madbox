@@ -1,65 +1,55 @@
 using System.Collections.Generic;
 using System.Reflection;
 using Madbox.V2.Enemies;
+using Madbox.V2.Levels.Rules;
 using NUnit.Framework;
 using UnityEngine;
+using UnityEngine.AddressableAssets;
 
 namespace Madbox.V2.Levels.Tests
 {
     public class LevelDefinitionV2Tests
     {
         [Test]
-        public void ToRuntimeRequest_WithValidData_ReturnsMappedEnemyPlans()
+        public void EnemyEntries_AreExposedFromSerializedLevel()
         {
-            EnemyActor enemyPrefab = CreateEnemyPrefab();
-            LevelEnemySpawnEntryV2 entry = CreateEnemyEntry(enemyPrefab, 3);
-            LevelDefinitionV2 level = CreateLevel("level-v2-test", "GameView", entry);
+            AssetReference sceneAssetReference = CreateSceneReference("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
+            AssetReferenceT<EnemyActor> enemyAssetReference = CreateEnemyReference("bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb");
+            LevelEnemySpawnEntryV2 entry = CreateEnemyEntry(enemyAssetReference, 3);
+            LevelDefinitionV2 level = CreateLevel(sceneAssetReference, entry);
 
-            LevelRuntimeRequestV2 request = level.ToRuntimeRequest();
-
-            Assert.AreEqual("level-v2-test", request.LevelId);
-            Assert.AreEqual("GameView", request.SceneKey);
-            Assert.AreEqual(1, request.Enemies.Count);
-            Assert.AreSame(enemyPrefab, request.Enemies[0].EnemyPrefab);
-            Assert.AreEqual(3, request.Enemies[0].Count);
-            Object.DestroyImmediate(level);
-            Object.DestroyImmediate(enemyPrefab.gameObject);
-        }
-
-        [Test]
-        public void TryValidate_WithoutEnemyEntries_ReturnsFalse()
-        {
-            LevelDefinitionV2 level = CreateLevel("level-v2-empty", "GameView");
-
-            bool isValid = level.TryValidate(out string error);
-
-            Assert.IsFalse(isValid);
-            Assert.AreEqual("At least one enemy entry is required.", error);
+            Assert.AreSame(sceneAssetReference, level.SceneAssetReference);
+            Assert.AreEqual(1, level.EnemyEntries.Count);
+            Assert.AreSame(enemyAssetReference, level.EnemyEntries[0].EnemyAssetReference);
+            Assert.AreEqual(3, level.EnemyEntries[0].Count);
             Object.DestroyImmediate(level);
         }
 
-        private static LevelDefinitionV2 CreateLevel(string id, string sceneKey, params LevelEnemySpawnEntryV2[] entries)
+        private static LevelDefinitionV2 CreateLevel(AssetReference sceneAssetReference, params LevelEnemySpawnEntryV2[] entries)
         {
             LevelDefinitionV2 level = ScriptableObject.CreateInstance<LevelDefinitionV2>();
-            SetPrivateField(level, "levelId", id);
-            SetPrivateField(level, "sceneKey", sceneKey);
+            SetPrivateField(level, "sceneAssetReference", sceneAssetReference);
             SetPrivateField(level, "enemyEntries", new List<LevelEnemySpawnEntryV2>(entries));
+            SetPrivateField(level, "gameRules", new List<LevelRuleDefinitionV2>());
             return level;
         }
 
-        private static LevelEnemySpawnEntryV2 CreateEnemyEntry(EnemyActor prefab, int count)
+        private static LevelEnemySpawnEntryV2 CreateEnemyEntry(AssetReferenceT<EnemyActor> enemyAssetReference, int count)
         {
             LevelEnemySpawnEntryV2 entry = new LevelEnemySpawnEntryV2();
-            SetPrivateField(entry, "enemyPrefab", prefab);
+            SetPrivateField(entry, "enemyAssetReference", enemyAssetReference);
             SetPrivateField(entry, "count", count);
             return entry;
         }
 
-        private static EnemyActor CreateEnemyPrefab()
+        private static AssetReference CreateSceneReference(string guid)
         {
-            GameObject go = new GameObject("EnemyPrefab");
-            EnemyActor actor = go.AddComponent<EnemyActor>();
-            return actor;
+            return new AssetReference(guid);
+        }
+
+        private static AssetReferenceT<EnemyActor> CreateEnemyReference(string guid)
+        {
+            return new AssetReferenceT<EnemyActor>(guid);
         }
 
         private static void SetPrivateField(object target, string fieldName, object value)

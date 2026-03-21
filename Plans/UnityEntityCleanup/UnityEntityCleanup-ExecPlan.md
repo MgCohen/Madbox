@@ -16,7 +16,8 @@ After this change, designers and engineers can build gameplay content directly w
 - [x] (2026-03-21 00:00Z) Reordered milestones to start with a full enemy pass before levels.
 - [ ] Implement Milestone 1 (Enemies V2 full pass: prefab, factory, runtime manager, dumb forward behavior) and validate with `.agents/scripts/validate-changes.cmd` (completed: runtime assembly, actor/factory/registry/spawner/move-forward behavior, and tests added; remaining: resolve unrelated failing PlayMode test and repository-wide analyzer debt so validation gate is clean).
 - [ ] Implement Milestone 2 (Levels V2 foundation consuming enemy prefabs) and validate with `.agents/scripts/validate-changes.cmd` (completed: V2 levels assembly, `LevelDefinitionV2`, spawn entry/runtime request models, and tests; remaining: resolve unrelated failing PlayMode test and repository-wide analyzer debt so validation gate is clean).
-- [ ] Implement Milestone 3 (Battle + services + Addressables V2 path), migrate one vertical slice, and validate.
+- [x] (2026-03-21 00:00Z) Simplified Levels V2 schema to Addressables-first references: `LevelEnemySpawnEntryV2` now stores enemy `AssetReference`, `LevelDefinitionV2` stores scene `AssetReference`, and unused ID fields were removed from the V2 level model.
+- [ ] Implement Milestone 3 (Battle + services + Addressables V2 path), migrate one vertical slice, and validate. (2026-03-21: V2-only `Madbox.V2.Battle` — `GameFactoryV2`, `GameV2`, `RuleHandlerRegistryV2` + `TimeElapsedCompleteRuleHandlerV2`, data-only `LevelRuleDefinitionV2` / `TimeElapsedCompleteRuleV2`; no legacy migration wiring.)
 - [ ] Run full regression/acceptance checks, remove migration blockers, and commit milestone outputs.
 - [ ] Complete V2 migration for targeted content and decommission legacy paths.
 
@@ -51,13 +52,29 @@ After this change, designers and engineers can build gameplay content directly w
   Rationale: Keeps versioned architecture grouped at the top level and makes future migrations easier to navigate.
   Date/Author: 2026-03-21 / Codex
 
+- Decision: Use `AssetReference` (not raw strings) for scene and enemy entries in Levels V2, and remove V2 IDs that currently have no runtime value (for now).
+  Rationale: Keeps level authoring aligned with the Addressables pipeline and reduces schema noise until identifiers are required by concrete gameplay features.
+  Date/Author: 2026-03-21 / Codex
+
+- Decision: Introduce V2 battle as a separate assembly (`Madbox.V2.Battle`) with `GameFactoryV2` and rule handlers; `LevelDefinitionV2` owns all battle configuration (scene, enemy spawn entries, rule assets). No legacy `Game`/`GameService` migration in this step.
+  Rationale: Keeps the new vertical slice isolated and lets the level ScriptableObject remain the single source of truth for what runs in a battle.
+  Date/Author: 2026-03-21 / Codex
+
+- Decision: Replace per-rule `GameContextV2` + `TryEvaluate` on ScriptableObjects with **data-only** `LevelRuleDefinitionV2` assets, **`RuleHandler<TRule>`** implementations (each handler is constructed with its rule asset), and a **`RuleHandlerRegistryV2`** that builds handlers from `LevelDefinitionV2.GameRules` via **`CreateHandlers`**; **`Evaluate(GameV2 game, out GameEndReasonV2 reason)`** receives the full **`GameV2`** so handlers can read elapsed time, enemy registry, level, and later player/services without a slim state interface.
+  Rationale: Keeps level assets as pure configuration while logic lives in testable handlers with access to full battle state.
+  Date/Author: 2026-03-21 / Codex
+
+- Decision: Use **`AssetReferenceT<EnemyActor>`** on `LevelEnemySpawnEntryV2`; remove **`EnemySpawnRequestV2` / `runtimeId`** and track enemies in **`EnemyServiceV2`** by instance; remove **`BattleFactoryV2`** / **`IEnemyPrefabResolverV2`** in favor of **`EnemyServiceV2.Spawn`** (which delegates to **`EnemyFactoryV2`**) at the composition boundary (future **`GameFactoryV2`** can load scene + wire services).
+  Rationale: Less indirection for spawning; identity is the spawned `EnemyActor` instance unless a system truly needs stable IDs later.
+  Date/Author: 2026-03-21 / Codex
+
 ## Outcomes & Retrospective
 
 At this stage, the planning artifact is corrected to the repository's ExecPlan standard and is ready to be used for implementation. Implementation has not started yet in this revision. The key lesson is that compliance with `PLANS.md` formatting and living-document sections must be enforced before execution work begins.
 
-Milestone 1 implementation has started and produced a working V2 enemy runtime surface (`EnemyActor`, `EnemyFactoryV2`, `EnemyRuntimeRegistryV2`, `EnemySpawnerV2`, `EnemyMoveForwardBehaviour`) plus edit-mode tests. Remaining work for strict milestone closure is not implementation scope but validation gate cleanup of unrelated pre-existing failures.
+Milestone 1 implementation has started and produced a working V2 enemy runtime surface (`EnemyActor`, `EnemyFactoryV2`, `EnemyServiceV2`, `EnemyMoveForwardBehaviour`) plus edit-mode tests. Remaining work for strict milestone closure is not implementation scope but validation gate cleanup of unrelated pre-existing failures.
 
-Milestone 2 implementation has started and produced a working V2 level authoring/runtime adapter surface (`LevelDefinitionV2`, `LevelEnemySpawnEntryV2`, `LevelRuntimeRequestV2`). Enemy prefab references now flow through level definitions to runtime spawn plans with test coverage. As with Milestone 1, strict gate closure remains blocked by unrelated pre-existing PlayMode and analyzer failures.
+Milestone 2 implementation has started and produced a working V2 level authoring surface (`LevelDefinitionV2`, `LevelEnemySpawnEntryV2`). Runtime uses `Level.EnemyEntries` directly; `GameFactoryV2.PrepareAndSpawnEnemiesFromLevelAsync` loads Addressables per entry and `GameV2.SpawnEnemyCopies` performs instantiation via `EnemyServiceV2`. As with Milestone 1, strict gate closure remains blocked by unrelated pre-existing PlayMode and analyzer failures.
 
 ## Context and Orientation
 
@@ -86,6 +103,7 @@ If exact existing script paths differ, the first implementation task is to map t
 Milestone 1 establishes a full Enemies V2 pass and is the first executable vertical slice. Implement enemy authoring as prefab + MonoBehaviour, a factory service that creates enemies, and a runtime manager service that tracks all alive enemies and exposes query/fetch methods for gameplay systems. Include a minimal "dumb" behavior component that moves each spawned enemy forward continuously so the new path has visible runtime behavior. Do not introduce any ScriptableObject enemy definition in V2.
 
 Milestone 2 establishes Levels V2 as the new content source after enemy contracts are proven. Create a `LevelDefinitionV2` ScriptableObject (or a project-specific schema base class if one already exists and is actively used) that stores level identity, scene key/reference, enemy prefab spawn entries, and rule parameters. Add validation methods so broken references are caught in editor time. Then add a runtime adapter that transforms a level asset into the battle bootstrap input expected by current orchestration services.
+For the current iteration, prefer an Addressables-first schema: scene and enemy fields are `AssetReference` values, and optional IDs should be omitted unless a concrete runtime consumer exists.
 
 Milestone 3 wires Addressables and battle orchestration. Services should remain serializable C# classes but receive resolved references (loaded level assets, enemy prefabs) through a resolver boundary. Update battle startup flow so V2 content can launch a battle from `LevelDefinitionV2` and prefab enemies while legacy flow remains available behind a toggle. Validate one complete vertical slice end to end.
 
@@ -112,7 +130,7 @@ Run all commands from repository root.
       - Add `EnemyFactoryV2` in `Assets/Scripts/V2/Enemies/` that instantiates enemy prefabs and performs initialization.
       - Define stable creation input (spawn position, rotation, optional owner/team/context).
     - Service to handle all enemies during gameplay:
-      - Add `EnemyRuntimeRegistryV2` (or similarly named service) in `Assets/Scripts/V2/Enemies/` that tracks spawned/despawned enemies.
+      - Add `EnemyServiceV2` in `Assets/Scripts/V2/Enemies/` that spawns via `EnemyFactoryV2`, registers instances, and tracks spawned/despawned enemies.
       - Expose fetch/query methods for current enemies (all alive, by team, nearest candidate hooks if needed later).
     - Basic enemy behavior ("dumb" simulation):
       - Add `EnemyMoveForwardBehaviour` MonoBehaviour that moves forward every frame after spawn.
@@ -150,7 +168,7 @@ Run all commands from repository root.
 
 Behavioral acceptance for this ExecPlan:
 
-- Spawn at least one enemy prefab through `EnemyFactoryV2` and verify it is tracked by `EnemyRuntimeRegistryV2`.
+- Spawn at least one enemy prefab through `EnemyServiceV2` (which uses `EnemyFactoryV2`) and verify it is tracked by the service.
 - Observe spawned enemies continuously moving forward due to `EnemyMoveForwardBehaviour`.
 - Author a `LevelDefinitionV2` asset containing at least two enemy prefab entries and a scene reference/key.
 - Run the game flow that starts battle from selected level using V2 enemy prefab references.
@@ -202,13 +220,13 @@ Only create these when scope/risk meets the criteria in `PLANS.md`.
 Prescriptive interfaces/types that must exist by end of migration:
 
 - `Assets/Scripts/V2/Enemies/EnemyFactoryV2.cs`
-  - Service that instantiates enemy prefabs and applies spawn initialization.
-- `Assets/Scripts/V2/Enemies/EnemyRuntimeRegistryV2.cs`
-  - Service that tracks active enemies and exposes fetch/query methods for gameplay systems.
+  - Instantiates enemy prefabs and applies spawn initialization (used by `EnemyServiceV2`).
+- `Assets/Scripts/V2/Enemies/EnemyServiceV2.cs`
+  - Orchestrator: spawns through the factory, tracks active enemies, and exposes fetch/query/unregister for gameplay systems.
 - `Assets/Scripts/V2/Enemies/EnemyMoveForwardBehaviour.cs`
   - MonoBehaviour that moves enemy forward every frame after creation.
 - `Assets/Scripts/V2/Levels/LevelDefinitionV2.cs`
-  - ScriptableObject containing level metadata, scene reference/key, and enemy prefab spawn entries.
+  - ScriptableObject containing scene `AssetReference` and enemy spawn entries.
 - `Assets/Scripts/V2/Levels/LevelEnemySpawnEntry.cs`
   - Serializable entry containing prefab reference and spawn parameters.
 - `Assets/Scripts/V2/Enemies/EnemyActor.cs`
