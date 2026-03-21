@@ -3,6 +3,7 @@
     "rootNamespace": "Madbox.LiveOps.Container",
     "references": [
         "Madbox.LiveOps",
+        "Madbox.LiveOps.DTO",
         "VContainer"
     ],
     "includePlatforms": [],

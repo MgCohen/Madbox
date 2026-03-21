@@ -1,4 +1,5 @@
-using Madbox.LiveOps.Contracts;
+using System;
+using MadboxLiveOpsContracts;
 using Unity.Services.CloudCode.Core;
 
 namespace LiveOps.CloudCode.Services

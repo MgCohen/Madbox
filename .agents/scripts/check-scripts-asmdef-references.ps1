@@ -2,7 +2,7 @@
 param(
     [string]$ProjectPath = (Get-Location).Path,
     [string]$ScriptsRoot = "Assets/Scripts",
-    [string[]]$ExcludedAssemblyNames = @("Scaffold.Schemas"),
+    [string[]]$ExcludedAssemblyNames = @("Scaffold.Schemas", "Madbox.LiveOps.DTO"),
     [string[]]$ExcludedGuidReferences = @("GUID:c72c3642ec330a340ad91bd6bf5d6bdc")
 )
 

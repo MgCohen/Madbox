@@ -1,6 +1,6 @@
 using System.Threading;
 using System.Threading.Tasks;
-using Madbox.LiveOps.Contracts;
+using MadboxLiveOpsContracts;
 using UnityEngine;
 using VContainer;
 
@@ -15,18 +15,20 @@ namespace Madbox.LiveOps
 
         public async Task<PingResponse> PingAsync(CancellationToken cancellationToken = default)
         {
+            return await RunPingAsync(cancellationToken);
+        }
+
+        private async Task<PingResponse> RunPingAsync(CancellationToken cancellationToken)
+        {
             if (liveOpsService == null)
             {
                 Debug.LogError("LiveOps service is not injected.");
                 return new PingResponse { Ok = false, Message = "service-not-injected", Source = "unity-probe" };
             }
 
-            if (liveOpsService is LiveOpsUgsService ugs)
-            {
-                ugs.UseFallback = useFallback;
-            }
-
-            PingResponse response = await liveOpsService.PingAsync(new PingRequest(message), cancellationToken);
+            if (liveOpsService is LiveOpsService liveOps) liveOps.UseFallback = useFallback;
+            PingRequest pingRequest = new PingRequest(message);
+            PingResponse response = await liveOpsService.PingAsync(pingRequest, cancellationToken);
             Debug.Log($"LiveOps ping => ok:{response.Ok} source:{response.Source} message:{response.Message}");
             return response;
         }

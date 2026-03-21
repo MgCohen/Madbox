@@ -2,10 +2,11 @@
     "name": "Madbox.LiveOps",
     "rootNamespace": "Madbox.LiveOps",
     "references": [
-        "VContainer",
         "Unity.Services.Core",
         "Unity.Services.Authentication",
-        "Unity.Services.CloudCode"
+        "Unity.Services.CloudCode",
+        "Madbox.LiveOps.DTO",
+        "VContainer"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
