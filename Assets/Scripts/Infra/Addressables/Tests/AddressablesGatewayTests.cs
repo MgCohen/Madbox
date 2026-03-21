@@ -9,7 +9,6 @@ using NUnit.Framework;
 using Scaffold.Types;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
-using VContainer;
 #pragma warning disable SCA0003
 #pragma warning disable SCA0005
 #pragma warning disable SCA0006
@@ -246,15 +245,15 @@ namespace Madbox.Addressables.Tests
         }
 
         [Test]
-        public void Gateway_AsAsyncLayerInitializable_RegistersPreloadedAsset()
+        public void Gateway_AsAsyncLayerInitializable_InitializesThroughInterface()
         {
             TestAddressableAssetClient client = CreateClient();
             BuildAssetPreloadConfig(client, CreateEnemyBeeReference(), PreloadMode.Normal);
             AddressablesGateway gateway = CreateGateway(client);
-            NoopInitializationContext context = new NoopInitializationContext();
 
-            ((Madbox.Scope.Contracts.IAsyncLayerInitializable)gateway).InitializeAsync(context, null, CancellationToken.None).GetAwaiter().GetResult();
-            Assert.AreEqual(1, context.RegisterCalls);
+            ((Madbox.Scope.Contracts.IAsyncLayerInitializable)gateway).InitializeAsync(null, CancellationToken.None).GetAwaiter().GetResult();
+            Assert.AreEqual(1, client.SyncCalls);
+            Assert.AreEqual(1, client.CountLoadCallsForType(typeof(TestAsset)));
         }
 
         [Test]
@@ -263,12 +262,11 @@ namespace Madbox.Addressables.Tests
             TestAddressableAssetClient client = CreateClient();
             BuildAssetPreloadConfig(client, CreateEnemyBeeReference(), PreloadMode.Normal);
             AddressablesGateway gateway = CreateGateway(client);
-            NoopInitializationContext context = new NoopInitializationContext();
             using CancellationTokenSource cancellationSource = new CancellationTokenSource();
             cancellationSource.Cancel();
 
             Assert.Throws<OperationCanceledException>(() =>
-                ((Madbox.Scope.Contracts.IAsyncLayerInitializable)gateway).InitializeAsync(context, null, cancellationSource.Token).GetAwaiter().GetResult());
+                ((Madbox.Scope.Contracts.IAsyncLayerInitializable)gateway).InitializeAsync(null, cancellationSource.Token).GetAwaiter().GetResult());
         }
 
         private static TestAddressableAssetClient CreateClient()
@@ -471,19 +469,6 @@ namespace Madbox.Addressables.Tests
             public string AssetId;
         }
 
-        private sealed class NoopInitializationContext : ILayerInitializationContext
-        {
-            public int RegisterCalls { get; private set; }
-
-            public void RegisterTypeForChild(Type serviceType, Type implementationType, Lifetime lifetime, ChildScopeDelegationPolicy policy = ChildScopeDelegationPolicy.NextChildOnly)
-            {
-            }
-
-            public void RegisterInstanceForChild(Type serviceType, object instance, Lifetime lifetime, ChildScopeDelegationPolicy policy = ChildScopeDelegationPolicy.NextChildOnly)
-            {
-                RegisterCalls++;
-            }
-        }
     }
 }
 #pragma warning restore SCA0006

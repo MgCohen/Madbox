@@ -1,7 +1,7 @@
-﻿using System;
+using System;
 using Madbox.App.GameView.Container;
 using Madbox.Gold.Container;
-using Madbox.Scope.Contracts;
+using Madbox.Scope;
 using Scaffold.Events.Container;
 using Scaffold.Navigation;
 using Scaffold.Navigation.Container;
@@ -10,7 +10,7 @@ using VContainer;
 
 namespace Madbox.App.Bootstrap
 {
-    internal sealed class BootstrapInfraInstaller : ILayerInstaller
+    internal sealed class BootstrapInfraInstaller : LayerInstallerBase
     {
         internal BootstrapInfraInstaller(NavigationSettings navigationSettings, Transform viewHolder)
         {
@@ -21,7 +21,7 @@ namespace Madbox.App.Bootstrap
         private readonly NavigationSettings navigationSettings;
         private readonly Transform viewHolder;
 
-        public void Install(IContainerBuilder builder)
+        protected override void Install(IContainerBuilder builder)
         {
             if (builder == null)
             {
@@ -30,13 +30,15 @@ namespace Madbox.App.Bootstrap
 
             EventsInstaller eventsInstaller = new EventsInstaller();
             eventsInstaller.Install(builder);
+
             NavigationInstaller navigationInstaller = new NavigationInstaller(navigationSettings, viewHolder);
             navigationInstaller.Install(builder);
+
             GoldInstaller goldInstaller = new GoldInstaller();
             goldInstaller.Install(builder);
+
             GameViewInstaller gameViewInstaller = new GameViewInstaller();
             gameViewInstaller.Install(builder);
         }
     }
 }
-

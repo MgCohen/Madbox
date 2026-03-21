@@ -1,12 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Reflection;
 using Madbox.App.MainMenu;
 using Madbox.Scope;
-using Madbox.Scope.Contracts;
 using Scaffold.Navigation;
 using Scaffold.Navigation.Contracts;
-using Scaffold.Types;
 using UnityEngine;
 using VContainer;
 using VContainer.Unity;
@@ -18,13 +13,12 @@ namespace Madbox.App.Bootstrap
         [SerializeField] private NavigationSettings navigationSettings;
         [SerializeField] private Transform viewHolder;
 
-        protected override IReadOnlyList<ILayerInstaller> BuildLayerInstallers()
+        protected override LayerInstallerBase BuildLayerTree()
         {
-            return new ILayerInstaller[]
-            {
-                new BootstrapAssetInstaller(),
-                new BootstrapInfraInstaller(navigationSettings, viewHolder)
-            };
+            BootstrapAssetInstaller asset = new BootstrapAssetInstaller();
+            BootstrapInfraInstaller infra = new BootstrapInfraInstaller(navigationSettings, viewHolder);
+            asset.AddChild(infra);
+            return asset;
         }
 
         protected override void OnBootstrapCompleted(LifetimeScope finalScope)
@@ -39,10 +33,10 @@ namespace Madbox.App.Bootstrap
             {
                 return;
             }
+
             INavigation navigation = finalScope.Container.Resolve<INavigation>();
             MainMenuViewModel mainMenu = new MainMenuViewModel();
             navigation.Open(mainMenu);
         }
     }
 }
-

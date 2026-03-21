@@ -2,7 +2,8 @@
     "name":  "Madbox.Bootstrap.Tests",
     "rootNamespace":  "Madbox.Bootstrap.Tests",
     "references":  [
-                       "Madbox.Bootstrap.Runtime"
+                       "Madbox.Bootstrap.Runtime",
+                       "Madbox.Scope"
                    ],
     "includePlatforms":  [
                              "Editor"

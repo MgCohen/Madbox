@@ -1,8 +1,6 @@
 using System;
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Madbox.Scope.Contracts;
 using UnityEngine;
 using VContainer;
 using VContainer.Unity;
@@ -12,46 +10,39 @@ namespace Madbox.Scope
     public abstract class LayeredScope : LifetimeScope
     {
         public bool IsBootstrapCompleted { get; private set; }
-        private readonly ScopeInitializer scopeInitializer = new ScopeInitializer();
+
         private CancellationTokenSource startupCancellationSource;
 
         protected override void Configure(IContainerBuilder builder)
         {
-
         }
 
-        public async void Start()
+        private async void Start()
         {
-            startupCancellationSource?.Cancel();
-            startupCancellationSource?.Dispose();
-            startupCancellationSource = new CancellationTokenSource();
-            try { await StartAsync(startupCancellationSource.Token); IsBootstrapCompleted = true; }
-            catch (OperationCanceledException) { Debug.LogWarning("Bootstrap startup canceled."); }
-            catch (Exception exception) { Debug.LogException(exception); }
-        }
+            CreateStartupCancellation();
 
-        private async Task StartAsync(CancellationToken cancellationToken)
-        {
-            scopeInitializer.Reset(); LifetimeScope currentScope = this; IReadOnlyList<ILayerInstaller> installers = GetInstallers();
-            if (installers != null && installers.Count > 0)
+            try
             {
-                for (int i = 0; i < installers.Count; i++)
-                {
-                    ILayerInstaller installer = installers[i]; if (installer == null) throw new InvalidOperationException("Layer installer cannot be null.");
-                    LifetimeScope parentScope = currentScope; LifetimeScope layerScope = parentScope.CreateChild(builder => { scopeInitializer.ApplyDelegatedChildRegistrations(builder, parentScope.Container); installer.Install(builder); });
-                    await scopeInitializer.InitializeScopeAsync(layerScope, cancellationToken); currentScope = layerScope;
-                }
+                await StartAsync(startupCancellationSource.Token);
+                IsBootstrapCompleted = true;
             }
-            Action<LifetimeScope> onBootstrapCompleted = OnBootstrapCompleted;
-            onBootstrapCompleted(currentScope);
+            catch (OperationCanceledException)
+            {
+                Debug.LogWarning("Bootstrap startup canceled.");
+            }
+            catch (Exception exception)
+            {
+                Debug.LogException(exception);
+            }
         }
 
-        private IReadOnlyList<ILayerInstaller> GetInstallers()
+        protected Task StartAsync(CancellationToken cancellationToken)
         {
-            return BuildLayerInstallers();
+            return RunStartupAsync(cancellationToken);
         }
 
-        protected abstract IReadOnlyList<ILayerInstaller> BuildLayerInstallers();
+        protected abstract LayerInstallerBase BuildLayerTree();
+
         protected abstract void OnBootstrapCompleted(LifetimeScope finalScope);
 
         protected override void OnDestroy()
@@ -60,6 +51,27 @@ namespace Madbox.Scope
             startupCancellationSource?.Dispose();
             startupCancellationSource = null;
             base.OnDestroy();
+        }
+
+        private void CreateStartupCancellation()
+        {
+            startupCancellationSource?.Cancel();
+            startupCancellationSource?.Dispose();
+            startupCancellationSource = new CancellationTokenSource();
+        }
+
+        private async Task RunStartupAsync(CancellationToken cancellationToken)
+        {
+            LayerInstallerBase rootInstaller = BuildLayerTree();
+            if (rootInstaller == null)
+            {
+                throw new InvalidOperationException("Layer tree root cannot be null.");
+            }
+
+            rootInstaller.Reset();
+            await rootInstaller.BuildAsRootAsync(this, cancellationToken);
+            LifetimeScope finalScope = rootInstaller.GetFinalScope();
+            OnBootstrapCompleted(finalScope ?? this);
         }
     }
 }

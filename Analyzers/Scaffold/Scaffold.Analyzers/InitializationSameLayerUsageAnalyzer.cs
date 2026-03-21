@@ -14,9 +14,9 @@ namespace Scaffold.Analyzers
     {
         public const string DiagnosticId = "SCA0026";
         private const string Category = "Architecture";
-        private const string InitializationInterfaceName = "Madbox.Initialization.Contracts.IAsyncLayerInitializable";
-        private const string AllowUsageAttributeName = "Madbox.Initialization.Contracts.AllowSameLayerInitializationUsageAttribute";
-        private const string AllowCallChainAttributeName = "Madbox.Initialization.Contracts.AllowInitializationCallChainAttribute";
+        private const string InitializationInterfaceName = "Madbox.Scope.Contracts.IAsyncLayerInitializable";
+        private const string AllowUsageAttributeName = "Madbox.Scope.Contracts.AllowSameLayerInitializationUsageAttribute";
+        private const string AllowCallChainAttributeName = "Madbox.Scope.Contracts.AllowInitializationCallChainAttribute";
 
         private static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(
             DiagnosticId,
