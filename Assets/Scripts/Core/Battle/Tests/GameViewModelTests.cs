@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Madbox.Battle.Contracts;
@@ -23,7 +23,7 @@ namespace Madbox.Battle.Tests
         {
             Game game = CreateDoneGame();
             GameViewModel viewModel = CreateBoundViewModel(game, new LevelId("level-selected"));
-            WaitForState(viewModel, "GameState: Done");
+            BuildWaitForState(viewModel, "GameState: Done");
             Assert.AreEqual("GameState: Done", viewModel.GameStateText);
             Assert.IsTrue(viewModel.IsCompleteVisible);
         }
@@ -33,7 +33,7 @@ namespace Madbox.Battle.Tests
         {
             Game game = CreateRunningGame();
             GameViewModel viewModel = CreateBoundViewModel(game, new LevelId("level-selected"));
-            WaitForState(viewModel, "GameState: Running");
+            BuildWaitForState(viewModel, "GameState: Running");
             game.Tick(4f);
             viewModel.Tick(0.1f);
             Assert.AreEqual("GameState: Done", viewModel.GameStateText);
@@ -46,7 +46,7 @@ namespace Madbox.Battle.Tests
             Game game = CreateDoneGame();
             FakeNavigation navigation = new FakeNavigation();
             GameViewModel viewModel = CreateBoundViewModel(game, new LevelId("level-selected"), navigation);
-            WaitForState(viewModel, "GameState: Done");
+            BuildWaitForState(viewModel, "GameState: Done");
             viewModel.Complete();
             Assert.AreSame(viewModel, navigation.ClosedController);
         }
@@ -59,17 +59,17 @@ namespace Madbox.Battle.Tests
             FakeGameService service = new FakeGameService(game);
             GameViewModel viewModel = new GameViewModel(selected);
             viewModel.Construct(service);
-            viewModel.Bind(null);
-            WaitForState(viewModel, "GameState: Running");
+            viewModel.Bind(new FakeNavigation());
+            BuildWaitForState(viewModel, "GameState: Running");
             Assert.AreEqual("menu-level", service.LastLevelId.Value);
         }
 
-        private GameViewModel CreateBoundViewModel(Game game, LevelId selectedLevelId, FakeNavigation navigation = null)
+        private static GameViewModel CreateBoundViewModel(Game game, LevelId selectedLevelId, FakeNavigation navigation = null)
         {
             FakeGameService service = new FakeGameService(game);
             GameViewModel viewModel = new GameViewModel(selectedLevelId);
             viewModel.Construct(service);
-            viewModel.Bind(navigation);
+            viewModel.Bind(navigation ?? new FakeNavigation());
             return viewModel;
         }
 
@@ -102,7 +102,7 @@ namespace Madbox.Battle.Tests
             return game;
         }
 
-        private static void WaitForState(GameViewModel viewModel, string expectedState)
+        private static void BuildWaitForState(GameViewModel viewModel, string expectedState)
         {
             DateTime timeoutAt = DateTime.UtcNow.AddSeconds(2);
             while (!string.Equals(viewModel.GameStateText, expectedState, StringComparison.Ordinal))
@@ -156,3 +156,5 @@ namespace Madbox.Battle.Tests
         }
     }
 }
+
+

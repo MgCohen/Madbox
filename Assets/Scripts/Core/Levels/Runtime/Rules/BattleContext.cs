@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 
 namespace Madbox.Levels.Rules
 {
@@ -23,3 +23,4 @@ namespace Madbox.Levels.Rules
         public int AliveEnemies { get; }
     }
 }
+

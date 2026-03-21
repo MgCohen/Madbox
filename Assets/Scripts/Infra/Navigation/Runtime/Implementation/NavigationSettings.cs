@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using Scaffold.Navigation.Contracts;
@@ -42,3 +42,4 @@ namespace Scaffold.Navigation
         }
     }
 }
+

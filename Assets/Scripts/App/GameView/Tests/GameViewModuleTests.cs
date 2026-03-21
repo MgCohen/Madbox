@@ -1,4 +1,4 @@
-using NUnit.Framework;
+﻿using NUnit.Framework;
 
 namespace Madbox.App.GameView.Tests
 {
@@ -11,3 +11,5 @@ namespace Madbox.App.GameView.Tests
         }
     }
 }
+
+

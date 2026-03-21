@@ -13,6 +13,7 @@
                        "Scaffold.Events.Container",
                        "Scaffold.Navigation.Container",
                        "Madbox.Addressables.Container",
+                       "Madbox.Addressables",
                        "Madbox.Gold.Container",
                        "Madbox.GameView.Container",
                        "Madbox.GameView.Runtime",

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 
 namespace Madbox.Levels
 {
@@ -25,3 +25,4 @@ namespace Madbox.Levels
         public int Count { get; }
     }
 }
+

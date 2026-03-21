@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 
 namespace Madbox.Scope.Contracts
 {
@@ -7,3 +7,4 @@ namespace Madbox.Scope.Contracts
     {
     }
 }
+

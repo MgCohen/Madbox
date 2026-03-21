@@ -1,4 +1,4 @@
-namespace Madbox.Battle
+﻿namespace Madbox.Battle
 {
     public static class WeaponProfiles
     {
@@ -42,3 +42,4 @@ namespace Madbox.Battle
         }
     }
 }
+

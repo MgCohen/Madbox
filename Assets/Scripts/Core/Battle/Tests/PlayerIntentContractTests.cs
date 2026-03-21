@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using Madbox.Battle.Events;
 using Madbox.Battle.Services;
 using Madbox.Gold;
@@ -160,7 +160,7 @@ namespace Madbox.Battle.Tests
             Assert.AreEqual(3, definition.Archetypes[0].Count);
         }
 
-        private Game CreateGame()
+        private static Game CreateGame()
         {
             EntityId enemyTypeId = new EntityId("slime");
             MovementBehaviorDefinition movement = new MovementBehaviorDefinition(1.5f, 4f);
@@ -184,3 +184,5 @@ namespace Madbox.Battle.Tests
         }
     }
 }
+
+

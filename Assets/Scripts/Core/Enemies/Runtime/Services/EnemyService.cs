@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using Madbox.Enemies.Behaviors;
 using Madbox.Levels;
@@ -94,10 +94,11 @@ namespace Madbox.Enemies.Services
             {
                 if (enemy.IsAlive == false) continue;
                 for (int i = 0; i < enemy.Behaviors.Count; i++)
-                {
-                    enemy.Behaviors[i].Tick(deltaTime);
-                }
+{
+    enemy.Behaviors[i].Tick(deltaTime);
+}
             }
         }
     }
 }
+

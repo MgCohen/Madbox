@@ -1,7 +1,7 @@
 using System;
 using Madbox.App.GameView.Container;
 using Madbox.Gold.Container;
-using Madbox.Scope.Contracts;
+using Madbox.Scope;
 using Scaffold.Events.Container;
 using Scaffold.Navigation;
 using Scaffold.Navigation.Container;
@@ -10,53 +10,33 @@ using VContainer;
 
 namespace Madbox.App.Bootstrap
 {
-    internal sealed class BootstrapInfraInstaller : ILayerInstaller
+    internal sealed class BootstrapInfraInstaller : LayerInstallerBase
     {
-        internal BootstrapInfraInstaller(NavigationSettings navigationSettings, Transform viewHolder)
+        internal BootstrapInfraInstaller(Transform viewHolder)
         {
-            this.navigationSettings = navigationSettings ?? throw new ArgumentNullException(nameof(navigationSettings));
             this.viewHolder = viewHolder ?? throw new ArgumentNullException(nameof(viewHolder));
         }
 
-        private readonly NavigationSettings navigationSettings;
         private readonly Transform viewHolder;
 
-        public void Install(IContainerBuilder builder)
+        protected override void Install(IContainerBuilder builder)
         {
-            ValidateBuilder(builder);
-            InstallEvents(builder);
-            InstallNavigation(builder);
-            InstallGold(builder);
-            InstallGameView(builder);
-        }
+            if (builder == null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
 
-        private void InstallEvents(IContainerBuilder builder)
-        {
-            EventsInstaller installer = new EventsInstaller();
-            installer.Install(builder);
-        }
+            EventsInstaller eventsInstaller = new EventsInstaller();
+            eventsInstaller.Install(builder);
+            
+            NavigationInstaller navigationInstaller = new NavigationInstaller(viewHolder);
+            navigationInstaller.Install(builder);
 
-        private void InstallNavigation(IContainerBuilder builder)
-        {
-            NavigationInstaller installer = new NavigationInstaller(navigationSettings, viewHolder);
-            installer.Install(builder);
-        }
+            GoldInstaller goldInstaller = new GoldInstaller();
+            goldInstaller.Install(builder);
 
-        private void InstallGold(IContainerBuilder builder)
-        {
-            GoldInstaller installer = new GoldInstaller();
-            installer.Install(builder);
-        }
-
-        private void InstallGameView(IContainerBuilder builder)
-        {
-            GameViewInstaller installer = new GameViewInstaller();
-            installer.Install(builder);
-        }
-
-        private void ValidateBuilder(object builder)
-        {
-            if (builder == null) { throw new ArgumentNullException(nameof(builder)); }
+            GameViewInstaller gameViewInstaller = new GameViewInstaller();
+            gameViewInstaller.Install(builder);
         }
     }
 }

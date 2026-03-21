@@ -1,4 +1,4 @@
-﻿using System.Linq.Expressions;
+using System.Linq.Expressions;
 using System.Collections.Specialized;
 using System.Collections.ObjectModel;
 using System.Collections;
@@ -17,8 +17,14 @@ namespace Scaffold.MVVM.Binding
     {
         public BindedCollection(BindSet<TSource, TTarget> binding, ICollectionHandler<TSource, TTarget> handler, Action detach)
         {
-            if (binding is null) { throw new ArgumentNullException(nameof(binding)); }
-            if (handler is null) { throw new ArgumentNullException(nameof(handler)); }
+            if (binding is null)
+{
+    throw new ArgumentNullException(nameof(binding));
+}
+            if (handler is null)
+{
+    throw new ArgumentNullException(nameof(handler));
+}
             this.handler = handler;
             this.detach = detach;
         }
@@ -31,98 +37,110 @@ namespace Scaffold.MVVM.Binding
 
         public void Update(ICollection<TSource> value)
         {
-            if (source == value) { return; }
-            ReplaceSource(value);
+            if (ReferenceEquals(source, value)) return;
+
+            if (source is INotifyCollectionChanged oldObservable)
+            {
+                oldObservable.CollectionChanged -= HandleCollectionChanges;
+            }
+
+            AttachAndSeed(value);
             source = value;
         }
 
-        private void ReplaceSource(ICollection<TSource> value)
+        private void AttachAndSeed(ICollection<TSource> value)
         {
-            if (source != null) { Dispose(); }
-            if (value != null) { FillInitialCollection(value); }
-        }
-
-        private void FillInitialCollection(IEnumerable<TSource> sourceCollection)
-        {
-            SubscribeIfObservable(sourceCollection);
-            foreach (var s in sourceCollection) { AddItem(s); }
-        }
-
-        private void SubscribeIfObservable(IEnumerable<TSource> sourceCollection)
-        {
-            if (sourceCollection is not INotifyCollectionChanged ncc) { return; }
-            ncc.CollectionChanged -= HandleCollectionChanges;
-            ncc.CollectionChanged += HandleCollectionChanges;
-        }
-
-        private void HandleCollectionChanges(object sender, NotifyCollectionChangedEventArgs e)
-        {
-            if (e.NewItems != null) { ProcessNewItems(e); }
-            if (e.OldItems != null) { ProcessOldItems(e); }
-        }
-
-        private void ProcessNewItems(NotifyCollectionChangedEventArgs e)
-        {
-            foreach (var item in e.NewItems) { AddItem((TSource)item); }
-        }
-
-        private void ProcessOldItems(NotifyCollectionChangedEventArgs e)
-        {
-            foreach (var item in e.OldItems) { RemoveItem((TSource)item); }
-        }
-
-        private void AddItem(TSource source)
-        {
-            if (!lookup.TryGetValue(source, out List<TTarget> list))
+            if (value is INotifyCollectionChanged newObservable)
             {
-                list = new List<TTarget>();
-                lookup[source] = list;
+                newObservable.CollectionChanged -= HandleCollectionChanges;
+                newObservable.CollectionChanged += HandleCollectionChanges;
             }
-            TTarget item = handler.Add(source);
-            list.Add(item);
+
+            if (value == null) return;
+            SeedExistingItems(value);
         }
 
-        private void RemoveItem(TSource source)
+        private void SeedExistingItems(ICollection<TSource> value)
         {
-            if (!lookup.TryGetValue(source, out List<TTarget> list))
+            foreach (var item in value)
             {
+                if (!lookup.TryGetValue(item, out List<TTarget> list))
+                {
+                    list = new List<TTarget>();
+                    lookup[item] = list;
+                }
+                TTarget target = handler.Add(item);
+                list.Add(target);
+            }
+        }
+
+        public void HandleCollectionChanges(object sender, NotifyCollectionChangedEventArgs e)
+        {
+            if (e is null) throw new ArgumentNullException(nameof(e));
+            ApplyCollectionItems(e.OldItems, false);
+            ApplyCollectionItems(e.NewItems, true);
+        }
+
+        private void ApplyCollectionItems(IList items, bool addItems)
+        {
+            if (items == null) return;
+            foreach (var item in items)
+            {
+                TSource sourceItem = (TSource)item;
+                UpdateLookupItem(sourceItem, addItems);
+            }
+        }
+
+        private void UpdateLookupItem(TSource sourceItem, bool addItems)
+        {
+            if (addItems)
+            {
+                List<TTarget> list = GetOrCreateTargets(sourceItem);
+                TTarget target = handler.Add(sourceItem);
+                list.Add(target);
                 return;
             }
-            TTarget item = list[^1];
-            list.Remove(item);
-            handler.Remove(item);
+
+            if (!lookup.TryGetValue(sourceItem, out List<TTarget> existing) || existing.Count == 0) return;
+            int lastIndex = existing.Count - 1;
+            TTarget removed = existing[lastIndex];
+            existing.RemoveAt(lastIndex);
+            handler.Remove(removed);
         }
 
-        public void Update()
+        private List<TTarget> GetOrCreateTargets(TSource sourceItem)
         {
-            if (source == null) { return; }
-            Debug.Log("Collection Changed");
+            if (lookup.TryGetValue(sourceItem, out List<TTarget> list)) return list;
+            list = new List<TTarget>();
+            lookup[sourceItem] = list;
+            return list;
         }
 
         public void Dispose()
         {
-            if (disposed) { return; }
+            if (disposed)
+{
+    return;
+}
             disposed = true;
-            UnsubscribeSource();
-            DetachBinding();
-        }
 
-        private void UnsubscribeSource()
-        {
-            if (source is INotifyCollectionChanged ncc) { ncc.CollectionChanged -= HandleCollectionChanges; }
+            if (source is INotifyCollectionChanged observable)
+            {
+                observable.CollectionChanged -= HandleCollectionChanges;
+            }
+
             source = null;
-        }
-
-        private void DetachBinding()
-        {
             detach?.Invoke();
             detach = null;
         }
+
+        public void Update()
+        {
+            if (source == null)
+{
+    return;
+}
+            Debug.Log("Collection Changed");
+        }
     }
 }
-
-
-
-
-
-

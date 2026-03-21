@@ -1,4 +1,4 @@
-using Madbox.Levels;
+﻿using Madbox.Levels;
 
 namespace Madbox.Battle.Events
 {
@@ -46,3 +46,4 @@ namespace Madbox.Battle.Events
 
     public record PlayerAutoAttackDataUpdated(EntityId ActorId, float CooldownSeconds, float Range, float AttackTimingNormalized) : BattleEvent;
 }
+

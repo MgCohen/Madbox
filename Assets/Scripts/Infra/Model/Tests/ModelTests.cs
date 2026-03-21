@@ -26,7 +26,7 @@ namespace Scaffold.MVVM.Tests
         [Test]
         public void NestedPropertyAttribute_TargetsFieldsAndProperties()
         {
-            AttributeUsageAttribute usage = GetUsage(typeof(global::Scaffold.MVVM.Binding.NestedPropertyAttribute));
+            AttributeUsageAttribute usage = BuildGetUsage(typeof(global::Scaffold.MVVM.Binding.NestedPropertyAttribute));
             Assert.AreEqual(AttributeTargets.Field | AttributeTargets.Property, usage.ValidOn);
             Assert.IsFalse(usage.AllowMultiple);
             Assert.IsTrue(usage.Inherited);
@@ -35,7 +35,7 @@ namespace Scaffold.MVVM.Tests
         [Test]
         public void NestedObservableObjectAttribute_TargetsClasses()
         {
-            AttributeUsageAttribute usage = GetUsage(typeof(global::Scaffold.MVVM.Binding.NestedObservableObjectAttribute));
+            AttributeUsageAttribute usage = BuildGetUsage(typeof(global::Scaffold.MVVM.Binding.NestedObservableObjectAttribute));
             Assert.AreEqual(AttributeTargets.Class, usage.ValidOn);
             Assert.IsFalse(usage.AllowMultiple);
             Assert.IsTrue(usage.Inherited);
@@ -50,7 +50,7 @@ namespace Scaffold.MVVM.Tests
             Assert.IsTrue(probe.WasRegistered);
         }
 
-        private AttributeUsageAttribute GetUsage(Type attributeType)
+        private static AttributeUsageAttribute BuildGetUsage(Type attributeType)
         {
             return (AttributeUsageAttribute)Attribute.GetCustomAttribute(attributeType, typeof(AttributeUsageAttribute));
         }
@@ -66,6 +66,8 @@ namespace Scaffold.MVVM.Tests
         }
     }
 }
+
+
 
 
 

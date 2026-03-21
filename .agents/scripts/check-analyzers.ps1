@@ -2,7 +2,8 @@
 param(
     [string]$ProjectPath = (Get-Location).Path,
     [int]$TimeoutMinutes = 10,
-    [int]$AnalyzerTestsTimeoutMinutes = 10
+    [int]$AnalyzerTestsTimeoutMinutes = 10,
+    [switch]$IncludeTestAssemblies
 )
 
 Set-StrictMode -Version Latest
@@ -58,6 +59,52 @@ function Try-GetRelativePath {
     }
 
     return $resolvedCandidate -replace "\\", "/"
+}
+
+function Get-ProjectPathFromBuildLine {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Line
+    )
+
+    if ($Line -match "\[(?<project>[^\]]+\.csproj)\]\s*$") {
+        return $matches['project']
+    }
+
+    return $null
+}
+
+function Is-TestAssemblyProject {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$ProjectPath
+    )
+
+    $projectName = [System.IO.Path]::GetFileNameWithoutExtension($ProjectPath)
+    return $projectName -match "(?i)(^|[._-])(tests?|playmodetests?|editmodetests?)([._-]|$)"
+}
+
+function Should-IncludeBuildLine {
+    param(
+        [string]$Line,
+        [Parameter(Mandatory = $true)]
+        [bool]$IncludeTests
+    )
+
+    if ([string]::IsNullOrWhiteSpace($Line)) {
+        return $true
+    }
+
+    if ($IncludeTests) {
+        return $true
+    }
+
+    $projectPath = Get-ProjectPathFromBuildLine -Line $Line
+    if ([string]::IsNullOrWhiteSpace($projectPath)) {
+        return $true
+    }
+
+    return -not (Is-TestAssemblyProject -ProjectPath $projectPath)
 }
 
 # Runs analyzer unit tests, then builds the solution and prints deduplicated SCA diagnostics.
@@ -154,6 +201,10 @@ if ($null -eq $selectedSolution) {
 }
 
 Write-Output ("NOTE:Using solution '{0}'." -f $selectedSolution.Name)
+if (-not $IncludeTestAssemblies.IsPresent) {
+    Write-Output "NOTE:Excluding diagnostics from test assemblies (use -IncludeTestAssemblies to include them)."
+}
+
 $tempRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("dotnet-build-check-" + [guid]::NewGuid().ToString("N"))
 $null = New-Item -ItemType Directory -Path $tempRoot -Force
 $stdOutPath = Join-Path $tempRoot "stdout.log"
@@ -208,7 +259,10 @@ finally {
     }
 }
 
-$scaLines = $buildOutput |
+$filteredBuildOutput = $buildOutput |
+    Where-Object { Should-IncludeBuildLine -Line $_ -IncludeTests $IncludeTestAssemblies.IsPresent }
+
+$scaLines = $filteredBuildOutput |
     Where-Object { $_ -match ": (warning|error) SCA[0-9]+" } |
     Sort-Object -Unique
 
@@ -256,7 +310,7 @@ foreach ($line in $scaLines) {
     Write-Output "DIAG:$line"
 }
 
-$blockers = $buildOutput |
+$blockers = $filteredBuildOutput |
     Where-Object { $_ -match ": error " -and $_ -notmatch "SCA" -and $_ -notmatch "MSB" }
 
 foreach ($line in $blockers) {

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using Scaffold.Navigation.Contracts;
 using Scaffold.Schemas;
 using Scaffold.Types;
@@ -21,7 +21,7 @@ namespace Scaffold.Navigation
         [SerializeField, TypeReferenceFilter(typeof(IViewController))] private TypeReference controllerType;
 
 #if UNITY_EDITOR
-        private void OnValidate()
+        public void OnValidate()
         {
             if (asset == null || asset.editorAsset == null)
             {
@@ -40,7 +40,7 @@ namespace Scaffold.Navigation
         }
 #endif
 
-        internal void SetType(Type viewType)
+        public void SetType(Type viewType)
         {
             try
             {
@@ -54,25 +54,31 @@ namespace Scaffold.Navigation
 
         private void ApplyViewType(Type viewType)
         {
-            if (viewType == null) { ClearTypeReferences(); return; }
+            if (viewType == null)
+            {
+                this.viewType = null;
+                controllerType = null;
+                return;
+            }
             this.viewType = new TypeReference(viewType);
             Type controller = ResolveControllerType(viewType);
             controllerType = controller == null ? null : new TypeReference(controller);
         }
 
-        private void ClearTypeReferences()
-        {
-            viewType = null;
-            controllerType = null;
-        }
-
         private Type ResolveControllerType(Type viewType)
         {
             Type baseType = viewType.BaseType;
-            if (baseType == null || !baseType.IsGenericType) { return null; }
+            if (baseType == null || !baseType.IsGenericType)
+            {
+                return null;
+            }
             Type[] genericArguments = baseType.GenericTypeArguments;
-            if (genericArguments.Length == 0) { return null; }
+            if (genericArguments.Length == 0)
+            {
+                return null;
+            }
             return genericArguments[0];
         }
     }
 }
+

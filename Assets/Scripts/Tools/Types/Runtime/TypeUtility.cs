@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -8,7 +8,10 @@ namespace Scaffold.Types
     {
         public static IEnumerable<Type> GetTypesDerivedFrom<T>(bool includeAbstract, bool includeSource)
         {
-            if (typeof(T) == null) { throw new InvalidOperationException("Requested type was not resolved."); }
+            if (typeof(T) == null)
+            {
+                throw new InvalidOperationException("Requested type was not resolved.");
+            }
             ValidateTypeLookupRequest<T>();
             return GetAllDerivedTypes(typeof(T), includeAbstract, includeSource);
         }
@@ -30,3 +33,4 @@ namespace Scaffold.Types
         }
     }
 }
+

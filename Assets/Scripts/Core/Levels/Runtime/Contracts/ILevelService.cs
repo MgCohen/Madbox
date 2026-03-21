@@ -1,4 +1,4 @@
-using System.Threading;
+﻿using System.Threading;
 using System.Threading.Tasks;
 
 namespace Madbox.Levels.Contracts
@@ -9,3 +9,4 @@ namespace Madbox.Levels.Contracts
         Task<LevelDefinition> LoadAsync(LevelId levelId, CancellationToken cancellationToken = default);
     }
 }
+

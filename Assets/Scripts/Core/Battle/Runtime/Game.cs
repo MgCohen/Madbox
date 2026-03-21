@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using Madbox.Gold;
 using Madbox.Battle.Events;
 using Madbox.Battle.Rules;
@@ -33,7 +33,7 @@ namespace Madbox.Battle
             CurrentLevelId = levelDefinition.LevelId ?? throw new ArgumentException("LevelDefinition.LevelId is required.", nameof(levelDefinition));
 
             enemyService = new EnemyService(levelDefinition);
-            eventRouter = new BattleEventRouter(enemyService, player, RaiseEvent);
+            eventRouter = new BattleEventRouter(enemyService, player, evt => EventTriggered?.Invoke(evt));
             gameRuleEvaluator = new GameRuleEvaluator(levelDefinition);
 
             CurrentState = GameState.NotRunning;
@@ -110,11 +110,6 @@ namespace Madbox.Battle
             return CurrentState == GameState.Running;
         }
 
-        private void RaiseEvent(BattleEvent battleEvent)
-        {
-            EventTriggered?.Invoke(battleEvent);
-        }
-
         private void EvaluateGameRules()
         {
             if (CurrentState is not GameState.Running) return;
@@ -140,3 +135,4 @@ namespace Madbox.Battle
         }
     }
 }
+

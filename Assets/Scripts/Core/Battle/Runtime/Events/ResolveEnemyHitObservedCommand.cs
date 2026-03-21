@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using Madbox.Battle;
 using Madbox.Enemies;
@@ -72,8 +72,12 @@ namespace Madbox.Battle.Events
         private bool TryFindContactAttack(IReadOnlyList<IEnemyBehaviorRuntime> behaviors, out ContactAttackBehaviorRuntime attackBehavior)
         {
             for (int i = 0; i < behaviors.Count; i++)
+            {
                 if (behaviors[i] is ContactAttackBehaviorRuntime resolvedBehavior)
+                {
                     return ReturnContactAttack(resolvedBehavior, out attackBehavior);
+                }
+            }
             attackBehavior = null;
             return false;
         }
@@ -113,3 +117,4 @@ namespace Madbox.Battle.Events
         }
     }
 }
+

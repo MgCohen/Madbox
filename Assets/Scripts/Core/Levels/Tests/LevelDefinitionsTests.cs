@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using Madbox.Levels.Behaviors;
 using Madbox.Levels.Rules;
 using NUnit.Framework;
@@ -119,12 +119,12 @@ namespace Madbox.Levels.Tests
             Assert.IsInstanceOf<PlayerDefeatedLoseRuleDefinition>(level.GameRules[0]);
         }
 
-        private EnemyDefinition CreateEnemyDefinition(string enemyType)
+        private static EnemyDefinition CreateEnemyDefinition(string enemyType)
         {
             return new EnemyDefinition(new EntityId(enemyType), 20, CreateBehaviorSet());
         }
 
-        private EnemyBehaviorDefinition[] CreateBehaviorSet()
+        private static EnemyBehaviorDefinition[] CreateBehaviorSet()
         {
             EnemyBehaviorDefinition[] behaviors =
             {
@@ -136,3 +136,5 @@ namespace Madbox.Levels.Tests
         }
     }
 }
+
+

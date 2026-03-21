@@ -1,4 +1,4 @@
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using Madbox.Battle.Services;
 using Madbox.Gold;
 using Madbox.Gold.Contracts;
@@ -18,7 +18,10 @@ namespace Madbox.App.MainMenu
 
         [Inject] public void Construct(IGoldService goldService)
         {
-            if (goldService == null) { return; }
+            if (goldService == null)
+            {
+                return;
+            }
             this.goldService = goldService;
             Wallet = goldService.GetWallet();
         }
@@ -31,13 +34,19 @@ namespace Madbox.App.MainMenu
 
         public void AddOneGold()
         {
-            if (goldService == null) { return; }
+            if (goldService == null)
+            {
+                return;
+            }
             goldService.Add(1);
         }
 
         public void StartGame()
         {
-            if (navigation == null) { return; }
+            if (navigation == null)
+            {
+                return;
+            }
             LevelId levelId = new LevelId(SelectedLevelId);
             GameViewModel controller = new GameViewModel(levelId);
             navigation.Open(controller);
@@ -45,3 +54,4 @@ namespace Madbox.App.MainMenu
 
     }
 }
+

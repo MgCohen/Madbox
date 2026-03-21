@@ -1,4 +1,4 @@
-using Madbox.Levels;
+﻿using Madbox.Levels;
 using NUnit.Framework;
 
 namespace Madbox.Battle.Tests
@@ -38,3 +38,5 @@ namespace Madbox.Battle.Tests
         }
     }
 }
+
+

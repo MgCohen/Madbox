@@ -14,14 +14,14 @@ namespace Scaffold.Navigation.Samples
 
         public void UseCaseOpenViewWithOptions()
         {
-            INavigation navigation = GetSampleNavigation();
+            INavigation navigation = BuildGetSampleNavigation();
             NavigationOptions options = new NavigationOptions();
             options.CloseAllViews = false;
             SampleViewController controller = new SampleViewController();
             navigation.Open(controller, closeCurrent: false, options: options);
         }
 
-        private INavigation GetSampleNavigation()
+        private static INavigation BuildGetSampleNavigation()
         {
             return new NullNavigation();
         }
@@ -41,5 +41,7 @@ namespace Scaffold.Navigation.Samples
         }
     }
 }
+
+
 
 

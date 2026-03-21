@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using Madbox.Levels;
 using Madbox.Levels.Rules;
@@ -22,7 +22,16 @@ namespace Madbox.Levels.Authoring.Definitions
         public LevelDefinition ToDomain()
         {
             IReadOnlyList<LevelEnemyDefinition> levelEnemies = BuildEnemies();
-            IReadOnlyList<LevelGameRuleDefinition> gameRules = BuildRules();
+            List<LevelGameRuleDefinition> gameRules = new List<LevelGameRuleDefinition>
+            {
+                new EnemyEliminatedWinRuleDefinition()
+            };
+
+            if (useTimeLimitLoseRule)
+            {
+                gameRules.Add(new TimeLimitLoseRuleDefinition(loseAfterSeconds));
+            }
+
             LevelId id = new LevelId(levelId);
             return new LevelDefinition(id, goldReward, levelEnemies, gameRules);
         }
@@ -48,20 +57,6 @@ namespace Madbox.Levels.Authoring.Definitions
 
             return mapped;
         }
-
-        private IReadOnlyList<LevelGameRuleDefinition> BuildRules()
-        {
-            List<LevelGameRuleDefinition> rules = new List<LevelGameRuleDefinition>
-            {
-                new EnemyEliminatedWinRuleDefinition()
-            };
-
-            if (useTimeLimitLoseRule)
-            {
-                rules.Add(new TimeLimitLoseRuleDefinition(loseAfterSeconds));
-            }
-
-            return rules;
-        }
     }
 }
+

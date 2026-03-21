@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using NUnit.Framework;
 #pragma warning disable SCA0023
 
@@ -75,3 +75,5 @@ namespace Madbox.Gold.Tests
         }
     }
 }
+
+

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using Madbox.Enemies.Contracts;
 using Madbox.Levels;
@@ -43,3 +43,4 @@ namespace Madbox.Enemies
         }
     }
 }
+

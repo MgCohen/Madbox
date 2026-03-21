@@ -55,10 +55,14 @@ namespace Scaffold.Navigation.Utility
 
         private void GuardCall()
         {
-            if (this == null) { throw new System.InvalidOperationException("NoView instance is not available."); }
+            if (this == null)
+            {
+                throw new System.InvalidOperationException("NoView instance is not available.");
+            }
         }
     }
 }
+
 
 
 

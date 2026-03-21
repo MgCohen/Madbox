@@ -1,4 +1,4 @@
-﻿using System.Linq.Expressions;
+using System.Linq.Expressions;
 using System.Collections.Specialized;
 using System.Collections.ObjectModel;
 using System.Collections;
@@ -7,7 +7,6 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using Scaffold.MVVM.Binding;
 using UnityEngine;
 using Scaffold.Navigation.Contracts;
-using Scaffold.MVVM.Binding;
 using System.ComponentModel;
 using System.Linq;
 using System.Collections.Generic;
@@ -23,34 +22,28 @@ namespace Scaffold.MVVM
 
         public void Bind(INavigation navigation)
         {
-            GuardBindingState();
-            this.navigation = navigation;
-            EnsureNestedPropertiesRegistered();
-            Initialize();
-        }
-
-        private void GuardBindingState()
-        {
+            if (navigation is null)
+            {
+                throw new ArgumentNullException(nameof(navigation));
+            }
             ClearBindings();
-        }
-
-        private void EnsureNestedPropertiesRegistered()
-        {
+            this.navigation = navigation;
             if (this is INestedObservableProperties nestedObservableProperties)
             {
                 nestedObservableProperties.RegisterNestedProperties();
             }
-        }
-
-        protected T BindChildViewModel<T>(T viewModel) where T: IViewModel
-        {
-            viewModel.Bind(navigation);
-            return viewModel;
+            Initialize();
         }
 
         protected virtual void Initialize()
         {
 
+        }
+
+        protected T BindChildViewModel<T>(T viewModel) where T : IViewModel
+        {
+            viewModel.Bind(navigation);
+            return viewModel;
         }
 
         protected sealed override void OnPropertyChanged(PropertyChangedEventArgs e)
@@ -61,7 +54,10 @@ namespace Scaffold.MVVM
 
         public void Close()
         {
-            if (navigation == null) { return; }
+            if (navigation == null)
+            {
+                return;
+            }
             navigation.Close(this);
             OnClosed();
         }

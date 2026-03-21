@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using NUnit.Framework;
 using Scaffold.Events.Contracts;
 
@@ -12,7 +12,7 @@ namespace Scaffold.Events.Tests
             EventController bus = new EventController();
             bool called = false;
             bus.AddListener<TestEvent>(_ => called = true);
-            RaiseTestEvent(bus);
+            BuildRaiseTestEvent(bus);
             Assert.IsTrue(called);
         }
 
@@ -23,7 +23,7 @@ namespace Scaffold.Events.Tests
             bool called = false;
             Action<ContextEvent> handler = _ => called = true;
             bus.AddListener(typeof(TestEvent), handler);
-            RaiseTestEvent(bus);
+            BuildRaiseTestEvent(bus);
             Assert.IsTrue(called);
         }
 
@@ -35,7 +35,7 @@ namespace Scaffold.Events.Tests
             Action<TestEvent> handler = _ => callCount++;
             bus.AddListener(handler);
             bus.RemoveListener(handler);
-            RaiseTestEvent(bus);
+            BuildRaiseTestEvent(bus);
             Assert.AreEqual(0, callCount);
         }
 
@@ -47,7 +47,7 @@ namespace Scaffold.Events.Tests
             Action<ContextEvent> handler = _ => callCount++;
             bus.AddListener(typeof(TestEvent), handler);
             bus.RemoveListener(typeof(TestEvent), handler);
-            RaiseTestEvent(bus);
+            BuildRaiseTestEvent(bus);
             Assert.AreEqual(0, callCount);
         }
 
@@ -59,7 +59,7 @@ namespace Scaffold.Events.Tests
             Action<TestEvent> handler = _ => callCount++;
             bus.AddListener(handler);
             bus.AddListener(handler);
-            RaiseTestEvent(bus);
+            BuildRaiseTestEvent(bus);
             Assert.AreEqual(1, callCount);
         }
 
@@ -72,7 +72,7 @@ namespace Scaffold.Events.Tests
             bus.AddListener(handler);
             bus.RemoveListener(handler);
             bus.RemoveListener(handler);
-            RaiseTestEvent(bus);
+            BuildRaiseTestEvent(bus);
             Assert.AreEqual(0, callCount);
         }
 
@@ -83,9 +83,9 @@ namespace Scaffold.Events.Tests
             int callCount = 0;
             Action<TestEvent> handler = _ => callCount++;
             bus.AddListener(handler);
-            RaiseTestEvent(bus);
+            BuildRaiseTestEvent(bus);
             bus.RemoveListener(handler);
-            RaiseTestEvent(bus);
+            BuildRaiseTestEvent(bus);
             Assert.AreEqual(1, callCount);
         }
 
@@ -96,9 +96,9 @@ namespace Scaffold.Events.Tests
             int callCount = 0;
             Action<ContextEvent> handler = _ => callCount++;
             bus.AddListener(typeof(TestEvent), handler);
-            RaiseTestEvent(bus);
+            BuildRaiseTestEvent(bus);
             bus.RemoveListener(typeof(TestEvent), handler);
-            RaiseTestEvent(bus);
+            BuildRaiseTestEvent(bus);
             Assert.AreEqual(1, callCount);
         }
 
@@ -109,7 +109,7 @@ namespace Scaffold.Events.Tests
             bool called = false;
             bus.AddListener<TestEvent>(_ => called = true);
             bus.Clear();
-            RaiseTestEvent(bus);
+            BuildRaiseTestEvent(bus);
             Assert.IsFalse(called);
         }
 
@@ -127,7 +127,7 @@ namespace Scaffold.Events.Tests
             IEventBus bus = new EventController();
             int calls = 0;
             Action<TestEvent> handler = _ => calls++;
-            ExecuteIEventBusLifecycle(bus, handler);
+            BuildExecuteIEventBusLifecycle(bus, handler);
             Assert.AreEqual(1, calls);
         }
 
@@ -139,13 +139,13 @@ namespace Scaffold.Events.Tests
             Assert.Throws<ArgumentNullException>(action);
         }
 
-        private void RaiseTestEvent(EventController bus)
+        private static void BuildRaiseTestEvent(EventController bus)
         {
             TestEvent evt = new TestEvent();
             bus.Raise(evt);
         }
 
-        private void ExecuteIEventBusLifecycle(IEventBus bus, Action<TestEvent> handler)
+        private static void BuildExecuteIEventBusLifecycle(IEventBus bus, Action<TestEvent> handler)
         {
             bus.AddListener(handler);
             TestEvent first = new TestEvent();
@@ -158,3 +158,5 @@ namespace Scaffold.Events.Tests
         private record TestEvent : ContextEvent;
     }
 }
+
+

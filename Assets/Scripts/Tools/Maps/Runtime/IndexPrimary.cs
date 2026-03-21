@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace Scaffold.Maps
 {
@@ -6,7 +7,11 @@ namespace Scaffold.Maps
     {
         public Index(TPrimary primary)
         {
-            if (primary is null) { throw new ArgumentNullException(nameof(primary)); }
+            if (primary is null)
+            {
+                throw new ArgumentNullException(nameof(primary));
+            }
+
             this.Primary = primary;
         }
 
@@ -14,13 +19,17 @@ namespace Scaffold.Maps
 
         public bool Equals(Index<TPrimary> other)
         {
-            GuardComparison(other);
-            return Equals(Primary, other.Primary);
+            return EqualityComparer<TPrimary>.Default.Equals(Primary, other.Primary);
         }
 
         public override bool Equals(object obj)
         {
-            return obj is Index<TPrimary> other && Equals(other);
+            if (obj is not Index<TPrimary> other)
+            {
+                return false;
+            }
+
+            return EqualityComparer<TPrimary>.Default.Equals(Primary, other.Primary);
         }
 
         public override int GetHashCode()
@@ -28,18 +37,14 @@ namespace Scaffold.Maps
             return Primary != null ? Primary.GetHashCode() : 0;
         }
 
-        private void GuardComparison(Index<TPrimary> other)
-        {
-        }
-
         public static bool operator ==(Index<TPrimary> left, Index<TPrimary> right)
         {
-            return left.Equals(right);
+            return EqualityComparer<TPrimary>.Default.Equals(left.Primary, right.Primary);
         }
 
         public static bool operator !=(Index<TPrimary> left, Index<TPrimary> right)
         {
-            return left.Equals(right) == false;
+            return EqualityComparer<TPrimary>.Default.Equals(left.Primary, right.Primary) == false;
         }
     }
 }

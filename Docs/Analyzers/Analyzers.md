@@ -154,7 +154,7 @@ A `Directory.Build.props` file at the repo root automatically injects the DLL as
 
 ```xml
 <Project>
-  <ItemGroup Condition="'$(MSBuildProjectName)' != 'Scaffold.Analyzers'">
+  <ItemGroup Condition="'$(MSBuildProjectName)' != 'Scaffold.Analyzers' and '$(MSBuildProjectName)' != 'Scaffold.Analyzers.Tests'">
     <Analyzer Include="$(MSBuildThisFileDirectory)Analyzers/Output/Scaffold.Analyzers.dll"
               Condition="Exists('$(MSBuildThisFileDirectory)Analyzers/Output/Scaffold.Analyzers.dll')" />
   </ItemGroup>
@@ -500,6 +500,7 @@ External consumption definition:
 
 This rule analyzes public, non-override methods in `Runtime/` paths and skips `Tests/` and `Samples/`.
 It also skips parameterless methods.
+It also skips methods that implement interfaces from `UnityEngine.EventSystems` (for example `IPointerDownHandler`, `IDragHandler`, `IPointerUpHandler`, `IPointerClickHandler`).
 
 The first executable statement (after leading local declarations) must be:
 - a guard clause (`if (...) return;` or `if (...) throw ...;`), or

@@ -1,4 +1,4 @@
-using System.Threading;
+﻿using System.Threading;
 using System.Threading.Tasks;
 using Madbox.Levels;
 
@@ -9,3 +9,4 @@ namespace Madbox.Battle.Contracts
         Task<Game> StartAsync(LevelId levelId, CancellationToken cancellationToken = default);
     }
 }
+

@@ -13,7 +13,11 @@ namespace Scaffold.Maps
 
         public BaseMap(IEqualityComparer<TKey> comparer)
         {
-            if (comparer is null) { throw new ArgumentNullException(nameof(comparer)); }
+            if (comparer is null)
+            {
+                throw new ArgumentNullException(nameof(comparer));
+            }
+
             data = new Dictionary<TKey, Holder<TValue>>(comparer);
         }
 
@@ -52,13 +56,21 @@ namespace Scaffold.Maps
 
         public bool ContainsKey(TKey key)
         {
-            EnsureStorage();
+            if (data == null)
+            {
+                throw new InvalidOperationException("Map storage was not initialized.");
+            }
+
             return data.ContainsKey(key);
         }
 
         public bool TryGetValue(TKey key, out TValue value)
         {
-            EnsureStorage();
+            if (data == null)
+            {
+                throw new InvalidOperationException("Map storage was not initialized.");
+            }
+
             bool found = data.TryGetValue(key, out Holder<TValue> holder);
             value = found ? holder.Value : default;
             return found;
@@ -66,13 +78,21 @@ namespace Scaffold.Maps
 
         public virtual bool Remove(TKey key)
         {
-            EnsureStorage();
+            if (data == null)
+            {
+                throw new InvalidOperationException("Map storage was not initialized.");
+            }
+
             return data.Remove(key);
         }
 
         public virtual void Clear()
         {
-            EnsureStorage();
+            if (data == null)
+            {
+                throw new InvalidOperationException("Map storage was not initialized.");
+            }
+
             data.Clear();
         }
 
@@ -98,16 +118,10 @@ namespace Scaffold.Maps
 
         public IEnumerator<KeyValuePair<TKey, TValue>> GetEnumerator()
         {
-            EnsureStorage();
             foreach (KeyValuePair<TKey, Holder<TValue>> entry in data)
             {
                 yield return new KeyValuePair<TKey, TValue>(entry.Key, entry.Value.Value);
             }
-        }
-
-        private void EnsureStorage()
-        {
-            if (data == null) throw new InvalidOperationException("Map storage was not initialized.");
         }
     }
 }

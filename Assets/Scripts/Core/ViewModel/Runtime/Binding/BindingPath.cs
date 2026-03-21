@@ -19,13 +19,9 @@ namespace Scaffold.MVVM.Binding
     {
         public static BindingPath Create(string path)
         {
-            if (path is null) { throw new ArgumentNullException(nameof(path)); }
-            if (path.Length == 0) { throw new ArgumentException("Path cannot be empty.", nameof(path)); }
+            path = BuildValidatedPath(path);
             string[] paths = path.Split(".");
-            BindingPath child = null;
-            StringBuilder builder = new StringBuilder();
-            foreach (var cPath in paths) { child = CreateStep(builder, cPath, child); }
-            return child;
+            return BuildPathChain(paths);
         }
 
         private static BindingPath CreateStep(StringBuilder builder, string cPath, BindingPath prev)
@@ -35,8 +31,33 @@ namespace Scaffold.MVVM.Binding
             builder.Append(".");
             return new BindingPath(currentPath, prev);
         }
+
+        private static BindingPath BuildPathChain(IEnumerable<string> paths)
+        {
+            BindingPath child = null;
+            StringBuilder builder = new StringBuilder();
+            foreach (string cPath in paths)
+{
+    child = CreateStep(builder, cPath, child);
+}
+            return child;
+        }
+
+        private static string BuildValidatedPath(string path)
+        {
+            if (path is null)
+            {
+                throw new ArgumentNullException(nameof(path));
+            }
+            if (path.Length == 0)
+            {
+                throw new ArgumentException("Path cannot be empty.", nameof(path));
+            }
+            return path;
+        }
     }
 }
+
 
 
 

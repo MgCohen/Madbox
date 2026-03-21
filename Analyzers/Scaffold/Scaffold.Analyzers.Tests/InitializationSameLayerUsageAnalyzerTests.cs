@@ -9,7 +9,7 @@ public sealed class InitializationSameLayerUsageAnalyzerTests
     public async Task NoDiagnostic_WhenInitializeAsyncOnlyStoresOrPassesDependencyReference()
     {
         const string source = @"
-namespace Madbox.Initialization.Contracts
+namespace Madbox.Scope.Contracts
 {
     public interface IAsyncLayerInitializable
     {
@@ -24,7 +24,7 @@ namespace Madbox.Meta.Level
         public int GetCurrentGold() => 10;
     }
 
-    public sealed class LevelService : Madbox.Initialization.Contracts.IAsyncLayerInitializable
+    public sealed class LevelService : Madbox.Scope.Contracts.IAsyncLayerInitializable
     {
         private GoldService goldService;
 
@@ -60,7 +60,7 @@ namespace Madbox.Meta.Level
     public async Task Diagnostic_WhenInitializeAsyncCallsSameLayerDependencyMethod()
     {
         const string source = @"
-namespace Madbox.Initialization.Contracts
+namespace Madbox.Scope.Contracts
 {
     public interface IAsyncLayerInitializable
     {
@@ -75,7 +75,7 @@ namespace Madbox.Meta.Level
         public int GetCurrentGold() => 10;
     }
 
-    public sealed class LevelService : Madbox.Initialization.Contracts.IAsyncLayerInitializable
+    public sealed class LevelService : Madbox.Scope.Contracts.IAsyncLayerInitializable
     {
         private readonly GoldService goldService;
 
@@ -106,7 +106,7 @@ namespace Madbox.Meta.Level
     public async Task Diagnostic_WhenHelperMethodUsesForwardedSameLayerDependency()
     {
         const string source = @"
-namespace Madbox.Initialization.Contracts
+namespace Madbox.Scope.Contracts
 {
     public interface IAsyncLayerInitializable
     {
@@ -121,7 +121,7 @@ namespace Madbox.Meta.Level
         public int GetCurrentGold() => 10;
     }
 
-    public sealed class LevelService : Madbox.Initialization.Contracts.IAsyncLayerInitializable
+    public sealed class LevelService : Madbox.Scope.Contracts.IAsyncLayerInitializable
     {
         private readonly GoldService goldService;
 
@@ -157,7 +157,7 @@ namespace Madbox.Meta.Level
     public async Task NoDiagnostic_WhenCallChainExceptionAttributeIsApplied()
     {
         const string source = @"
-namespace Madbox.Initialization.Contracts
+namespace Madbox.Scope.Contracts
 {
     [System.AttributeUsage(System.AttributeTargets.Method, Inherited = false)]
     public sealed class AllowInitializationCallChainAttribute : System.Attribute { }
@@ -175,7 +175,7 @@ namespace Madbox.Meta.Level
         public int GetCurrentGold() => 10;
     }
 
-    public sealed class LevelService : Madbox.Initialization.Contracts.IAsyncLayerInitializable
+    public sealed class LevelService : Madbox.Scope.Contracts.IAsyncLayerInitializable
     {
         private readonly GoldService goldService;
 
@@ -190,7 +190,7 @@ namespace Madbox.Meta.Level
             return System.Threading.Tasks.Task.CompletedTask;
         }
 
-        [Madbox.Initialization.Contracts.AllowInitializationCallChain]
+        [Madbox.Scope.Contracts.AllowInitializationCallChain]
         private void Probe(GoldService dependency)
         {
             int gold = dependency.GetCurrentGold();
@@ -212,7 +212,7 @@ namespace Madbox.Meta.Level
     public async Task NoDiagnostic_WhenUsageExceptionAttributeIsApplied()
     {
         const string source = @"
-namespace Madbox.Initialization.Contracts
+namespace Madbox.Scope.Contracts
 {
     [System.AttributeUsage(System.AttributeTargets.Class | System.AttributeTargets.Method, Inherited = false)]
     public sealed class AllowSameLayerInitializationUsageAttribute : System.Attribute { }
@@ -230,7 +230,7 @@ namespace Madbox.Meta.Level
         public int GetCurrentGold() => 10;
     }
 
-    public sealed class LevelService : Madbox.Initialization.Contracts.IAsyncLayerInitializable
+    public sealed class LevelService : Madbox.Scope.Contracts.IAsyncLayerInitializable
     {
         private readonly GoldService goldService;
 
@@ -239,7 +239,7 @@ namespace Madbox.Meta.Level
             this.goldService = goldService;
         }
 
-        [Madbox.Initialization.Contracts.AllowSameLayerInitializationUsage]
+        [Madbox.Scope.Contracts.AllowSameLayerInitializationUsage]
         public System.Threading.Tasks.Task InitializeAsync(System.Threading.CancellationToken cancellationToken)
         {
             int gold = goldService.GetCurrentGold();
@@ -258,3 +258,4 @@ namespace Madbox.Meta.Level
         Assert.Empty(diagnostics);
     }
 }
+

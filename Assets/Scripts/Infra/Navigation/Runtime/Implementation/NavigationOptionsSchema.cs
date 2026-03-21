@@ -1,4 +1,4 @@
-using Scaffold.Navigation.Contracts;
+﻿using Scaffold.Navigation.Contracts;
 using UnityEngine;
 
 namespace Scaffold.Navigation
@@ -9,3 +9,4 @@ namespace Scaffold.Navigation
         [SerializeField] private NavigationOptions options;
     }
 }
+

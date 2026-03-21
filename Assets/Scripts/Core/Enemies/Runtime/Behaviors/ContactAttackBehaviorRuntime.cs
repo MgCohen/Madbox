@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using Madbox.Enemies.Contracts;
 using Madbox.Levels.Behaviors;
 
@@ -49,3 +49,4 @@ namespace Madbox.Enemies.Behaviors
         }
     }
 }
+

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using Madbox.Battle;
 using Madbox.Enemies;
 using Madbox.Enemies.Services;
@@ -65,3 +65,4 @@ namespace Madbox.Battle.Events
         }
     }
 }
+

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using Madbox.Levels.Behaviors;
 
@@ -53,3 +53,4 @@ namespace Madbox.Levels
         public IReadOnlyList<EnemyBehaviorDefinition> Behaviors { get; }
     }
 }
+

@@ -41,18 +41,25 @@ namespace Scaffold.MVVM.Binding
 
         private static string ToSetterName(Action<TTarget> setter)
         {
-            if (setter?.Method == null) { return "null"; }
+            if (setter?.Method == null)
+            {
+                return "null";
+            }
             return $"{setter.Method.DeclaringType?.FullName}.{setter.Method.Name}";
         }
 
         private static string ToSafeText(object value)
         {
-            if (value == null) { return "null"; }
+            if (value == null)
+            {
+                return "null";
+            }
             try { return value.ToString(); }
             catch { return "<ToString failed>"; }
         }
     }
 }
+
 
 
 

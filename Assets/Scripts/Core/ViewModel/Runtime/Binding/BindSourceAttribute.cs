@@ -19,13 +19,17 @@ namespace Scaffold.MVVM.Binding
     {
         public BindSourceAttribute(Type bindingType)
         {
-            if (bindingType is null) { throw new ArgumentNullException(nameof(bindingType)); }
+            if (bindingType is null)
+            {
+                throw new ArgumentNullException(nameof(bindingType));
+            }
             BindingType = bindingType;
         }
 
         public Type BindingType { get; }
     }
 }
+
 
 
 

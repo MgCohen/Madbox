@@ -1,4 +1,4 @@
-namespace Madbox.Battle
+﻿namespace Madbox.Battle
 {
     public sealed record WeaponProfile(
         WeaponId Id,
@@ -7,3 +7,4 @@ namespace Madbox.Battle
         float MovementSpeedMultiplier,
         float AttackTimingNormalized);
 }
+

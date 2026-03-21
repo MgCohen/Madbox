@@ -10,3 +10,4 @@ namespace Scaffold.Types.Contracts
 }
 
 
+

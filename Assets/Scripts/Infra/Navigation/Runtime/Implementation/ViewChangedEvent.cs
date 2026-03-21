@@ -30,9 +30,13 @@ namespace Scaffold.Navigation
 
         private void ValidateEndpoints(IViewController from, IViewController to)
         {
-            if (from == null && to == null) { throw new ArgumentException("At least one endpoint must be set."); }
+            if (from == null && to == null)
+            {
+                throw new ArgumentException("At least one endpoint must be set.");
+            }
         }
     }
 }
+
 
 

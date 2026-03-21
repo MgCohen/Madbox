@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using Madbox.Battle;
 using Madbox.Enemies;
 using Madbox.Levels;
@@ -78,3 +78,4 @@ namespace Madbox.Battle.Events
         }
     }
 }
+

@@ -1,4 +1,4 @@
-﻿using System.ComponentModel;
+using System.ComponentModel;
 using UnityEngine;
 using Scaffold.Navigation.Contracts;
 using Scaffold.MVVM.Binding;
@@ -12,7 +12,10 @@ namespace Scaffold.MVVM
     {
         protected void OnViewModelChanged(object sender, PropertyChangedEventArgs e)
         {
-            if (e == null) { return; }
+            if (e == null)
+{
+    return;
+}
             var elementTypeName = GetType().Name;
             Debug.Log("View element update : " + elementTypeName + " - " + e.PropertyName);
             var bindSourceName = GetBindSourceName();
@@ -24,7 +27,10 @@ namespace Scaffold.MVVM
 
         public virtual void Bind(IViewController viewModel)
         {
-            if (viewModel == null) { return; }
+            if (viewModel == null)
+{
+    return;
+}
         }
 
         protected virtual void OnBind()
@@ -51,43 +57,17 @@ namespace Scaffold.MVVM
 
         public sealed override void Bind(IViewController viewController)
         {
-            var vm = GetViewModelOrDefault(viewController);
-            if (!EqualityComparer<T>.Default.Equals(viewModel, default))
-            {
-                Unbind();
-            }
+            T vm = viewController switch { T typed => typed, null => default, _ => throw new Exception($"Trying to bind view {GetType()} to controller of type {viewController.GetType()}, expected: {typeof(T)}") };
+            if (!EqualityComparer<T>.Default.Equals(viewModel, default)) Unbind();
             this.viewModel = vm;
-            RegisterViewModel(vm);
+            Debug.Log("Registering view model " + GetType().Name + " - " + typeof(T).Name);
+            if (vm is INotifyPropertyChanged npc)
+            {
+                npc.PropertyChanged -= OnViewModelChanged;
+                npc.PropertyChanged += OnViewModelChanged;
+            }
+            if (vm is INestedObservableProperties nop) nop.RegisterNestedProperties();
             OnBind();
-        }
-
-        private T GetViewModelOrDefault(IViewController viewController)
-        {
-            if (viewController is T vm) { return vm; }
-            if (viewController == default) { return default; }
-            var viewType = GetType();
-            var controllerType = viewController.GetType();
-            throw new System.Exception($"Trying to bind view {viewType} to controller of type {controllerType}, expected: {typeof(T)}");
-        }
-
-        private void RegisterViewModel(T viewModel)
-        {
-            var typeName = GetType().Name;
-            Debug.Log("Registering view model " + typeName + " - " + typeof(T).Name);
-            SubscribePropertyChanged(viewModel);
-            RegisterNestedProperties(viewModel);
-        }
-
-        private void SubscribePropertyChanged(T viewModel)
-        {
-            if (viewModel is not INotifyPropertyChanged npc) { return; }
-            npc.PropertyChanged -= OnViewModelChanged;
-            npc.PropertyChanged += OnViewModelChanged;
-        }
-
-        private void RegisterNestedProperties(T viewModel)
-        {
-            if (viewModel is INestedObservableProperties nop) { nop.RegisterNestedProperties(); }
         }
 
         protected sealed override string GetBindSourceName()
@@ -102,14 +82,21 @@ namespace Scaffold.MVVM
 
         public void Bind(T parent, J viewModel)
         {
-            if (parent == null) { throw new System.ArgumentNullException(nameof(parent)); }
-            if (viewModel == null) { return; }
+            if (parent == null)
+{
+    throw new System.ArgumentNullException(nameof(parent));
+}
+            if (viewModel == null)
+{
+    return;
+}
             this.parent = parent;
             Bind(viewModel);
         }
 
     }
 }
+
 
 
 

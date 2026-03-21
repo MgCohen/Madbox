@@ -1,4 +1,4 @@
-using Scaffold.Events.Contracts;
+﻿using Scaffold.Events.Contracts;
 using VContainer;
 using VContainer.Unity;
 
@@ -13,3 +13,4 @@ namespace Scaffold.Events.Container
         }
     }
 }
+

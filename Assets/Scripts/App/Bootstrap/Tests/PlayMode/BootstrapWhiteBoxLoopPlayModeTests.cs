@@ -12,6 +12,7 @@ namespace Madbox.Bootstrap.Tests.PlayMode
 {
     public sealed class BootstrapWhiteBoxLoopPlayModeTests
     {
+        private const int sceneLoadTimeoutFrames = 600;
         private List<string> fatalLogs;
 
         [SetUp]
@@ -44,8 +45,14 @@ namespace Madbox.Bootstrap.Tests.PlayMode
         {
             AsyncOperation operation = SceneManager.LoadSceneAsync("Bootstrap", LoadSceneMode.Single);
             Assert.IsNotNull(operation);
+            int frame = 0;
             while (!operation.isDone)
             {
+                if (frame++ >= sceneLoadTimeoutFrames)
+                {
+                    Assert.Fail($"Bootstrap scene load did not complete within {sceneLoadTimeoutFrames} frames.");
+                }
+
                 yield return null;
             }
         }
@@ -177,7 +184,7 @@ namespace Madbox.Bootstrap.Tests.PlayMode
         {
             if (type == LogType.Assert || type == LogType.Error || type == LogType.Exception)
             {
-                fatalLogs.Add($"{type}: {condition}");
+                fatalLogs.Add($"{type}: {condition}\n{stackTrace}");
             }
         }
 
@@ -192,3 +199,4 @@ namespace Madbox.Bootstrap.Tests.PlayMode
         }
     }
 }
+

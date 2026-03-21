@@ -14,7 +14,7 @@ namespace Scaffold.MVVM.Samples
         {
             SampleViewModel viewModel = new SampleViewModel();
             viewModel.Bind(null);
-            RegisterNested(viewModel);
+            BuildRegisterNested(viewModel);
             viewModel.SampleModel.Value = 7;
             Debug.Log($"Model value mirrored into ViewModel: {viewModel.Value}");
         }
@@ -23,15 +23,18 @@ namespace Scaffold.MVVM.Samples
         {
             SampleViewModel viewModel = new SampleViewModel();
             viewModel.Bind(null);
-            RegisterNested(viewModel);
+            BuildRegisterNested(viewModel);
             using SampleViewHost host = CreateAndBindView(viewModel);
             viewModel.SampleModel.Value = 9;
             Debug.Log($"View rendered value: {host.View.LastValue}");
         }
 
-        private void RegisterNested(INestedObservableProperties nested)
+        private static void BuildRegisterNested(INestedObservableProperties nested)
         {
-            if (nested == null) { return; }
+            if (nested == null)
+            {
+                return;
+            }
             nested.RegisterNestedProperties();
         }
 
@@ -61,7 +64,7 @@ namespace Scaffold.MVVM.Samples
         }
     }
 
-    public partial class SampleModel : Model
+    public partial class BuildSampleModel : Model
     {
         [ObservableProperty]
         private int value;
@@ -70,7 +73,7 @@ namespace Scaffold.MVVM.Samples
     public partial class SampleViewModel : ViewModel
     {
         [ObservableProperty]
-        private SampleModel sampleModel = new SampleModel();
+        private BuildSampleModel sampleModel = new BuildSampleModel();
 
         [ObservableProperty]
         private int value;
@@ -88,16 +91,18 @@ namespace Scaffold.MVVM.Samples
 
         protected override void OnBind()
         {
-            Bind<int, int>(() => viewModel.Value, OnValueChanged);
+            Bind<int, int>(() => viewModel.Value, BuildOnValueChanged);
         }
 
-        private void OnValueChanged(int value)
+        private void BuildOnValueChanged(int value)
         {
             LastValue = value;
             Debug.Log($"SampleView value changed: {value}");
         }
     }
 }
+
+
 
 
 

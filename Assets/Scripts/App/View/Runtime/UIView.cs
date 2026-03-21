@@ -29,14 +29,18 @@ namespace Scaffold.MVVM
 
         private void SetCanvas()
         {
-            if (canvas == null) { canvas = GetComponent<Canvas>(); }
-            EnsureCamera();
-            if (canvas != null) { SetCanvasScale(); }
-        }
-
-        private void EnsureCamera()
-        {
-            if (canvas.worldCamera == null) { canvas.worldCamera = Camera.main; }
+            if (canvas == null)
+            {
+                canvas = GetComponent<Canvas>();
+            }
+            if (canvas != null && canvas.worldCamera == null)
+            {
+                canvas.worldCamera = Camera.main;
+            }
+            if (canvas != null)
+            {
+                SetCanvasScale();
+            }
         }
 
         private void SetCanvasScale()
@@ -56,6 +60,7 @@ namespace Scaffold.MVVM
         MatchHeight = 3,
     }
 }
+
 
 
 

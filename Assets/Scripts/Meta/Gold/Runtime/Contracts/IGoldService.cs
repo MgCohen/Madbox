@@ -1,4 +1,4 @@
-namespace Madbox.Gold.Contracts
+﻿namespace Madbox.Gold.Contracts
 {
     public interface IGoldService
     {
@@ -7,3 +7,4 @@ namespace Madbox.Gold.Contracts
         void Add(int amount);
     }
 }
+

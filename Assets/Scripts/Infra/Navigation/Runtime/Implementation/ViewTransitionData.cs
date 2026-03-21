@@ -29,8 +29,12 @@ namespace Scaffold.Navigation
 
         private void EnsureTransitionPoints(NavigationPoint from, NavigationPoint to)
         {
-            if (from == null && to == null) { throw new ArgumentException("At least one navigation point is required."); }
+            if (from == null && to == null)
+            {
+                throw new ArgumentException("At least one navigation point is required.");
+            }
         }
     }
 }
+
 

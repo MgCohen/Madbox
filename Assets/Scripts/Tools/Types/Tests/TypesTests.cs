@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
@@ -90,17 +90,14 @@ namespace Scaffold.Types.Tests
         {
             public ServiceWithInjectConstructor(string dep1, int dep2) { }
 
-            [Inject]
-            private ServiceWithInjectConstructor(Guid id) { }
+            [Inject] private ServiceWithInjectConstructor(Guid id) { }
         }
 
         private class ServiceWithMultipleInjectConstructors
         {
-            [Inject]
-            private ServiceWithMultipleInjectConstructors(string dep1) { }
+            [Inject] private ServiceWithMultipleInjectConstructors(string dep1) { }
 
-            [Inject]
-            private ServiceWithMultipleInjectConstructors(Guid id) { }
+            [Inject] private ServiceWithMultipleInjectConstructors(Guid id) { }
         }
 
         [AttributeUsage(AttributeTargets.Constructor)]
@@ -109,3 +106,5 @@ namespace Scaffold.Types.Tests
         }
     }
 }
+
+
