@@ -1,0 +1,16 @@
+{
+    "name": "Madbox.V2.Levels",
+    "rootNamespace": "Madbox.V2.Levels",
+    "references": [
+        "Madbox.V2.Enemies"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
