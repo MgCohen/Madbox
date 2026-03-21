@@ -95,6 +95,48 @@ namespace Madbox.App.GameView.Tests
             Object.DestroyImmediate(canvasObject);
         }
 
+        [Test]
+        public void OnPointerDown_WhenTouchIsOutsideCanvas_ClampsStickInsideParentBounds()
+        {
+            GameObject canvasObject = new GameObject("Canvas", typeof(RectTransform), typeof(Canvas));
+            Canvas canvas = canvasObject.GetComponent<Canvas>();
+            canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+            RectTransform canvasRect = canvasObject.GetComponent<RectTransform>();
+            canvasRect.sizeDelta = new Vector2(1080f, 1920f);
+
+            GameObject stickRootObject = new GameObject("StickRoot", typeof(RectTransform), typeof(VirtualJoystickInput));
+            RectTransform stickRoot = stickRootObject.GetComponent<RectTransform>();
+            stickRoot.SetParent(canvasRect, false);
+            stickRoot.sizeDelta = new Vector2(240f, 240f);
+
+            GameObject innerStickObject = new GameObject("InnerStick", typeof(RectTransform));
+            RectTransform innerStick = innerStickObject.GetComponent<RectTransform>();
+            innerStick.SetParent(stickRoot, false);
+            innerStick.sizeDelta = new Vector2(80f, 80f);
+
+            VirtualJoystickInput joystick = stickRootObject.GetComponent<VirtualJoystickInput>();
+            InvokeNonPublicAwake(joystick);
+
+            EventSystem eventSystem = new GameObject("EventSystem", typeof(EventSystem)).GetComponent<EventSystem>();
+            PointerEventData eventData = new PointerEventData(eventSystem);
+            eventData.position = new Vector2(-2000f, -2000f);
+            eventData.pressPosition = eventData.position;
+
+            joystick.OnPointerDown(eventData);
+
+            float minX = canvasRect.rect.xMin - stickRoot.rect.xMin;
+            float maxX = canvasRect.rect.xMax - stickRoot.rect.xMax;
+            float minY = canvasRect.rect.yMin - stickRoot.rect.yMin;
+            float maxY = canvasRect.rect.yMax - stickRoot.rect.yMax;
+
+            Assert.That(stickRoot.anchoredPosition.x, Is.InRange(minX, maxX));
+            Assert.That(stickRoot.anchoredPosition.y, Is.InRange(minY, maxY));
+
+            Object.DestroyImmediate(eventSystem.gameObject);
+            Object.DestroyImmediate(stickRootObject);
+            Object.DestroyImmediate(canvasObject);
+        }
+
         private GameObject CreateHeroObject()
         {
             return new GameObject("Hero");

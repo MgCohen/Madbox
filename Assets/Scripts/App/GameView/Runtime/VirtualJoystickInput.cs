@@ -9,59 +9,53 @@ namespace Madbox.App.GameView
 
         public bool IsActive => Direction.sqrMagnitude > 0f;
 
-        [SerializeField] private RectTransform stickRoot;
-        [SerializeField] private RectTransform innerStick;
+        [SerializeField] private JoystickVisualController visualController;
         [SerializeField] private float deadZone = 0.1f;
         [SerializeField] private float maxRadiusOverride;
 
-        private Vector2 initialInnerPosition;
-
         private void Awake()
         {
-            ResolveReferences();
-            CacheInitialInnerPosition();
+            ResolveVisualController();
             ResetInput();
         }
 
-        private void ResolveReferences()
+        private void ResolveVisualController()
         {
-            if (stickRoot == null) stickRoot = transform as RectTransform;
-            if (innerStick != null) return;
-            if (stickRoot == null || stickRoot.childCount == 0) return;
-            innerStick = stickRoot.GetChild(0) as RectTransform;
-        }
+            if (visualController == null)
+            {
+                visualController = GetComponent<JoystickVisualController>();
+            }
 
-        private void CacheInitialInnerPosition()
-        {
-            initialInnerPosition = innerStick == null ? Vector2.zero : innerStick.anchoredPosition;
+            if (visualController == null)
+            {
+                visualController = gameObject.AddComponent<JoystickVisualController>();
+            }
+
+            visualController.AutoWire(transform as RectTransform);
         }
 
         public void OnPointerDown(PointerEventData eventData)
         {
-            MoveStickToPointer(eventData);
+            visualController.MoveRootToPointer(eventData);
             ResetInput();
-        }
-
-        private void MoveStickToPointer(PointerEventData eventData)
-        {
-            if (stickRoot == null) return;
-            RectTransform parent = stickRoot.parent as RectTransform;
-            if (parent == null) return;
-            bool gotPoint = RectTransformUtility.ScreenPointToLocalPointInRectangle(parent, eventData.position, eventData.pressEventCamera, out Vector2 localPoint);
-            if (gotPoint == false) return;
-            stickRoot.anchoredPosition = localPoint;
         }
 
         public void OnDrag(PointerEventData eventData)
         {
+            if (visualController == null) return;
             if (TryGetLocalPoint(eventData, out Vector2 localPoint) == false) return;
             SetDirectionFromLocalPoint(localPoint);
         }
 
         private bool TryGetLocalPoint(PointerEventData eventData, out Vector2 localPoint)
         {
-            if (stickRoot == null) { localPoint = Vector2.zero; return false; }
-            return RectTransformUtility.ScreenPointToLocalPointInRectangle(stickRoot, eventData.position, eventData.pressEventCamera, out localPoint);
+            if (visualController == null)
+            {
+                localPoint = Vector2.zero;
+                return false;
+            }
+
+            return visualController.TryGetLocalPointInRoot(eventData, out localPoint);
         }
 
         private void SetDirectionFromLocalPoint(Vector2 localPoint)
@@ -78,22 +72,13 @@ namespace Madbox.App.GameView
         {
             Direction = direction;
             Vector2 offset = direction * ResolveMaxRadius();
-            UpdateInnerStickPosition(initialInnerPosition + offset);
+            visualController.SetInnerOffset(offset);
         }
 
         private float ResolveMaxRadius()
         {
-            if (maxRadiusOverride > 0f) return maxRadiusOverride;
-            if (stickRoot == null || innerStick == null) return 0f;
-            float rootRadius = stickRoot.rect.width * 0.5f;
-            float innerRadius = innerStick.rect.width * 0.5f;
-            return Mathf.Max(0f, rootRadius - innerRadius);
-        }
-
-        private void UpdateInnerStickPosition(Vector2 anchoredPosition)
-        {
-            if (innerStick == null) return;
-            innerStick.anchoredPosition = anchoredPosition;
+            if (visualController == null) return 0f;
+            return visualController.ResolveMaxRadius(maxRadiusOverride);
         }
 
         private Vector2 ApplyDeadZone(Vector2 direction)
@@ -109,7 +94,7 @@ namespace Madbox.App.GameView
         private void ResetInput()
         {
             Direction = Vector2.zero;
-            UpdateInnerStickPosition(initialInnerPosition);
+            visualController?.ResetInnerToInitialPosition();
         }
     }
 }
