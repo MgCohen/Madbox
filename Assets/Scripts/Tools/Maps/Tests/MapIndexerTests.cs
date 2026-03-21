@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System;
 using NUnit.Framework;
 
@@ -10,9 +10,9 @@ namespace Scaffold.Maps.Tests
         public void AddIndexer_PopulatesIndexerFromExistingEntries()
         {
             Map<string, int, string> map = CreateMapWithPeople();
-            Indexer<string, int, string> indexer = map.AddIndexer("MatheusAdults", MatchesMatheusAdult);
+            Indexer<string, int, string> indexer = map.AddIndexer("MatheusAdults", BuildMatchesMatheusAdult);
             int count = indexer.Count;
-            bool hasAdult = ContainsValue(indexer.Values, "Matheus-29");
+            bool hasAdult = BuildContainsValue(indexer.Values, "Matheus-29");
             Assert.AreEqual(1, count);
             Assert.IsTrue(hasAdult);
         }
@@ -21,7 +21,7 @@ namespace Scaffold.Maps.Tests
         public void Add_MatchingEntryAfterIndexerRegistration_AddsEntryToIndexer()
         {
             Map<string, int, string> map = new Map<string, int, string>();
-            Indexer<string, int, string> indexer = map.AddIndexer("MatheusAdults", MatchesMatheusAdult);
+            Indexer<string, int, string> indexer = map.AddIndexer("MatheusAdults", BuildMatchesMatheusAdult);
             map.Add("Matheus", 29, "Matheus-29");
             map.Add("Ana", 30, "Ana-30");
             int count = indexer.Count;
@@ -32,7 +32,7 @@ namespace Scaffold.Maps.Tests
         public void Remove_RemovesEntryFromIndexer()
         {
             Map<string, int, string> map = new Map<string, int, string>();
-            Indexer<string, int, string> indexer = map.AddIndexer("MatheusAdults", MatchesMatheusAdult);
+            Indexer<string, int, string> indexer = map.AddIndexer("MatheusAdults", BuildMatchesMatheusAdult);
             map.Add("Matheus", 29, "Matheus-29");
             bool wasRemoved = map.Remove("Matheus", 29);
             int count = indexer.Count;
@@ -44,17 +44,17 @@ namespace Scaffold.Maps.Tests
         public void SetByIndex_DoesNotRemoveFromIndexerWhenValueChanges()
         {
             Map<string, int, string> map = new Map<string, int, string>();
-            Indexer<string, int, string> indexer = map.AddIndexer("MatheusAdults", MatchesMatheusAdult);
+            Indexer<string, int, string> indexer = map.AddIndexer("MatheusAdults", BuildMatchesMatheusAdult);
             map.Add("Matheus", 29, "Matheus-29");
             Index<string, int> index = new Index<string, int>("Matheus", 29);
-            AssertIndexerCountUnchangedByValueChange(map, indexer, index);
+            BuildAssertIndexerCountUnchangedByValueChange(map, indexer, index);
         }
 
         [Test]
         public void Clear_RemovesAllIndexedValues()
         {
             Map<string, int, string> map = CreateMapWithPeople();
-            Indexer<string, int, string> indexer = map.AddIndexer("MatheusAdults", MatchesMatheusAdult);
+            Indexer<string, int, string> indexer = map.AddIndexer("MatheusAdults", BuildMatchesMatheusAdult);
             map.Clear();
             int count = indexer.Count;
             Assert.AreEqual(0, count);
@@ -81,8 +81,8 @@ namespace Scaffold.Maps.Tests
         public void AddIndexer_WithDuplicateName_ThrowsArgumentException()
         {
             Map<string, int, string> map = new Map<string, int, string>();
-            map.AddIndexer("MatheusAdults", MatchesMatheusAdult);
-            TestDelegate action = () => map.AddIndexer("MatheusAdults", MatchesMatheusAdult);
+            map.AddIndexer("MatheusAdults", BuildMatchesMatheusAdult);
+            TestDelegate action = () => map.AddIndexer("MatheusAdults", BuildMatchesMatheusAdult);
             Assert.Throws<ArgumentException>(action);
         }
 
@@ -94,7 +94,7 @@ namespace Scaffold.Maps.Tests
             Assert.Throws<ArgumentException>(action);
         }
 
-        private Map<string, int, string> CreateMapWithPeople()
+        private static Map<string, int, string> CreateMapWithPeople()
         {
             Map<string, int, string> map = new Map<string, int, string>();
             map.Add("Matheus", 9, "Matheus-9");
@@ -103,19 +103,19 @@ namespace Scaffold.Maps.Tests
             return map;
         }
 
-        private bool MatchesMatheusAdult(string name, int age)
+        private static bool BuildMatchesMatheusAdult(string name, int age)
         {
             return name == "Matheus" && age > 10;
         }
 
-        private bool ContainsValue(IReadOnlyCollection<string> values, string expected)
+        private static bool BuildContainsValue(IReadOnlyCollection<string> values, string expected)
         {
             HashSet<string> set = new HashSet<string>(values);
             bool hasValue = set.Contains(expected);
             return hasValue;
         }
 
-        private void AssertIndexerCountUnchangedByValueChange(Map<string, int, string> map, Indexer<string, int, string> indexer, Index<string, int> index)
+        private static void BuildAssertIndexerCountUnchangedByValueChange(Map<string, int, string> map, Indexer<string, int, string> indexer, Index<string, int> index)
         {
             map[index] = "inactive";
             int countAfterInactive = indexer.Count;
@@ -126,3 +126,5 @@ namespace Scaffold.Maps.Tests
         }
     }
 }
+
+

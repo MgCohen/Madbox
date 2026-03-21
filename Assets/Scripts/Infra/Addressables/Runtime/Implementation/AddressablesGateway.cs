@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -7,7 +7,6 @@ using Madbox.Scope.Contracts;
 using UnityEngine.AddressableAssets;
 using VContainer;
 using VContainer.Unity;
-#pragma warning disable SCA0006
 
 namespace Madbox.Addressables
 {
@@ -15,9 +14,18 @@ namespace Madbox.Addressables
     {
         public AddressablesGateway(IAddressablesAssetClient client, IAssetReferenceHandler assetReferenceHandler, IAssetPreloadHandler assetPreloadHandler)
         {
-            if (client == null) { throw new ArgumentNullException(nameof(client)); }
-            if (assetReferenceHandler == null) { throw new ArgumentNullException(nameof(assetReferenceHandler)); }
-            if (assetPreloadHandler == null) { throw new ArgumentNullException(nameof(assetPreloadHandler)); }
+            if (client == null)
+{
+    throw new ArgumentNullException(nameof(client));
+}
+            if (assetReferenceHandler == null)
+{
+    throw new ArgumentNullException(nameof(assetReferenceHandler));
+}
+            if (assetPreloadHandler == null)
+{
+    throw new ArgumentNullException(nameof(assetPreloadHandler));
+}
             this.client = client;
             this.assetReferenceHandler = assetReferenceHandler;
             this.assetPreloadHandler = assetPreloadHandler;
@@ -29,115 +37,29 @@ namespace Madbox.Addressables
         private bool initialized;
         private readonly object initSync = new object();
 
-        public Task InitializeAsync(CancellationToken cancellationToken = default)
+        public async Task InitializeAsync(CancellationToken cancellationToken = default)
         {
-            GuardRuntimeInvariants();
-            return InitializeCoreAsync(null, cancellationToken);
-        }
-
-        Task IAsyncLayerInitializable.InitializeAsync(ILayerInitializationContext context, IObjectResolver resolver, CancellationToken cancellationToken)
-        {
-            return InitializeCoreAsync(context, cancellationToken);
-        }
-
-        public async Task<IAssetHandle<T>> LoadAsync<T>(AssetReference reference, CancellationToken cancellationToken = default) where T : UnityEngine.Object
-        {
-            GuardRuntimeInvariants();
+            if (client == null || assetReferenceHandler == null || assetPreloadHandler == null) throw new InvalidOperationException("Addressables gateway is not properly initialized.");
             cancellationToken.ThrowIfCancellationRequested();
-            string key = ResolveReferenceKey(reference);
-            return await assetReferenceHandler.AcquireAsync<T>(key, cancellationToken);
+            lock (initSync) { if (initialized) return; }
+            await InitializePreloadAsync(null, cancellationToken);
+            lock (initSync) { initialized = true; }
         }
 
-        public Task<IAssetHandle<T>> LoadAsync<T>(AssetReferenceT<T> reference, CancellationToken cancellationToken = default) where T : UnityEngine.Object
-        {
-            GuardRuntimeInvariants();
-            cancellationToken.ThrowIfCancellationRequested();
-            return LoadAsync<T>((AssetReference)reference, cancellationToken);
-        }
-
-        public async Task<IAssetGroupHandle<T>> LoadAsync<T>(AssetLabelReference label, CancellationToken cancellationToken = default) where T : UnityEngine.Object
-        {
-            GuardRuntimeInvariants();
-            cancellationToken.ThrowIfCancellationRequested();
-            IReadOnlyList<string> keys = await ResolveLabelKeysAsync<T>(label, cancellationToken);
-            IReadOnlyList<IAssetHandle<T>> handles = await LoadLabelHandlesAsync<T>(keys, cancellationToken);
-            return new AssetGroupHandle<T>(handles);
-        }
-
-        public IAssetHandle<T> Load<T>(AssetReference reference, CancellationToken cancellationToken = default) where T : UnityEngine.Object
-        {
-            GuardRuntimeInvariants();
-            cancellationToken.ThrowIfCancellationRequested();
-            string key = ResolveReferenceKey(reference);
-            AssetHandle<T> handle = new AssetHandle<T>();
-            _ = CompleteLoadAsync(reference, handle, cancellationToken);
-            return handle;
-        }
-
-        public IAssetHandle<T> Load<T>(AssetReferenceT<T> reference, CancellationToken cancellationToken = default) where T : UnityEngine.Object
-        {
-            GuardRuntimeInvariants();
-            cancellationToken.ThrowIfCancellationRequested();
-            return Load<T>((AssetReference)reference, cancellationToken);
-        }
-
-        public IAssetGroupHandle<T> Load<T>(AssetLabelReference label, CancellationToken cancellationToken = default) where T : UnityEngine.Object
-        {
-            GuardRuntimeInvariants();
-            cancellationToken.ThrowIfCancellationRequested();
-            IReadOnlyList<string> keys = ResolveLabelKeysAsync<T>(label, cancellationToken).GetAwaiter().GetResult();
-            IReadOnlyList<IAssetHandle<T>> handles = LoadLabelHandlesSync<T>(keys, cancellationToken);
-            return new AssetGroupHandle<T>(handles);
-        }
-
-        private async Task InitializeCoreAsync(ILayerInitializationContext context, CancellationToken cancellationToken)
+        async Task IAsyncLayerInitializable.InitializeAsync(ILayerInitializationContext context, IObjectResolver resolver, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            if (IsAlreadyInitialized()) { return; }
-            await RunCatalogSyncAsync(cancellationToken);
-            IReadOnlyList<AddressablesPreloadRegistration> preload = await LoadPreloadRegistrationsAsync(cancellationToken);
+            lock (initSync) { if (initialized) return; }
+            await InitializePreloadAsync(context, cancellationToken);
+            lock (initSync) { initialized = true; }
+        }
+
+        private async Task InitializePreloadAsync(ILayerInitializationContext context, CancellationToken cancellationToken)
+        {
+            try { await client.SyncCatalogAndContentAsync(cancellationToken); } catch (Exception exception) when (exception is not OperationCanceledException) { UnityEngine.Debug.LogWarning($"Addressables catalog/content sync failed. Continuing startup. {exception.GetType().Name}: {exception.Message}"); }
+            IReadOnlyList<AddressablesPreloadRegistration> preload;
+            try { UnityEngine.Object raw = await client.LoadAssetAsync(AddressablesPreloadConstants.BootstrapConfigAssetKey, typeof(AddressablesPreloadConfig), cancellationToken); AddressablesPreloadConfig config = raw as AddressablesPreloadConfig; preload = config == null ? Array.Empty<AddressablesPreloadRegistration>() : await assetPreloadHandler.BuildAsync(config, cancellationToken); } catch (Exception exception) when (exception is not OperationCanceledException) { UnityEngine.Debug.LogWarning($"Addressables preload config '{AddressablesPreloadConstants.BootstrapConfigAssetKey}' was not found or failed to load. Continuing without startup preload. {exception.GetType().Name}: {exception.Message}"); preload = Array.Empty<AddressablesPreloadRegistration>(); }
             await ApplyPreloadAsync(preload, context, cancellationToken);
-            MarkInitialized();
-        }
-
-        private bool IsAlreadyInitialized()
-        {
-            lock (initSync)
-            {
-                return initialized;
-            }
-        }
-
-        private void MarkInitialized()
-        {
-            lock (initSync)
-            {
-                initialized = true;
-            }
-        }
-
-        private async Task RunCatalogSyncAsync(CancellationToken cancellationToken)
-        {
-            try { await client.SyncCatalogAndContentAsync(cancellationToken); }
-            catch (Exception exception) when (exception is not OperationCanceledException) { UnityEngine.Debug.LogWarning($"Addressables catalog/content sync failed. Continuing startup. {exception.GetType().Name}: {exception.Message}"); }
-        }
-
-        private async Task<IReadOnlyList<AddressablesPreloadRegistration>> LoadPreloadRegistrationsAsync(CancellationToken cancellationToken)
-        {
-            AddressablesPreloadConfig config;
-            try
-            {
-                UnityEngine.Object raw = await client.LoadAssetAsync(AddressablesPreloadConstants.BootstrapConfigAssetKey, typeof(AddressablesPreloadConfig), cancellationToken);
-                config = raw as AddressablesPreloadConfig;
-            }
-            catch (Exception exception) when (exception is not OperationCanceledException)
-            {
-                UnityEngine.Debug.LogWarning($"Addressables preload config '{AddressablesPreloadConstants.BootstrapConfigAssetKey}' was not found or failed to load. Continuing without startup preload. {exception.GetType().Name}: {exception.Message}");
-                return Array.Empty<AddressablesPreloadRegistration>();
-            }
-
-            if (config == null) { return Array.Empty<AddressablesPreloadRegistration>(); }
-            return await assetPreloadHandler.BuildAsync(config, cancellationToken);
         }
 
         private async Task ApplyPreloadAsync(IReadOnlyList<AddressablesPreloadRegistration> preload, ILayerInitializationContext context, CancellationToken cancellationToken)
@@ -148,17 +70,22 @@ namespace Madbox.Addressables
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 AddressablesPreloadRegistration registration = preload[i];
-                if (context == null)
-                {
-                    string preloadId = $"{registration.AssetType.FullName}|{registration.Key}";
-                    if (!seenPreload.Add(preloadId)) { continue; }
-                    await assetReferenceHandler.AcquireByTypeAsync(registration.AssetType, registration.Key, registration.Mode, true, cancellationToken);
-                    continue;
-                }
-
-                IAssetHandle handle = await assetReferenceHandler.AcquireByTypeAsync(registration.AssetType, registration.Key, registration.Mode, true, cancellationToken);
-                RegisterForChildScope(byType, registration.AssetType, handle, context);
+                await ApplyPreloadRegistrationAsync(registration, context, byType, seenPreload, cancellationToken);
             }
+        }
+
+        private async Task ApplyPreloadRegistrationAsync(AddressablesPreloadRegistration registration, ILayerInitializationContext context, IDictionary<Type, IAssetHandle> byType, ISet<string> seenPreload, CancellationToken cancellationToken)
+        {
+            if (context == null)
+            {
+                string preloadId = $"{registration.AssetType.FullName}|{registration.Key}";
+                if (!seenPreload.Add(preloadId)) return;
+                await assetReferenceHandler.AcquireByTypeAsync(registration.AssetType, registration.Key, registration.Mode, true, cancellationToken);
+                return;
+            }
+
+            IAssetHandle handle = await assetReferenceHandler.AcquireByTypeAsync(registration.AssetType, registration.Key, registration.Mode, true, cancellationToken);
+            RegisterForChildScope(byType, registration.AssetType, handle, context);
         }
 
         private void RegisterForChildScope(IDictionary<Type, IAssetHandle> byType, Type assetType, IAssetHandle handle, ILayerInitializationContext context)
@@ -173,11 +100,68 @@ namespace Madbox.Addressables
             context.RegisterInstanceForChild(assetType, handle.UntypedAsset, Lifetime.Singleton, ChildScopeDelegationPolicy.AllDescendants);
         }
 
-        private async Task<IReadOnlyList<IAssetHandle<T>>> LoadLabelHandlesAsync<T>(IReadOnlyList<string> keys, CancellationToken cancellationToken) where T : UnityEngine.Object
+        public async Task<IAssetHandle<T>> LoadAsync<T>(AssetReference reference, CancellationToken cancellationToken = default) where T : UnityEngine.Object
         {
+            if (client == null || assetReferenceHandler == null || assetPreloadHandler == null) throw new InvalidOperationException("Addressables gateway is not properly initialized.");
+            cancellationToken.ThrowIfCancellationRequested();
+            if (reference == null || reference.RuntimeKey == null) throw new ArgumentException("Asset reference is not valid.", nameof(reference));
+            string key = reference.RuntimeKey.ToString();
+            if (string.IsNullOrWhiteSpace(key)) throw new ArgumentException("Asset reference is not valid.", nameof(reference));
+            return await assetReferenceHandler.AcquireAsync<T>(key, cancellationToken);
+        }
+
+        public Task<IAssetHandle<T>> LoadAsync<T>(AssetReferenceT<T> reference, CancellationToken cancellationToken = default) where T : UnityEngine.Object
+        {
+            if (client == null || assetReferenceHandler == null || assetPreloadHandler == null) throw new InvalidOperationException("Addressables gateway is not properly initialized.");
+            cancellationToken.ThrowIfCancellationRequested();
+            if (reference == null || reference.RuntimeKey == null) throw new ArgumentException("Asset reference is not valid.", nameof(reference));
+            string key = reference.RuntimeKey.ToString();
+            if (string.IsNullOrWhiteSpace(key)) throw new ArgumentException("Asset reference is not valid.", nameof(reference));
+            return assetReferenceHandler.AcquireAsync<T>(key, cancellationToken);
+        }
+
+        public async Task<IAssetGroupHandle<T>> LoadAsync<T>(AssetLabelReference label, CancellationToken cancellationToken = default) where T : UnityEngine.Object
+        {
+            if (client == null || assetReferenceHandler == null || assetPreloadHandler == null) throw new InvalidOperationException("Addressables gateway is not properly initialized.");
+            cancellationToken.ThrowIfCancellationRequested();
+            if (label == null || string.IsNullOrWhiteSpace(label.labelString)) throw new ArgumentException("Label reference cannot be empty.", nameof(label));
+            IReadOnlyList<string> keys = await client.ResolveLabelAsync(typeof(T), label, cancellationToken);
             List<IAssetHandle<T>> handles = new List<IAssetHandle<T>>(keys.Count);
-            for (int i = 0; i < keys.Count; i++) { handles.Add(await assetReferenceHandler.AcquireAsync<T>(keys[i], cancellationToken)); }
-            return handles;
+            for (int i = 0; i < keys.Count; i++)
+            {
+                handles.Add(await assetReferenceHandler.AcquireAsync<T>(keys[i], cancellationToken));
+            }
+            return new AssetGroupHandle<T>(handles);
+        }
+
+        public IAssetHandle<T> Load<T>(AssetReference reference, CancellationToken cancellationToken = default) where T : UnityEngine.Object
+        {
+            if (client == null || assetReferenceHandler == null || assetPreloadHandler == null) throw new InvalidOperationException("Addressables gateway is not properly initialized.");
+            cancellationToken.ThrowIfCancellationRequested();
+            if (reference == null || reference.RuntimeKey == null) throw new ArgumentException("Asset reference is not valid.", nameof(reference));
+            string key = reference.RuntimeKey.ToString();
+            if (string.IsNullOrWhiteSpace(key)) throw new ArgumentException("Asset reference is not valid.", nameof(reference));
+            return StartLoadByKey<T>(key, cancellationToken);
+        }
+
+        public IAssetHandle<T> Load<T>(AssetReferenceT<T> reference, CancellationToken cancellationToken = default) where T : UnityEngine.Object
+        {
+            if (client == null || assetReferenceHandler == null || assetPreloadHandler == null) throw new InvalidOperationException("Addressables gateway is not properly initialized.");
+            cancellationToken.ThrowIfCancellationRequested();
+            if (reference == null || reference.RuntimeKey == null) throw new ArgumentException("Asset reference is not valid.", nameof(reference));
+            string key = reference.RuntimeKey.ToString();
+            if (string.IsNullOrWhiteSpace(key)) throw new ArgumentException("Asset reference is not valid.", nameof(reference));
+            return StartLoadByKey<T>(key, cancellationToken);
+        }
+
+        public IAssetGroupHandle<T> Load<T>(AssetLabelReference label, CancellationToken cancellationToken = default) where T : UnityEngine.Object
+        {
+            if (client == null || assetReferenceHandler == null || assetPreloadHandler == null) throw new InvalidOperationException("Addressables gateway is not properly initialized.");
+            cancellationToken.ThrowIfCancellationRequested();
+            if (label == null || string.IsNullOrWhiteSpace(label.labelString)) throw new ArgumentException("Label reference cannot be empty.", nameof(label));
+            IReadOnlyList<string> keys = client.ResolveLabelAsync(typeof(T), label, cancellationToken).GetAwaiter().GetResult();
+            IReadOnlyList<IAssetHandle<T>> handles = LoadLabelHandlesSync<T>(keys, cancellationToken);
+            return new AssetGroupHandle<T>(handles);
         }
 
         private IReadOnlyList<IAssetHandle<T>> LoadLabelHandlesSync<T>(IReadOnlyList<string> keys, CancellationToken cancellationToken) where T : UnityEngine.Object
@@ -185,25 +169,24 @@ namespace Madbox.Addressables
             List<IAssetHandle<T>> handles = new List<IAssetHandle<T>>(keys.Count);
             for (int i = 0; i < keys.Count; i++)
             {
-                AssetReference reference = new AssetReference(keys[i]);
-                IAssetHandle<T> handle = Load<T>(reference, cancellationToken);
+                IAssetHandle<T> handle = StartLoadByKey<T>(keys[i], cancellationToken);
                 handles.Add(handle);
             }
             return handles;
         }
 
-        private void GuardRuntimeInvariants()
+        private IAssetHandle<T> StartLoadByKey<T>(string key, CancellationToken cancellationToken) where T : UnityEngine.Object
         {
-            if (client == null) { throw new InvalidOperationException("Addressables gateway is not properly initialized."); }
-            if (assetReferenceHandler == null) { throw new InvalidOperationException("Addressables gateway is not properly initialized."); }
-            if (assetPreloadHandler == null) { throw new InvalidOperationException("Addressables gateway is not properly initialized."); }
+            AssetHandle<T> handle = new AssetHandle<T>();
+            _ = CompleteLoadByKeyAsync(key, handle, cancellationToken);
+            return handle;
         }
 
-        private async Task CompleteLoadAsync<T>(AssetReference reference, AssetHandle<T> handle, CancellationToken cancellationToken) where T : UnityEngine.Object
+        private async Task CompleteLoadByKeyAsync<T>(string key, AssetHandle<T> handle, CancellationToken cancellationToken) where T : UnityEngine.Object
         {
             try
             {
-                IAssetHandle<T> loaded = await LoadAsync<T>(reference, cancellationToken);
+                IAssetHandle<T> loaded = await assetReferenceHandler.AcquireAsync<T>(key, cancellationToken);
                 handle.Complete(loaded);
             }
             catch (Exception exception)
@@ -212,31 +195,7 @@ namespace Madbox.Addressables
             }
         }
 
-        private async Task<IReadOnlyList<string>> ResolveLabelKeysAsync<T>(AssetLabelReference label, CancellationToken cancellationToken) where T : UnityEngine.Object
-        {
-            GuardLabel(label);
-            return await client.ResolveLabelAsync(typeof(T), label, cancellationToken);
-        }
-
-        private string ResolveReferenceKey(AssetReference reference)
-        {
-            GuardReference(reference);
-            string key = reference.RuntimeKey?.ToString();
-            if (string.IsNullOrWhiteSpace(key)) { throw new ArgumentException("Asset reference is not valid.", nameof(reference)); }
-            return key;
-        }
-
-        private void GuardLabel(AssetLabelReference label)
-        {
-            if (label == null || string.IsNullOrWhiteSpace(label.labelString)) { throw new ArgumentException("Label reference cannot be empty.", nameof(label)); }
-        }
-
-        private void GuardReference(AssetReference reference)
-        {
-            if (reference == null) { throw new ArgumentException("Asset reference is not valid.", nameof(reference)); }
-            if (reference.RuntimeKey == null) { throw new ArgumentException("Asset reference is not valid.", nameof(reference)); }
-        }
-
     }
 }
-#pragma warning restore SCA0006
+
+

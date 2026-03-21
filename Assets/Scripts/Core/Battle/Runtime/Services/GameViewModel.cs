@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -6,38 +6,29 @@ using Madbox.Battle.Contracts;
 using Madbox.Levels;
 using Scaffold.MVVM;
 using VContainer;
-#pragma warning disable SCA0005
-#pragma warning disable SCA0012
-#pragma warning disable SCA0017
-#pragma warning disable SCA0020
 
 namespace Madbox.Battle.Services
 {
     public partial class GameViewModel : ViewModel
     {
-        [ObservableProperty] private string gameStateText = "GameState: NotRunning";
-        [ObservableProperty] private bool isCompleteVisible;
-
         public GameViewModel() : this(new LevelId("whitebox-level-1"))
         {
         }
 
         public GameViewModel(LevelId levelId)
         {
-            selectedLevelId = levelId ?? new LevelId("whitebox-level-1");
+            selectedLevelId = EnsureLevelId(levelId);
         }
 
         public LevelId SelectedLevelId => selectedLevelId;
 
+        [ObservableProperty] private string gameStateText = "GameState: NotRunning";
+        [ObservableProperty] private bool isCompleteVisible;
         private IGameService gameService;
         private Game game;
         private readonly LevelId selectedLevelId;
 
-        [Inject]
-        public void Construct(IGameService gameService)
-        {
-            this.gameService = gameService;
-        }
+        [Inject] public void Construct(IGameService gameService) { this.gameService = EnsureGameService(gameService); }
 
         protected override async void Initialize()
         {
@@ -87,5 +78,16 @@ namespace Madbox.Battle.Services
             GameStateText = $"GameState: {state}";
             IsCompleteVisible = string.Equals(state, nameof(GameState.Done), StringComparison.Ordinal);
         }
+
+        private IGameService EnsureGameService(IGameService gameService)
+        {
+            return gameService ?? throw new ArgumentNullException(nameof(gameService));
+        }
+
+        private LevelId EnsureLevelId(LevelId levelId)
+        {
+            return levelId ?? new LevelId("whitebox-level-1");
+        }
     }
 }
+

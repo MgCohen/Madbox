@@ -1,4 +1,4 @@
-using NUnit.Framework;
+﻿using NUnit.Framework;
 
 namespace Madbox.Gold.Tests
 {
@@ -22,3 +22,5 @@ namespace Madbox.Gold.Tests
         }
     }
 }
+
+

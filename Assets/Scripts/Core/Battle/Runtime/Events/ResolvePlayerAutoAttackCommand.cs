@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using Madbox.Battle;
 using Madbox.Battle.Behaviors;
@@ -38,15 +38,6 @@ namespace Madbox.Battle.Events
             context.EmitEvent(spawnedEvent);
         }
 
-        private bool CanExecute(BattleExecutionContext context)
-        {
-            if (context == null) return false;
-            if (Equals(sourceId, context.Player.EntityId) == false) return false;
-            PlayerAutoAttackBehaviorState autoAttackBehavior = ResolveAutoAttackBehavior(context.Player);
-            if (autoAttackBehavior == null || autoAttackBehavior.CanAttack() == false) return false;
-            return context.EnemyService.HasLiveEnemy(targetId);
-        }
-
         private PlayerAutoAttackBehaviorState ResolveAutoAttackBehavior(Player player)
         {
             if (player == null) return null;
@@ -57,8 +48,12 @@ namespace Madbox.Battle.Events
         private bool TryFindAutoAttack(IReadOnlyList<IPlayerBehaviorRuntime> behaviors, out PlayerAutoAttackBehaviorState autoAttackBehavior)
         {
             for (int i = 0; i < behaviors.Count; i++)
+            {
                 if (behaviors[i] is PlayerAutoAttackBehaviorState foundBehavior)
+                {
                     return ReturnAutoAttack(foundBehavior, out autoAttackBehavior);
+                }
+            }
             autoAttackBehavior = null;
             return false;
         }
@@ -73,5 +68,15 @@ namespace Madbox.Battle.Events
         {
             return context.ProjectileRegistry.TrySpawn(sourceId, targetId, EnemyService.PlayerBaseDamage, out spawnedEvent);
         }
+
+        private bool CanExecute(BattleExecutionContext context)
+        {
+            if (context == null) return false;
+            if (Equals(sourceId, context.Player.EntityId) == false) return false;
+            PlayerAutoAttackBehaviorState autoAttackBehavior = ResolveAutoAttackBehavior(context.Player);
+            if (autoAttackBehavior == null || autoAttackBehavior.CanAttack() == false) return false;
+            return context.EnemyService.HasLiveEnemy(targetId);
+        }
     }
 }
+

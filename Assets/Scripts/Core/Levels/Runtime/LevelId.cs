@@ -1,4 +1,5 @@
-namespace Madbox.Levels
+﻿namespace Madbox.Levels
 {
     public record LevelId(string Value);
 }
+

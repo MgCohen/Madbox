@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using Madbox.Enemies;
 using Madbox.Enemies.Contracts;
@@ -33,9 +33,9 @@ namespace Madbox.Enemies.Behaviors
         {
             int enemyIndex = 1;
             foreach (LevelEnemyDefinition levelEnemy in definition.Enemies)
-            {
-                enemyIndex = AddEnemyBatch(enemies, levelEnemy, enemyIndex);
-            }
+{
+    enemyIndex = AddEnemyBatch(enemies, levelEnemy, enemyIndex);
+}
         }
 
         private int AddEnemyBatch(Dictionary<EntityId, EnemyRuntimeState> enemies, LevelEnemyDefinition levelEnemy, int enemyIndex)
@@ -87,7 +87,9 @@ namespace Madbox.Enemies.Behaviors
             if (definition == null) return ReturnNoBehavior(out behavior);
             Type behaviorType = definition.GetType();
             if (runtimeBehaviorFactories.TryGetValue(behaviorType, out Func<EnemyBehaviorDefinition, IEnemyBehaviorRuntime> factory) == false)
+            {
                 return ReturnNoBehavior(out behavior);
+            }
             behavior = factory(definition);
             return behavior != null;
         }
@@ -103,10 +105,10 @@ namespace Madbox.Enemies.Behaviors
             Register<ContactAttackBehaviorDefinition>(definition => new ContactAttackBehaviorRuntime(definition));
         }
 
-        private void Register<TBehavior>(Func<TBehavior, IEnemyBehaviorRuntime> factory)
-            where TBehavior : EnemyBehaviorDefinition
+        private void Register<TBehavior>(Func<TBehavior, IEnemyBehaviorRuntime> factory) where TBehavior : EnemyBehaviorDefinition
         {
             runtimeBehaviorFactories[typeof(TBehavior)] = definition => factory((TBehavior)definition);
         }
     }
 }
+

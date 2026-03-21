@@ -1,4 +1,4 @@
-using Scaffold.Navigation.Contracts;
+﻿using Scaffold.Navigation.Contracts;
 using UnityEngine;
 using VContainer;
 using VContainer.Unity;
@@ -25,3 +25,4 @@ namespace Scaffold.Navigation.Container
         }
     }
 }
+

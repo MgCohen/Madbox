@@ -11,7 +11,10 @@ namespace Scaffold.MVVM.BaseEvents
     {
         public ClickViewEvent(string id)
         {
-            if (string.IsNullOrWhiteSpace(id)) { throw new System.ArgumentException("Id cannot be null or whitespace.", nameof(id)); }
+            if (string.IsNullOrWhiteSpace(id))
+            {
+                throw new System.ArgumentException("Id cannot be null or whitespace.", nameof(id));
+            }
             this.id = id;
         }
 
@@ -24,6 +27,7 @@ namespace Scaffold.MVVM.BaseEvents
         [SerializeField] private string id;
     }
 }
+
 
 
 

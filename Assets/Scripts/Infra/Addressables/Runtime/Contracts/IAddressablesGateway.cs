@@ -1,4 +1,4 @@
-using System.Threading;
+﻿using System.Threading;
 using System.Threading.Tasks;
 using UnityEngine.AddressableAssets;
 using UnityEngine;
@@ -16,3 +16,4 @@ namespace Madbox.Addressables.Contracts
         IAssetHandle<T> Load<T>(AssetReferenceT<T> reference, CancellationToken cancellationToken = default) where T : UnityEngine.Object;
     }
 }
+

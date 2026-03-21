@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 
 namespace Madbox.Addressables.Contracts
 {
@@ -6,8 +6,14 @@ namespace Madbox.Addressables.Contracts
     {
         public AddressablesPreloadRegistration(Type assetType, string key, PreloadMode mode)
         {
-            if (assetType == null) { throw new ArgumentNullException(nameof(assetType)); }
-            if (string.IsNullOrWhiteSpace(key)) { throw new ArgumentException("Preload key cannot be empty.", nameof(key)); }
+            if (assetType == null)
+            {
+                throw new ArgumentNullException(nameof(assetType));
+            }
+            if (string.IsNullOrWhiteSpace(key))
+            {
+                throw new ArgumentException("Preload key cannot be empty.", nameof(key));
+            }
             AssetType = assetType;
             Key = key;
             Mode = mode;
@@ -18,3 +24,4 @@ namespace Madbox.Addressables.Contracts
         public PreloadMode Mode { get; }
     }
 }
+

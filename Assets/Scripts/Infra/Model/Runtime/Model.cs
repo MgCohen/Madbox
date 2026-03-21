@@ -1,4 +1,4 @@
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using Scaffold.MVVM.Binding;
 
 namespace Scaffold.MVVM
@@ -9,3 +9,4 @@ namespace Scaffold.MVVM
 
     }
 }
+

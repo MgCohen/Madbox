@@ -1,4 +1,4 @@
-namespace Madbox.Levels.Rules
+﻿namespace Madbox.Levels.Rules
 {
     public enum GameEndReason
     {
@@ -8,3 +8,4 @@ namespace Madbox.Levels.Rules
         ForceQuit
     }
 }
+

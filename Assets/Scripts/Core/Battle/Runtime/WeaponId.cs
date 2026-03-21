@@ -1,4 +1,5 @@
-namespace Madbox.Battle
+﻿namespace Madbox.Battle
 {
     public record WeaponId(string Value);
 }
+

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Reflection;
 using VContainer;
 
@@ -35,26 +35,34 @@ namespace Madbox.Scope
 
         private static void GuardServiceType(Type serviceType)
         {
-            if (serviceType == null) { throw new ArgumentNullException(nameof(serviceType)); }
+            if (serviceType == null)
+            {
+                throw new ArgumentNullException(nameof(serviceType));
+            }
         }
 
         private static void GuardImplementationType(Type implementationType)
         {
-            if (implementationType == null) { throw new ArgumentNullException(nameof(implementationType)); }
+            if (implementationType == null)
+            {
+                throw new ArgumentNullException(nameof(implementationType));
+            }
         }
 
         private static void GuardInstance(object instance)
         {
-            if (instance == null) { throw new ArgumentNullException(nameof(instance)); }
+            if (instance == null)
+            {
+                throw new ArgumentNullException(nameof(instance));
+            }
         }
 
-        private static Action<IContainerBuilder> CreateTypeRegistrationInternal<TService, TImplementation>(Lifetime lifetime)
-            where TImplementation : class, TService
+        public static Action<IContainerBuilder> CreateTypeRegistrationInternal<TService, TImplementation>(Lifetime lifetime) where TImplementation : class, TService
         {
             return builder => builder.Register<TService, TImplementation>(lifetime);
         }
 
-        private static Action<IContainerBuilder> CreateInstanceRegistrationInternal<TService>(object instance, Lifetime lifetime)
+        public static Action<IContainerBuilder> CreateInstanceRegistrationInternal<TService>(object instance, Lifetime lifetime)
         {
             if (lifetime != Lifetime.Singleton)
             {
@@ -66,3 +74,4 @@ namespace Madbox.Scope
         }
     }
 }
+

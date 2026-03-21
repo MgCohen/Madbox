@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using Madbox.Enemies.Services;
 using Madbox.Levels;
 using Madbox.Levels.Rules;
@@ -27,7 +27,10 @@ namespace Madbox.Battle.Rules
 
         private bool GuardEvaluationInputs(Player player, EnemyService enemyService, out GameEndReason reason)
         {
-            if (player != null && enemyService != null) { reason = GameEndReason.None; return true; }
+            if (player != null && enemyService != null)
+            {
+                reason = GameEndReason.None; return true;
+            }
             reason = GameEndReason.None;
             return false;
         }
@@ -41,7 +44,10 @@ namespace Madbox.Battle.Rules
 
         private bool CanEvaluateRules(GameState currentState, out GameEndReason reason)
         {
-            if (currentState == GameState.Running) { reason = GameEndReason.None; return true; }
+            if (currentState == GameState.Running)
+            {
+                reason = GameEndReason.None; return true;
+            }
             reason = GameEndReason.None;
             return false;
         }
@@ -54,10 +60,15 @@ namespace Madbox.Battle.Rules
         private bool TryEvaluateDefinitions(BattleContext context, out GameEndReason reason)
         {
             foreach (LevelGameRuleDefinition ruleDefinition in levelDefinition.GameRules)
+            {
                 if (ruleDefinition.CheckRule(context, out reason))
+                {
                     return true;
+                }
+            }
             reason = GameEndReason.None;
             return false;
         }
     }
 }
+

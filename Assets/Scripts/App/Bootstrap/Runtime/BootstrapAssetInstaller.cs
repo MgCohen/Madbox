@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using Madbox.Addressables.Container;
 using Madbox.Scope.Contracts;
 using VContainer;
@@ -9,9 +9,13 @@ namespace Madbox.App.Bootstrap
     {
         public void Install(IContainerBuilder builder)
         {
-            if (builder == null) { throw new ArgumentNullException(nameof(builder)); }
+            if (builder == null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
             AddressablesInstaller installer = new AddressablesInstaller();
             installer.Install(builder);
         }
     }
 }
+

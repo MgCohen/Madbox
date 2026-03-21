@@ -1,4 +1,4 @@
-﻿using System.Linq.Expressions;
+using System.Linq.Expressions;
 using System.Collections.Specialized;
 using System.Collections.ObjectModel;
 using System.Collections;
@@ -20,64 +20,64 @@ namespace Scaffold.MVVM.Binding
 
         public void RegisterConverter(Converter<TSource, TTarget> converter)
         {
-            if (converter is null) { throw new ArgumentNullException(nameof(converter)); }
+            if (converter is null)
+{
+    throw new ArgumentNullException(nameof(converter));
+}
             converters.Add(converter);
         }
 
         public void RegisterAdapter(Adapter<TTarget> adapter)
         {
-            if (adapter is null) { throw new ArgumentNullException(nameof(adapter)); }
+            if (adapter is null)
+{
+    throw new ArgumentNullException(nameof(adapter));
+}
             adapters.Add(adapter);
         }
 
         public bool TryConvert(TSource source, out TTarget target)
         {
-            GuardTryConvertInput(source);
-            if (converters.Count == 0) { target = default; return false; }
+            if (converters.Count == 0)
+            {
+                target = default;
+                return false;
+            }
+            return TryConvertWithConverters(source, out target);
+        }
+
+        private bool TryConvertWithConverters(TSource source, out TTarget target)
+        {
             foreach (var converter in converters)
             {
-                if (TryApplyConverter(converter, source, out target)) { return true; }
+                if (!converter.CanConvert(source)) continue;
+                target = converter.Convert(source);
+                return true;
             }
             target = default;
             return false;
         }
 
-        private bool TryApplyConverter(Converter<TSource, TTarget> converter, TSource source, out TTarget target)
-        {
-            if (!converter.CanConvert(source)) { target = default; return false; }
-            target = converter.Convert(source);
-            return true;
-        }
-
         public bool TryAdapt(TTarget target, out TTarget newTarget)
         {
-            GuardTryAdaptInput(target);
-            if (adapters.Count == 0) { newTarget = default; return false; }
+            if (adapters.Count == 0)
+            {
+                newTarget = default;
+                return false;
+            }
+            return TryAdaptWithAdapters(target, out newTarget);
+        }
+
+        private bool TryAdaptWithAdapters(TTarget target, out TTarget newTarget)
+        {
             foreach (var adapter in adapters)
             {
-                if (TryApplyAdapter(adapter, target, out newTarget)) { return true; }
+                if (!adapter.CanAdapt(target)) continue;
+                newTarget = adapter.Resolve(target);
+                return true;
             }
             newTarget = default;
             return false;
         }
-
-        private bool TryApplyAdapter(Adapter<TTarget> adapter, TTarget target, out TTarget newTarget)
-        {
-            if (!adapter.CanAdapt(target)) { newTarget = default; return false; }
-            newTarget = adapter.Resolve(target);
-            return true;
-        }
-
-        private void GuardTryConvertInput(TSource source)
-        {
-        }
-
-        private void GuardTryAdaptInput(TTarget target)
-        {
-        }
     }
 }
-
-
-
-

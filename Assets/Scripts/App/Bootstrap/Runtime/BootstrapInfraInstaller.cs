@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using Madbox.App.GameView.Container;
 using Madbox.Gold.Container;
 using Madbox.Scope.Contracts;
@@ -23,40 +23,20 @@ namespace Madbox.App.Bootstrap
 
         public void Install(IContainerBuilder builder)
         {
-            ValidateBuilder(builder);
-            InstallEvents(builder);
-            InstallNavigation(builder);
-            InstallGold(builder);
-            InstallGameView(builder);
-        }
+            if (builder == null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
 
-        private void InstallEvents(IContainerBuilder builder)
-        {
-            EventsInstaller installer = new EventsInstaller();
-            installer.Install(builder);
-        }
-
-        private void InstallNavigation(IContainerBuilder builder)
-        {
-            NavigationInstaller installer = new NavigationInstaller(navigationSettings, viewHolder);
-            installer.Install(builder);
-        }
-
-        private void InstallGold(IContainerBuilder builder)
-        {
-            GoldInstaller installer = new GoldInstaller();
-            installer.Install(builder);
-        }
-
-        private void InstallGameView(IContainerBuilder builder)
-        {
-            GameViewInstaller installer = new GameViewInstaller();
-            installer.Install(builder);
-        }
-
-        private void ValidateBuilder(object builder)
-        {
-            if (builder == null) { throw new ArgumentNullException(nameof(builder)); }
+            EventsInstaller eventsInstaller = new EventsInstaller();
+            eventsInstaller.Install(builder);
+            NavigationInstaller navigationInstaller = new NavigationInstaller(navigationSettings, viewHolder);
+            navigationInstaller.Install(builder);
+            GoldInstaller goldInstaller = new GoldInstaller();
+            goldInstaller.Install(builder);
+            GameViewInstaller gameViewInstaller = new GameViewInstaller();
+            gameViewInstaller.Install(builder);
         }
     }
 }
+

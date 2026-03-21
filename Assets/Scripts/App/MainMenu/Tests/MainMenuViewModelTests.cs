@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using Madbox.Battle.Services;
 using Madbox.Gold;
 using Madbox.Gold.Contracts;
@@ -34,9 +34,9 @@ namespace Madbox.App.MainMenu.Tests
             MainMenuViewModel viewModel = CreateBoundViewModel(service);
             using ViewFixture fixture = CreateViewFixture(viewModel);
             viewModel.AddOneGold();
-            Component label = ResolveGoldLabel(fixture.Root);
+            Component label = BuildResolveGoldLabel(fixture.Root);
             Assert.IsNotNull(label);
-            string text = ReadTextValue(label);
+            string text = BuildReadTextValue(label);
             Assert.AreEqual("Gold: 2", text);
         }
 
@@ -46,18 +46,18 @@ namespace Madbox.App.MainMenu.Tests
             FakeNavigation navigation = new FakeNavigation();
             MainMenuViewModel viewModel = CreateStartGameViewModel(navigation, "level-from-menu");
             viewModel.StartGame();
-            AssertOpenedGameView(navigation, "level-from-menu");
+            BuildAssertOpenedGameView(navigation, "level-from-menu");
         }
 
-        private MainMenuViewModel CreateBoundViewModel(FakeGoldService service)
+        private static MainMenuViewModel CreateBoundViewModel(FakeGoldService service)
         {
             MainMenuViewModel viewModel = new MainMenuViewModel();
             viewModel.Construct(service);
-            viewModel.Bind(null);
+            viewModel.Bind(new FakeNavigation());
             return viewModel;
         }
 
-        private MainMenuViewModel CreateStartGameViewModel(FakeNavigation navigation, string levelId)
+        private static MainMenuViewModel CreateStartGameViewModel(FakeNavigation navigation, string levelId)
         {
             FakeGoldService service = new FakeGoldService(0);
             MainMenuViewModel viewModel = new MainMenuViewModel();
@@ -67,7 +67,7 @@ namespace Madbox.App.MainMenu.Tests
             return viewModel;
         }
 
-        private void AssertOpenedGameView(FakeNavigation navigation, string expectedLevelId)
+        private static void BuildAssertOpenedGameView(FakeNavigation navigation, string expectedLevelId)
         {
             Assert.IsNotNull(navigation.OpenedController);
             Assert.AreEqual("Madbox.Battle.Services.GameViewModel", navigation.OpenedController.GetType().FullName);
@@ -76,7 +76,7 @@ namespace Madbox.App.MainMenu.Tests
             Assert.AreEqual(expectedLevelId, gameViewModel.SelectedLevelId.Value);
         }
 
-        private ViewFixture CreateViewFixture(MainMenuViewModel viewModel)
+        private static ViewFixture CreateViewFixture(MainMenuViewModel viewModel)
         {
             GameObject root = new GameObject("MainMenuViewTestRoot", typeof(RectTransform));
             MainMenuView view = root.AddComponent<MainMenuView>();
@@ -84,38 +84,50 @@ namespace Madbox.App.MainMenu.Tests
             return new ViewFixture(root);
         }
 
-        private Component ResolveGoldLabel(GameObject root)
+        private static Component BuildResolveGoldLabel(GameObject root)
         {
             Component[] components = root.GetComponentsInChildren<Component>(true);
-            return FindGoldLabel(components);
+            return BuildFindGoldLabel(components);
         }
 
-        private Component FindGoldLabel(Component[] components)
+        private static Component BuildFindGoldLabel(Component[] components)
         {
             for (int i = 0; i < components.Length; i++)
             {
-                if (IsGoldLabel(components[i])) { return components[i]; }
+                if (BuildIsGoldLabel(components[i]))
+{
+    return components[i];
+}
             }
             return null;
         }
 
-        private bool IsGoldLabel(Component component)
+        private static bool BuildIsGoldLabel(Component component)
         {
-            if (!IsTmpLabel(component)) { return false; }
-            string value = ReadTextValue(component);
+            if (!BuildIsTmpLabel(component))
+{
+    return false;
+}
+            string value = BuildReadTextValue(component);
             return value.StartsWith("Gold:");
         }
 
-        private bool IsTmpLabel(Component component)
+        private static bool BuildIsTmpLabel(Component component)
         {
             return component != null && component.GetType().Name == "TextMeshProUGUI";
         }
 
-        private string ReadTextValue(Component component)
+        private static string BuildReadTextValue(Component component)
         {
-            if (component == null) { return string.Empty; }
+            if (component == null)
+{
+    return string.Empty;
+}
             var property = component.GetType().GetProperty("text");
-            if (property == null) { return string.Empty; }
+            if (property == null)
+{
+    return string.Empty;
+}
             object value = property.GetValue(component);
             return value as string ?? string.Empty;
         }
@@ -131,7 +143,10 @@ namespace Madbox.App.MainMenu.Tests
 
             public void Dispose()
             {
-                if (Root == null) { return; }
+                if (Root == null)
+{
+    return;
+}
                 UnityEngine.Object.DestroyImmediate(Root);
             }
         }
@@ -162,8 +177,7 @@ namespace Madbox.App.MainMenu.Tests
 
             public IViewController OpenedController { get; private set; }
 
-            public void Open<TViewController>(TViewController controller, bool closeCurrent = false, NavigationOptions options = null)
-                where TViewController : IViewController
+            public void Open<TViewController>(TViewController controller, bool closeCurrent = false, NavigationOptions options = null) where TViewController : IViewController
             {
                 OpenedController = controller;
             }
@@ -179,3 +193,6 @@ namespace Madbox.App.MainMenu.Tests
         }
     }
 }
+
+
+

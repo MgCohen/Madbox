@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -11,7 +11,10 @@ namespace Madbox.Addressables
     {
         public AddressablesAssetPreloadHandler(IAddressablesAssetClient client)
         {
-            if (client == null) { throw new ArgumentNullException(nameof(client)); }
+            if (client == null)
+{
+    throw new ArgumentNullException(nameof(client));
+}
             this.client = client;
         }
 
@@ -19,7 +22,10 @@ namespace Madbox.Addressables
 
         public async Task<IReadOnlyList<AddressablesPreloadRegistration>> BuildAsync(AddressablesPreloadConfig config, CancellationToken cancellationToken)
         {
-            if (config == null) { return Array.Empty<AddressablesPreloadRegistration>(); }
+            if (config == null)
+{
+    return Array.Empty<AddressablesPreloadRegistration>();
+}
             cancellationToken.ThrowIfCancellationRequested();
             return await BuildRegistrationsAsync(config.Entries, cancellationToken);
         }
@@ -27,36 +33,32 @@ namespace Madbox.Addressables
         private async Task<IReadOnlyList<AddressablesPreloadRegistration>> BuildRegistrationsAsync(IReadOnlyList<AddressablesPreloadConfigEntry> entries, CancellationToken cancellationToken)
         {
             List<AddressablesPreloadRegistration> registrations = new List<AddressablesPreloadRegistration>();
-            await AddEntriesAsync(entries, registrations, cancellationToken);
-            return registrations;
-        }
-
-        private async Task AddEntriesAsync(IReadOnlyList<AddressablesPreloadConfigEntry> entries, ICollection<AddressablesPreloadRegistration> registrations, CancellationToken cancellationToken)
-        {
             for (int i = 0; i < entries.Count; i++)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                IReadOnlyList<AddressablesPreloadRegistration> entryRegistrations = await BuildRegistrationsForEntryAsync(entries[i], i, cancellationToken);
-                AddRange(registrations, entryRegistrations);
+                IReadOnlyList<AddressablesPreloadRegistration> entryRegistrations = await BuildEntryRegistrationsAsync(entries[i], i, cancellationToken);
+                for (int j = 0; j < entryRegistrations.Count; j++)
+                {
+                    registrations.Add(entryRegistrations[j]);
+                }
             }
+            return registrations;
         }
 
-        private async Task<IReadOnlyList<AddressablesPreloadRegistration>> BuildRegistrationsForEntryAsync(AddressablesPreloadConfigEntry entry, int index, CancellationToken cancellationToken)
+        private async Task<IReadOnlyList<AddressablesPreloadRegistration>> BuildEntryRegistrationsAsync(AddressablesPreloadConfigEntry entry, int index, CancellationToken cancellationToken)
         {
-            GuardPreloadEntry(entry, index);
-            return entry.ReferenceType switch
+            if (entry == null || entry.AssetType?.Type == null) throw new InvalidOperationException($"Invalid preload config entry at index {index}. Entry or AssetType is missing.");
+            Type assetType = entry.AssetType.Type; if (!typeof(UnityEngine.Object).IsAssignableFrom(assetType)) throw new InvalidOperationException($"Invalid preload config entry at index {index}. AssetType '{assetType.FullName}' must inherit UnityEngine.Object.");
+            if ((entry.ReferenceType == PreloadReferenceType.AssetReference && entry.AssetReference == null) || (entry.ReferenceType == PreloadReferenceType.LabelReference && (entry.LabelReference == null || string.IsNullOrWhiteSpace(entry.LabelReference.labelString)))) throw new InvalidOperationException($"Invalid preload config entry at index {index}. Reference data is missing.");
+            if (entry.ReferenceType == PreloadReferenceType.AssetReference)
             {
-                PreloadReferenceType.AssetReference => BuildAssetReferenceRegistration(entry),
-                PreloadReferenceType.LabelReference => await BuildLabelRegistrationsAsync(entry, cancellationToken),
-                _ => throw CreateUnsupportedReferenceTypeException(entry, index),
-            };
-        }
-
-        private IReadOnlyList<AddressablesPreloadRegistration> BuildAssetReferenceRegistration(AddressablesPreloadConfigEntry entry)
-        {
-            string key = ResolveReferenceKey(entry.AssetReference);
-            Type assetType = entry.AssetType.Type;
-            return new[] { new AddressablesPreloadRegistration(assetType, key, entry.Mode) };
+                AssetReference reference = entry.AssetReference;
+                string key = reference?.RuntimeKey?.ToString();
+                if (string.IsNullOrWhiteSpace(key)) throw new ArgumentException("Asset reference is not valid.", nameof(reference));
+                return new[] { new AddressablesPreloadRegistration(assetType, key, entry.Mode) };
+            }
+            if (entry.ReferenceType == PreloadReferenceType.LabelReference) return await BuildLabelRegistrationsAsync(entry, cancellationToken);
+            throw new InvalidOperationException($"Invalid preload config entry at index {index}. Unsupported reference type '{entry.ReferenceType}'.");
         }
 
         private async Task<IReadOnlyList<AddressablesPreloadRegistration>> BuildLabelRegistrationsAsync(AddressablesPreloadConfigEntry entry, CancellationToken cancellationToken)
@@ -77,38 +79,8 @@ namespace Madbox.Addressables
             return byLabel;
         }
 
-        private void AddRange(ICollection<AddressablesPreloadRegistration> registrations, IReadOnlyList<AddressablesPreloadRegistration> additions)
-        {
-            for (int i = 0; i < additions.Count; i++) { registrations.Add(additions[i]); }
-        }
 
-        private Exception CreateUnsupportedReferenceTypeException(AddressablesPreloadConfigEntry entry, int index)
-        {
-            return new InvalidOperationException($"Invalid preload config entry at index {index}. Unsupported reference type '{entry.ReferenceType}'.");
-        }
-
-        private string ResolveReferenceKey(AssetReference reference)
-        {
-            GuardReference(reference);
-            string key = reference.RuntimeKey?.ToString();
-            if (string.IsNullOrWhiteSpace(key)) { throw new ArgumentException("Asset reference is not valid.", nameof(reference)); }
-            return key;
-        }
-
-        private void GuardPreloadEntry(AddressablesPreloadConfigEntry entry, int index)
-        {
-            if (entry == null) { throw new InvalidOperationException($"Invalid preload config entry at index {index}. Entry is null."); }
-            Type assetType = entry.AssetType?.Type;
-            if (assetType == null) { throw new InvalidOperationException($"Invalid preload config entry at index {index}. AssetType is missing or unresolved."); }
-            if (!typeof(UnityEngine.Object).IsAssignableFrom(assetType)) { throw new InvalidOperationException($"Invalid preload config entry at index {index}. AssetType '{assetType.FullName}' must inherit UnityEngine.Object."); }
-            if (entry.ReferenceType == PreloadReferenceType.AssetReference && entry.AssetReference == null) { throw new InvalidOperationException($"Invalid preload config entry at index {index}. AssetReference is missing."); }
-            if (entry.ReferenceType == PreloadReferenceType.LabelReference && (entry.LabelReference == null || string.IsNullOrWhiteSpace(entry.LabelReference.labelString))) { throw new InvalidOperationException($"Invalid preload config entry at index {index}. LabelReference is missing labelString."); }
-        }
-
-        private void GuardReference(AssetReference reference)
-        {
-            if (reference == null) { throw new ArgumentException("Asset reference is not valid.", nameof(reference)); }
-            if (reference.RuntimeKey == null) { throw new ArgumentException("Asset reference is not valid.", nameof(reference)); }
-        }
     }
 }
+
+

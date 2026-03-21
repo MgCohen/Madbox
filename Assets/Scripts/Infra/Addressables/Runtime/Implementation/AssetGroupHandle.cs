@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Threading;
 using Madbox.Addressables.Contracts;
@@ -26,18 +26,28 @@ namespace Madbox.Addressables
 
         public void Release()
         {
-            if (Interlocked.Exchange(ref releasedFlag, 1) != 0) { return; }
+            if (Interlocked.Exchange(ref releasedFlag, 1) != 0)
+            {
+                return;
+            }
             ReleaseAllHandles();
         }
 
         private void ReleaseAllHandles()
         {
-            foreach (IAssetHandle<T> handle in TypedHandles) { handle.Release(); }
+            foreach (IAssetHandle<T> handle in TypedHandles)
+{
+    handle.Release();
+}
         }
 
         private void GuardConstructor(IReadOnlyList<IAssetHandle<T>> handles)
         {
-            if (handles == null) { throw new ArgumentNullException(nameof(handles)); }
+            if (handles == null)
+            {
+                throw new ArgumentNullException(nameof(handles));
+            }
         }
     }
 }
+

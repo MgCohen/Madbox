@@ -1,4 +1,4 @@
-namespace Madbox.Addressables.Contracts
+﻿namespace Madbox.Addressables.Contracts
 {
     public enum PreloadMode
     {
@@ -6,3 +6,4 @@ namespace Madbox.Addressables.Contracts
         NeverDie = 1
     }
 }
+

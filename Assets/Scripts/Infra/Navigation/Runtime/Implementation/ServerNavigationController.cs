@@ -57,10 +57,14 @@ namespace Scaffold.Navigation
 
         private void GuardServerState()
         {
-            if (this == null) { throw new InvalidOperationException("Server navigation controller is not available."); }
+            if (this == null)
+            {
+                throw new InvalidOperationException("Server navigation controller is not available.");
+            }
         }
     }
 }
+
 
 
 

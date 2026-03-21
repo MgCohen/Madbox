@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Threading;
@@ -24,7 +24,7 @@ namespace Madbox.Levels.Tests
         public void EnemyDefinitionSO_ToDomain_MapsSerializedFields()
         {
             EnemyDefinitionSO enemy = ScriptableObject.CreateInstance<EnemyDefinitionSO>();
-            ConfigureEnemy(enemy, "bee", 25);
+            BuildConfigureEnemy(enemy, "bee", 25);
 
             EnemyDefinition mapped = enemy.ToDomain();
 
@@ -37,10 +37,10 @@ namespace Madbox.Levels.Tests
         public void LevelDefinitionSO_ToDomain_MapsEntriesAndRules()
         {
             EnemyDefinitionSO enemy = ScriptableObject.CreateInstance<EnemyDefinitionSO>();
-            ConfigureEnemy(enemy, "bee", 20);
+            BuildConfigureEnemy(enemy, "bee", 20);
             LevelEnemyEntrySO entry = CreateLevelEntry(enemy, 2);
             LevelDefinitionSO level = ScriptableObject.CreateInstance<LevelDefinitionSO>();
-            ConfigureLevel(level, "level-1", 15, new List<LevelEnemyEntrySO> { entry }, useTimeLimit: true, loseAfterSeconds: 30f);
+            BuildConfigureLevel(level, "level-1", 15, new List<LevelEnemyEntrySO> { entry }, useTimeLimit: true, loseAfterSeconds: 30f);
 
             LevelDefinition mapped = level.ToDomain();
 
@@ -57,7 +57,7 @@ namespace Madbox.Levels.Tests
         public void AddressableLevelDefinitionProvider_LoadAsync_UsesCatalogReference()
         {
             LevelCatalogSO catalog = ScriptableObject.CreateInstance<LevelCatalogSO>();
-            SetPrivateField(catalog, "levels", new List<LevelCatalogEntry>
+            BuildSetPrivateField(catalog, "levels", new List<LevelCatalogEntry>
             {
                 CreateCatalogEntry("level-1", new AssetReferenceT<LevelDefinitionSO>("level-1"))
             });
@@ -75,7 +75,7 @@ namespace Madbox.Levels.Tests
         public void LevelCatalogSO_TryGetLevelReference_WhenLevelsListIsNull_ReturnsFalse()
         {
             LevelCatalogSO catalog = ScriptableObject.CreateInstance<LevelCatalogSO>();
-            SetPrivateField(catalog, "levels", null);
+            BuildSetPrivateField(catalog, "levels", null);
 
             bool found = catalog.TryGetLevelReference("level-1", out AssetReferenceT<LevelDefinitionSO> reference);
 
@@ -86,31 +86,31 @@ namespace Madbox.Levels.Tests
         [Test]
         public void EnemyBehaviorDefinitions_AreMarkedSerializable_ForSerializeReferenceSupport()
         {
-            Assert.IsTrue(IsSerializable(typeof(EnemyBehaviorDefinition)));
-            Assert.IsTrue(IsSerializable(typeof(MovementBehaviorDefinition)));
-            Assert.IsTrue(IsSerializable(typeof(ContactAttackBehaviorDefinition)));
+            Assert.IsTrue(BuildIsSerializable(typeof(EnemyBehaviorDefinition)));
+            Assert.IsTrue(BuildIsSerializable(typeof(MovementBehaviorDefinition)));
+            Assert.IsTrue(BuildIsSerializable(typeof(ContactAttackBehaviorDefinition)));
         }
 
-        private void ConfigureEnemy(EnemyDefinitionSO enemy, string enemyId, int maxHealth)
+        private static void BuildConfigureEnemy(EnemyDefinitionSO enemy, string enemyId, int maxHealth)
         {
-            SetPrivateField(enemy, "enemyTypeId", enemyId);
-            SetPrivateField(enemy, "maxHealth", maxHealth);
-            SetPrivateField(enemy, "behaviorRules", new List<EnemyBehaviorDefinition>
+            BuildSetPrivateField(enemy, "enemyTypeId", enemyId);
+            BuildSetPrivateField(enemy, "maxHealth", maxHealth);
+            BuildSetPrivateField(enemy, "behaviorRules", new List<EnemyBehaviorDefinition>
             {
                 new MovementBehaviorDefinition(1f, 2f),
                 new ContactAttackBehaviorDefinition(3, 1f, 0.7f)
             });
         }
 
-        private LevelEnemyEntrySO CreateLevelEntry(EnemyDefinitionSO enemy, int count)
+        private static LevelEnemyEntrySO CreateLevelEntry(EnemyDefinitionSO enemy, int count)
         {
             LevelEnemyEntrySO entry = new LevelEnemyEntrySO();
-            SetPrivateField(entry, "enemy", enemy);
-            SetPrivateField(entry, "count", count);
+            BuildSetPrivateField(entry, "enemy", enemy);
+            BuildSetPrivateField(entry, "count", count);
             return entry;
         }
 
-        private void ConfigureLevel(
+        private static void BuildConfigureLevel(
             LevelDefinitionSO level,
             string levelId,
             int goldReward,
@@ -118,22 +118,22 @@ namespace Madbox.Levels.Tests
             bool useTimeLimit,
             float loseAfterSeconds)
         {
-            SetPrivateField(level, "levelId", levelId);
-            SetPrivateField(level, "goldReward", goldReward);
-            SetPrivateField(level, "enemies", enemies);
-            SetPrivateField(level, "useTimeLimitLoseRule", useTimeLimit);
-            SetPrivateField(level, "loseAfterSeconds", loseAfterSeconds);
+            BuildSetPrivateField(level, "levelId", levelId);
+            BuildSetPrivateField(level, "goldReward", goldReward);
+            BuildSetPrivateField(level, "enemies", enemies);
+            BuildSetPrivateField(level, "useTimeLimitLoseRule", useTimeLimit);
+            BuildSetPrivateField(level, "loseAfterSeconds", loseAfterSeconds);
         }
 
-        private LevelCatalogEntry CreateCatalogEntry(string levelId, AssetReferenceT<LevelDefinitionSO> reference)
+        private static LevelCatalogEntry CreateCatalogEntry(string levelId, AssetReferenceT<LevelDefinitionSO> reference)
         {
             LevelCatalogEntry entry = new LevelCatalogEntry();
-            SetPrivateField(entry, "levelId", levelId);
-            SetPrivateField(entry, "levelReference", reference);
+            BuildSetPrivateField(entry, "levelId", levelId);
+            BuildSetPrivateField(entry, "levelReference", reference);
             return entry;
         }
 
-        private void SetPrivateField(object target, string fieldName, object value)
+        private static void BuildSetPrivateField(object target, string fieldName, object value)
         {
             FieldInfo field = target.GetType().GetField(fieldName, BindingFlags.Instance | BindingFlags.NonPublic);
             if (field == null)
@@ -144,7 +144,7 @@ namespace Madbox.Levels.Tests
             field.SetValue(target, value);
         }
 
-        private bool IsSerializable(Type type)
+        private static bool BuildIsSerializable(Type type)
         {
             return type.IsDefined(typeof(SerializableAttribute), inherit: false);
         }
@@ -232,3 +232,5 @@ namespace Madbox.Levels.Tests
         }
     }
 }
+
+

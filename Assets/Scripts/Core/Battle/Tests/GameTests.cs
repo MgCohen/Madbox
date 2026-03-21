@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using Madbox.Battle.Events;
 using Madbox.Gold;
@@ -279,7 +279,7 @@ namespace Madbox.Battle.Tests
             Assert.AreEqual(0, emittedCount);
         }
 
-        private Game CreateGame(
+        private static Game CreateGame(
             int playerHealth = 100,
             GoldWallet wallet = null,
             IReadOnlyList<LevelGameRuleDefinition> gameRules = null)
@@ -306,7 +306,7 @@ namespace Madbox.Battle.Tests
             return new Game(level, wallet ?? new GoldWallet(), player);
         }
 
-        private IReadOnlyList<LevelGameRuleDefinition> CreateTimerOnlyRuleSet(float loseAfterSeconds)
+        private static IReadOnlyList<LevelGameRuleDefinition> CreateTimerOnlyRuleSet(float loseAfterSeconds)
         {
             return new LevelGameRuleDefinition[]
             {
@@ -314,7 +314,7 @@ namespace Madbox.Battle.Tests
             };
         }
 
-        private IReadOnlyList<LevelGameRuleDefinition> CreateEnemyKillOnlyRuleSet()
+        private static IReadOnlyList<LevelGameRuleDefinition> CreateEnemyKillOnlyRuleSet()
         {
             return new LevelGameRuleDefinition[]
             {
@@ -322,7 +322,7 @@ namespace Madbox.Battle.Tests
             };
         }
 
-        private IReadOnlyList<LevelGameRuleDefinition> CreateEnemyAndTimerRuleSet(float loseAfterSeconds)
+        private static IReadOnlyList<LevelGameRuleDefinition> CreateEnemyAndTimerRuleSet(float loseAfterSeconds)
         {
             return new LevelGameRuleDefinition[]
             {
@@ -332,3 +332,5 @@ namespace Madbox.Battle.Tests
         }
     }
 }
+
+

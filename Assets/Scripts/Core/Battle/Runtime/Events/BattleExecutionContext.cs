@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using Madbox.Battle;
 using Madbox.Battle.Services;
 using Madbox.Enemies.Services;
@@ -7,11 +7,7 @@ namespace Madbox.Battle.Events
 {
     internal sealed class BattleExecutionContext
     {
-        public BattleExecutionContext(
-            EnemyService enemyService,
-            Player player,
-            ProjectileRegistry projectileRegistry,
-            Action<BattleEvent> emitEvent)
+        public BattleExecutionContext(EnemyService enemyService, Player player, ProjectileRegistry projectileRegistry, Action<BattleEvent> emitEvent)
         {
             if (enemyService == null)
             {
@@ -48,3 +44,4 @@ namespace Madbox.Battle.Events
         public Action<BattleEvent> EmitEvent { get; }
     }
 }
+

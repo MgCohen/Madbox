@@ -13,7 +13,10 @@ namespace Scaffold.Navigation
     {
         public NavigationMiddleware(IEnumerable<INavigationMiddleware> middlewares)
         {
-            if (middlewares is null) { throw new System.ArgumentNullException(nameof(middlewares)); }
+            if (middlewares is null)
+            {
+                throw new System.ArgumentNullException(nameof(middlewares));
+            }
             openHandlers = middlewares.OfType<INavigationOpenHandler>();
         }
 
@@ -22,18 +25,22 @@ namespace Scaffold.Navigation
         public void OnOpen(IViewController viewModel)
         {
             GuardHandlers();
-            foreach(var openHandler in openHandlers)
-            {
-                openHandler.OnOpen(viewModel);
-            }
+            foreach (var openHandler in openHandlers)
+{
+    openHandler.OnOpen(viewModel);
+}
         }
 
         private void GuardHandlers()
         {
-            if (openHandlers == null) { throw new System.InvalidOperationException("Open handlers are not initialized."); }
+            if (openHandlers == null)
+            {
+                throw new System.InvalidOperationException("Open handlers are not initialized.");
+            }
         }
     }
 }
+
 
 
 

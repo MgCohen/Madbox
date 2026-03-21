@@ -1,4 +1,4 @@
-using Madbox.Gold.Contracts;
+﻿using Madbox.Gold.Contracts;
 using VContainer;
 using VContainer.Unity;
 
@@ -12,3 +12,4 @@ namespace Madbox.Gold.Container
         }
     }
 }
+

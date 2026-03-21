@@ -1,4 +1,4 @@
-using System.Runtime.CompilerServices;
+﻿using System.Runtime.CompilerServices;
 
 [assembly: InternalsVisibleTo("Madbox.Addressables.Tests")]
 namespace Madbox.Addressables
@@ -7,3 +7,4 @@ namespace Madbox.Addressables
     {
     }
 }
+

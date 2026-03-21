@@ -1,5 +1,4 @@
-#pragma warning disable SCA0023
-namespace Scaffold.MVVM.Binding
+﻿namespace Scaffold.MVVM.Binding
 {
     public sealed class BindingOptions
     {
@@ -14,3 +13,4 @@ namespace Scaffold.MVVM.Binding
         public static readonly BindingOptions Lazy = new BindingOptions(true);
     }
 }
+

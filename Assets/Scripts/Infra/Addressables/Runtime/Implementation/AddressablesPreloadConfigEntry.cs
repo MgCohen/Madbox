@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using Madbox.Addressables.Contracts;
 using Scaffold.Types;
 using UnityEngine;
@@ -25,3 +25,4 @@ namespace Madbox.Addressables
         [SerializeField] private PreloadMode mode;
     }
 }
+

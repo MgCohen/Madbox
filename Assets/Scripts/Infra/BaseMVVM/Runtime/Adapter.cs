@@ -1,14 +1,17 @@
-#pragma warning disable SCA0012
-namespace Scaffold.MVVM.Binding
+﻿namespace Scaffold.MVVM.Binding
 {
     public abstract class Adapter<TTarget>
     {
         public virtual bool CanAdapt(TTarget target)
         {
-            if (target is null) { return false; }
+            if (target is null)
+            {
+                return false;
+            }
             return true;
         }
 
         public abstract TTarget Resolve(TTarget target);
     }
 }
+

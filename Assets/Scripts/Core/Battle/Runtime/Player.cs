@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using Madbox.Battle.Behaviors;
 using Madbox.Levels;
@@ -97,3 +97,4 @@ namespace Madbox.Battle
         }
     }
 }
+

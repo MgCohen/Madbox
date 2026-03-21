@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
@@ -56,3 +56,4 @@ namespace Madbox.Levels.Authoring.Catalog
         public AssetReferenceT<LevelDefinitionSO> LevelReference => levelReference;
     }
 }
+

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Threading.Tasks;
 using UnityEngine;
 
@@ -20,3 +20,4 @@ namespace Madbox.Addressables.Contracts
         T Asset { get; }
     }
 }
+

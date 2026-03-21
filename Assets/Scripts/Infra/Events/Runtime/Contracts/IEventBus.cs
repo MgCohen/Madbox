@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 
 namespace Scaffold.Events.Contracts
 {
@@ -12,5 +12,6 @@ namespace Scaffold.Events.Contracts
         void Clear();
     }
 }
+
 
 

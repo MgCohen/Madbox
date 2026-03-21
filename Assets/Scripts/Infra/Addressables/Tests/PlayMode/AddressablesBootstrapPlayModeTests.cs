@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using System.Threading;
 using Madbox.Addressables.Contracts;
@@ -48,7 +48,10 @@ namespace Madbox.Addressables.Tests.PlayMode
         {
             AsyncOperation operation = SceneManager.LoadSceneAsync("Bootstrap", LoadSceneMode.Single);
             Assert.IsNotNull(operation);
-            while (!operation.isDone) { yield return null; }
+            while (!operation.isDone)
+{
+    yield return null;
+}
         }
 
         private IEnumerator WaitForBootstrapInitialization()
@@ -62,18 +65,27 @@ namespace Madbox.Addressables.Tests.PlayMode
         {
             int frame = 0;
             MonoBehaviour scope = FindBootstrapScope();
-            while (scope == null && frame < maxFrames) { frame++; yield return null; scope = FindBootstrapScope(); }
+            while (scope == null && frame < maxFrames)
+{
+    frame++; yield return null; scope = FindBootstrapScope();
+}
         }
 
         private IEnumerator WaitForBootstrapCompletion(int maxFrames)
         {
             int frame = 0;
-            while (ShouldWaitForBootstrapCompletion(frame, maxFrames)) { frame++; yield return null; }
+            while (ShouldWaitForBootstrapCompletion(frame, maxFrames))
+{
+    frame++; yield return null;
+}
         }
 
         private bool ShouldWaitForBootstrapCompletion(int frame, int maxFrames)
         {
-            if (frame >= maxFrames) { return false; }
+            if (frame >= maxFrames)
+{
+    return false;
+}
             MonoBehaviour scope = FindBootstrapScope();
             return !IsBootstrapCompleted(scope);
         }
@@ -81,21 +93,36 @@ namespace Madbox.Addressables.Tests.PlayMode
         private MonoBehaviour FindBootstrapScope()
         {
             MonoBehaviour[] behaviours = Object.FindObjectsByType<MonoBehaviour>(FindObjectsInactive.Include, FindObjectsSortMode.None);
-            for (int i = 0; i < behaviours.Length; i++) { if (IsBootstrapScope(behaviours[i])) { return behaviours[i]; } }
+            for (int i = 0; i < behaviours.Length; i++)
+            {
+                if (IsBootstrapScope(behaviours[i]))
+                {
+                    return behaviours[i];
+                }
+            }
             return null;
         }
 
         private bool IsBootstrapScope(MonoBehaviour behaviour)
         {
-            if (behaviour == null) { return false; }
+            if (behaviour == null)
+{
+    return false;
+}
             return behaviour.GetType().FullName == bootstrapScopeTypeName;
         }
 
         private bool IsBootstrapCompleted(MonoBehaviour scope)
         {
-            if (scope == null) { return false; }
+            if (scope == null)
+{
+    return false;
+}
             var property = scope.GetType().GetProperty(completionPropertyName, System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public);
-            if (property == null) { return false; }
+            if (property == null)
+{
+    return false;
+}
             object value = property.GetValue(scope, null);
             return value is bool completed && completed;
         }
@@ -103,7 +130,13 @@ namespace Madbox.Addressables.Tests.PlayMode
         private IAddressablesGateway ResolveGateway()
         {
             LifetimeScope[] scopes = Object.FindObjectsByType<LifetimeScope>(FindObjectsInactive.Include, FindObjectsSortMode.None);
-            for (int i = 0; i < scopes.Length; i++) { if (TryResolveGateway(scopes[i], out IAddressablesGateway gateway)) { return gateway; } }
+            for (int i = 0; i < scopes.Length; i++)
+            {
+                if (TryResolveGateway(scopes[i], out IAddressablesGateway gateway))
+                {
+                    return gateway;
+                }
+            }
             Assert.Fail("Failed to resolve IAddressablesGateway from active LifetimeScopes.");
             return null;
         }
@@ -111,7 +144,10 @@ namespace Madbox.Addressables.Tests.PlayMode
         private bool TryResolveGateway(LifetimeScope scope, out IAddressablesGateway gateway)
         {
             gateway = null;
-            if (scope == null || scope.Container == null) { return false; }
+            if (scope == null || scope.Container == null)
+{
+    return false;
+}
             try { gateway = scope.Container.Resolve<IAddressablesGateway>(); return gateway != null; }
             catch (VContainerException) { return false; }
         }
@@ -120,7 +156,10 @@ namespace Madbox.Addressables.Tests.PlayMode
         {
             AssetReference reference = new AssetReference("LongSword");
             var task = gateway.LoadAsync<GameObject>(reference, CancellationToken.None);
-            while (!task.IsCompleted) { yield return null; }
+            while (!task.IsCompleted)
+{
+    yield return null;
+}
             Assert.IsFalse(task.IsFaulted, task.Exception?.ToString());
             onLoaded(task.Result);
         }
@@ -139,15 +178,23 @@ namespace Madbox.Addressables.Tests.PlayMode
 
         private void OnLogMessageReceived(string condition, string stackTrace, LogType type)
         {
-            if (type != LogType.Assert && type != LogType.Error && type != LogType.Exception) { return; }
+            if (type != LogType.Assert && type != LogType.Error && type != LogType.Exception)
+{
+    return;
+}
             fatalLogs.Add($"{type}: {condition}");
         }
 
         private void AssertNoFatalLogs()
         {
-            if (fatalLogs == null || fatalLogs.Count == 0) { return; }
+            if (fatalLogs == null || fatalLogs.Count == 0)
+{
+    return;
+}
             string message = string.Join("\n", fatalLogs);
             Assert.Fail(message);
         }
     }
 }
+
+

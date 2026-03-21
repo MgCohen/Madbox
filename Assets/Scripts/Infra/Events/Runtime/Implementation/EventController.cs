@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System;
 using UnityEngine;
 using Scaffold.Events.Contracts;
@@ -12,21 +12,23 @@ namespace Scaffold.Events
 
         public void AddListener<T>(Action<T> evt) where T : ContextEvent
         {
-            if (eventLookups.ContainsKey(evt)) { return; }
-            Action<ContextEvent> newAction = CreateTypedAction(evt);
+            if (eventLookups.ContainsKey(evt))
+            {
+                return;
+            }
+
+            Action<ContextEvent> newAction = e => evt((T)e);
             eventLookups[evt] = newAction;
             AddListener(typeof(T), newAction);
         }
 
         public void AddListener(Type type, Action<ContextEvent> newAction)
         {
-            ValidateListenerInput(type, newAction);
+            if (events == null) throw new InvalidOperationException("Event registry was not initialized.");
+            if (eventLookups == null) throw new InvalidOperationException("Event lookup registry was not initialized.");
+            if (type == null) throw new ArgumentNullException(nameof(type));
+            if (newAction == null) throw new ArgumentNullException(nameof(newAction));
             events[type] = events.TryGetValue(type, out Action<ContextEvent> current) ? current + newAction : newAction;
-        }
-
-        private Action<ContextEvent> CreateTypedAction<T>(Action<T> evt) where T : ContextEvent
-        {
-            return e => evt((T)e);
         }
 
         public void RemoveListener<T>(Action<T> evt) where T : ContextEvent
@@ -70,7 +72,9 @@ namespace Scaffold.Events
 
         public void Raise(ContextEvent evt)
         {
-            ValidateEvent(evt);
+            if (events == null) throw new InvalidOperationException("Event registry was not initialized.");
+            if (eventLookups == null) throw new InvalidOperationException("Event lookup registry was not initialized.");
+            if (evt == null) throw new ArgumentNullException(nameof(evt));
             var evtType = evt.GetType();
             if (events.TryGetValue(evtType, out var action))
             {
@@ -83,19 +87,6 @@ namespace Scaffold.Events
             ValidateState();
             events.Clear();
             eventLookups.Clear();
-        }
-
-        private void ValidateListenerInput(Type type, Action<ContextEvent> newAction)
-        {
-            ValidateState();
-            if (type == null) throw new ArgumentNullException(nameof(type));
-            if (newAction == null) throw new ArgumentNullException(nameof(newAction));
-        }
-
-        private void ValidateEvent(ContextEvent evt)
-        {
-            ValidateState();
-            if (evt == null) throw new ArgumentNullException(nameof(evt));
         }
 
         private void ValidateState()

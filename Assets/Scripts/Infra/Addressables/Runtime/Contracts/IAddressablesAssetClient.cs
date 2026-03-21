@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -15,3 +15,4 @@ namespace Madbox.Addressables.Contracts
         void Release(UnityEngine.Object asset);
     }
 }
+

@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using Scaffold.Types;
 using Scaffold.Events.Contracts;
 using Scaffold.Events;
@@ -36,26 +36,13 @@ namespace Scaffold.Navigation
         private bool IsValidViewFilter(NavigationPoint targetPoint)
         {
             bool contains = CheckContains(targetPoint);
-            if (IsBlockedBySpecificFilter(contains))
-            {
-                return false;
-            }
-            return !IsBlockedByAnyFilter(contains);
+            if (filter is ViewFilter.SpecificViews && !contains) return false;
+            return !(filter is ViewFilter.Any && contains);
         }
 
         private bool CheckContains(NavigationPoint targetPoint)
         {
             return viewTypes.Any(vt => vt.Type == targetPoint?.Config.ViewType || (targetPoint == null && vt.Type == typeof(NoView)));
-        }
-
-        private bool IsBlockedBySpecificFilter(bool contains)
-        {
-            return filter is ViewFilter.SpecificViews && !contains;
-        }
-
-        private bool IsBlockedByAnyFilter(bool contains)
-        {
-            return filter is ViewFilter.Any && contains;
         }
     }
 }

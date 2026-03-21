@@ -1,4 +1,4 @@
-using System.Threading;
+﻿using System.Threading;
 using System.Threading.Tasks;
 using VContainer;
 
@@ -9,3 +9,4 @@ namespace Madbox.Scope.Contracts
         Task InitializeAsync(ILayerInitializationContext context, IObjectResolver resolver, CancellationToken cancellationToken);
     }
 }
+

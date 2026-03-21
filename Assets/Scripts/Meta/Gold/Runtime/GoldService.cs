@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using Madbox.Gold.Contracts;
 
 namespace Madbox.Gold
@@ -25,7 +25,11 @@ namespace Madbox.Gold
 
         private void GuardAmount(int amount)
         {
-            if (amount <= 0) { throw new ArgumentOutOfRangeException(nameof(amount), "Amount must be positive."); }
+            if (amount <= 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(amount), "Amount must be positive.");
+            }
         }
     }
 }
+

@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace Scaffold.MVVM.Contracts
 {
@@ -13,3 +13,4 @@ namespace Scaffold.MVVM.Contracts
         void LogNext(Transform next);
     }
 }
+

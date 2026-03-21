@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
 namespace Madbox.Addressables.Contracts
@@ -9,3 +9,4 @@ namespace Madbox.Addressables.Contracts
         Task<IAssetHandle> AcquireByTypeAsync(Type assetType, string key, PreloadMode preloadMode, bool isPreload, CancellationToken cancellationToken);
     }
 }
+

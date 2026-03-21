@@ -1,4 +1,4 @@
-using NUnit.Framework;
+﻿using NUnit.Framework;
 
 namespace Scaffold.Records.Tests
 {
@@ -19,3 +19,5 @@ namespace Scaffold.Records.Tests
         }
     }
 }
+
+

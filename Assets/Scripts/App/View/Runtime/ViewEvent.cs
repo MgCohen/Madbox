@@ -14,7 +14,10 @@ namespace Scaffold.MVVM
     {
         public ViewEvent(PointerEventData pointer)
         {
-            if (pointer is null) { throw new ArgumentNullException(nameof(pointer)); }
+            if (pointer is null)
+            {
+                throw new ArgumentNullException(nameof(pointer));
+            }
             pointerData = pointer;
         }
 
@@ -45,16 +48,11 @@ namespace Scaffold.MVVM
             GuardState();
             isConsumed = true;
             consumer = current;
-            AddCurrentToHistoryIfNeeded();
-            current = null;
-        }
-
-        private void AddCurrentToHistoryIfNeeded()
-        {
             if (History.LastOrDefault() != Current)
             {
                 History.Add(Current);
             }
+            current = null;
         }
 
         public void Restore()
@@ -68,7 +66,10 @@ namespace Scaffold.MVVM
 
         public void LogNext(Transform next)
         {
-            if (next is null) { throw new ArgumentNullException(nameof(next)); }
+            if (next is null)
+            {
+                throw new ArgumentNullException(nameof(next));
+            }
             GuardState();
             if (Current != null)
             {
@@ -86,5 +87,6 @@ namespace Scaffold.MVVM
         }
     }
 }
+
 
 

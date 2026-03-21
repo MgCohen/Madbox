@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 
 namespace Scaffold.Maps
 {
@@ -17,3 +17,4 @@ namespace Scaffold.Maps
         }
     }
 }
+

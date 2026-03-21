@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using Madbox.Battle;
 using Madbox.Battle.Services;
@@ -47,9 +47,9 @@ namespace Madbox.Battle.Events
         {
             if (EnsureTick(deltaTime) == false) return;
             for (int i = 0; i < player.Behaviors.Count; i++)
-            {
-                player.Behaviors[i].Tick(deltaTime);
-            }
+{
+    player.Behaviors[i].Tick(deltaTime);
+}
         }
 
         private bool TryResolveRoute(BattleEvent gameEvent, out IBattleCommand command)
@@ -78,7 +78,9 @@ namespace Madbox.Battle.Events
         {
             Type eventType = gameEvent.GetType();
             if (commandFactories.TryGetValue(eventType, out Func<BattleEvent, IBattleCommand> factory) == false)
+            {
                 return ReturnNoCommand(out command);
+            }
             command = factory(gameEvent);
             return command != null;
         }
@@ -118,16 +120,12 @@ namespace Madbox.Battle.Events
             Register<PlayerProjectileHitObserved, ResolvePlayerProjectileHitCommand>(intent => new ResolvePlayerProjectileHitCommand(intent.ProjectileId, intent.ActorId, intent.TargetId));
         }
 
-        private void Register<TIntent, TCommand>(Func<TIntent, TCommand> factory)
-            where TIntent : BattleEvent
-            where TCommand : IBattleCommand
+        private void Register<TIntent, TCommand>(Func<TIntent, TCommand> factory) where TIntent : BattleEvent where TCommand : IBattleCommand
         {
             commandFactories[typeof(TIntent)] = WrapFactory(factory);
         }
 
-        private Func<BattleEvent, IBattleCommand> WrapFactory<TIntent, TCommand>(Func<TIntent, TCommand> factory)
-            where TIntent : BattleEvent
-            where TCommand : IBattleCommand
+        private Func<BattleEvent, IBattleCommand> WrapFactory<TIntent, TCommand>(Func<TIntent, TCommand> factory) where TIntent : BattleEvent where TCommand : IBattleCommand
         {
             return battleEvent =>
             {
@@ -143,3 +141,4 @@ namespace Madbox.Battle.Events
         }
     }
 }
+

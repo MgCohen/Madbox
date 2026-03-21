@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 #pragma warning disable SCA0007
 #pragma warning disable SCA0020
 
@@ -12,3 +12,4 @@ namespace Madbox.Gold.Authoring.Definitions
         public int InitialGold => initialGold;
     }
 }
+

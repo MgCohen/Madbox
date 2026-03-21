@@ -1,9 +1,8 @@
-using System;
+﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Madbox.Addressables.Contracts;
 using UnityEngine;
-#pragma warning disable SCA0006
 
 namespace Madbox.Addressables
 {
@@ -29,7 +28,10 @@ namespace Madbox.Addressables
         {
             get
             {
-                if (!IsReady) { throw new InvalidOperationException("Asset handle is not ready."); }
+                if (!IsReady)
+{
+    throw new InvalidOperationException("Asset handle is not ready.");
+}
                 return asset;
             }
         }
@@ -47,44 +49,76 @@ namespace Madbox.Addressables
 
         internal void Complete(IAssetHandle<T> loadedHandle)
         {
-            if (loadedHandle == null) { throw new ArgumentNullException(nameof(loadedHandle)); }
-            if (state != AssetHandleState.Loading) { return; }
+            if (loadedHandle == null)
+{
+    throw new ArgumentNullException(nameof(loadedHandle));
+}
+            if (state != AssetHandleState.Loading) return;
+            ApplyCompletedHandle(loadedHandle);
+        }
 
+        private void ApplyCompletedHandle(IAssetHandle<T> loadedHandle)
+        {
             inner = loadedHandle;
             asset = loadedHandle.Asset;
             state = IsReleased ? AssetHandleState.Released : AssetHandleState.Ready;
             completion.TrySetResult(true);
-            if (IsReleased) { loadedHandle.Release(); }
+            if (IsReleased) loadedHandle.Release();
         }
 
         internal void Fail(Exception exception)
         {
-            if (exception == null) { throw new ArgumentNullException(nameof(exception)); }
-            if (state != AssetHandleState.Loading) { return; }
+            if (exception == null)
+{
+    throw new ArgumentNullException(nameof(exception));
+}
+            if (state != AssetHandleState.Loading)
+{
+    return;
+}
             state = IsReleased ? AssetHandleState.Released : AssetHandleState.Faulted;
             completion.TrySetException(exception);
         }
 
         public void Release()
         {
-            if (Interlocked.Exchange(ref releasedFlag, 1) != 0) { return; }
-            if (state == AssetHandleState.Loading) { return; }
+            if (Interlocked.Exchange(ref releasedFlag, 1) != 0)
+{
+    return;
+}
+            if (state == AssetHandleState.Loading)
+{
+    return;
+}
             ReleaseReadyHandle();
             state = AssetHandleState.Released;
         }
 
         private void ReleaseReadyHandle()
         {
-            if (state != AssetHandleState.Ready) { return; }
-            if (inner != null) { inner.Release(); return; }
+            if (state != AssetHandleState.Ready)
+{
+    return;
+}
+            if (inner != null)
+{
+    inner.Release(); return;
+}
             onRelease?.Invoke();
         }
 
         private void GuardConstructor(T asset, Action onRelease)
         {
-            if (asset == null) { throw new ArgumentNullException(nameof(asset)); }
-            if (onRelease == null) { throw new ArgumentNullException(nameof(onRelease)); }
+            if (asset == null)
+{
+    throw new ArgumentNullException(nameof(asset));
+}
+            if (onRelease == null)
+{
+    throw new ArgumentNullException(nameof(onRelease));
+}
         }
     }
 }
-#pragma warning restore SCA0006
+
+

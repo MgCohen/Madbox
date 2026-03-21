@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 
 namespace Madbox.Battle.Events
 {
@@ -7,3 +7,4 @@ namespace Madbox.Battle.Events
         void Execute(BattleExecutionContext context);
     }
 }
+

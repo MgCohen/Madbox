@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 namespace Madbox.Addressables
@@ -10,3 +10,4 @@ namespace Madbox.Addressables
         [SerializeField] private List<AddressablesPreloadConfigEntry> entries = new List<AddressablesPreloadConfigEntry>();
     }
 }
+

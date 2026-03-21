@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using Madbox.Levels.Behaviors;
 using Madbox.Enemies.Authoring.Definitions;
@@ -38,9 +38,9 @@ namespace Madbox.Enemies.Editor
 
             EditorGUILayout.LabelField("Behavior Rules", EditorStyles.boldLabel);
             for (int i = 0; i < behaviorRules.arraySize; i++)
-            {
-                DrawBehaviorRuleElement(i);
-            }
+{
+    DrawBehaviorRuleElement(i);
+}
 
             DrawRuleButtons();
         }
@@ -111,3 +111,4 @@ namespace Madbox.Enemies.Editor
         }
     }
 }
+

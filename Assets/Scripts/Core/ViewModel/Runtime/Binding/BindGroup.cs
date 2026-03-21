@@ -20,26 +20,36 @@ namespace Scaffold.MVVM.Binding
 
         public void Bind(IBindContext context)
         {
-            if (context is null) { throw new ArgumentNullException(nameof(context)); }
+            if (context is null)
+            {
+                throw new ArgumentNullException(nameof(context));
+            }
             contexts.Add(context);
         }
 
         public void Update()
         {
-            if (contexts.Count == 0) { return; }
-            foreach(var context in contexts)
+            if (contexts.Count == 0)
             {
-                context.Update();
+                return;
             }
+            foreach (var context in contexts)
+{
+    context.Update();
+}
         }
 
         public void Unbind(IBindContext context)
         {
-            if (context is null) { throw new ArgumentNullException(nameof(context)); }
+            if (context is null)
+            {
+                throw new ArgumentNullException(nameof(context));
+            }
             contexts.Remove(context);
         }
     }
 }
+
 
 
 

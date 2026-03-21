@@ -1,7 +1,6 @@
-using System;
+﻿using System;
 using Madbox.Scope.Contracts;
 using VContainer;
-#pragma warning disable SCA0012
 
 namespace Madbox.Scope
 {
@@ -9,7 +8,11 @@ namespace Madbox.Scope
     {
         public DelegatedChildRegistration(ChildScopeDelegationPolicy policy, Action<IContainerBuilder> apply, IObjectResolver ownerResolver = null)
         {
-            GuardApply(apply);
+            if (apply == null)
+            {
+                throw new ArgumentNullException(nameof(apply));
+            }
+
             Policy = policy;
             this.apply = apply;
             OwnerResolver = ownerResolver;
@@ -26,20 +29,18 @@ namespace Madbox.Scope
             apply(builder);
         }
 
+        private void GuardBuilder(IContainerBuilder builder)
+        {
+            if (builder == null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+        }
+
         public bool IsApplicableTo(IObjectResolver parentResolver)
         {
             return ReferenceEquals(OwnerResolver, parentResolver);
         }
-
-        private void GuardApply(Action<IContainerBuilder> applyAction)
-        {
-            if (applyAction == null) { throw new ArgumentNullException(nameof(applyAction)); }
-        }
-
-        private void GuardBuilder(IContainerBuilder builder)
-        {
-            if (builder == null) { throw new ArgumentNullException(nameof(builder)); }
-        }
     }
 }
-#pragma warning restore SCA0012
+

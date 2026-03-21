@@ -1,8 +1,7 @@
 using System;
+using Scaffold.MVVM;
 using UnityEngine;
 using UnityEngine.UI;
-using Scaffold.MVVM;
-#pragma warning disable SCA0006
 
 namespace Madbox.App.MainMenu
 {
@@ -15,249 +14,181 @@ namespace Madbox.App.MainMenu
         protected override void OnBind()
         {
             EnsureUi();
+            BindButtons();
             Bind<int, int>(() => viewModel.Gold, UpdateGoldText);
-            BindButton();
-            BindStartButton();
             UpdateGoldText(viewModel.Gold);
-        }
-
-        protected override void OnUnbind()
-        {
-            UnbindButton();
-            UnbindStartButton();
         }
 
         private void EnsureUi()
         {
-            if (goldText == null) { goldText = CreateGoldText(); }
-            if (addGoldButton == null) { addGoldButton = CreateAddButton(); }
-            if (startGameButton == null) { startGameButton = CreateStartButton(); }
+            if (goldText == null)
+            {
+                goldText = CreateGoldText();
+            }
+
+            if (addGoldButton == null)
+            {
+                addGoldButton = CreateAddGoldButton();
+            }
+
+            if (startGameButton == null)
+            {
+                startGameButton = CreateStartGameButton();
+            }
         }
 
-        private void BindButton()
+        private void BindButtons()
         {
-            if (addGoldButton == null) { return; }
-            addGoldButton.onClick.RemoveListener(OnAddGoldClicked);
-            addGoldButton.onClick.AddListener(OnAddGoldClicked);
+            addGoldButton?.onClick.AddListener(OnAddGoldClicked);
+            startGameButton?.onClick.AddListener(OnStartGameClicked);
         }
 
-        private void UnbindButton()
+        private void UpdateGoldText(int value)
         {
-            if (addGoldButton == null) { return; }
-            addGoldButton.onClick.RemoveListener(OnAddGoldClicked);
-        }
-
-        private void BindStartButton()
-        {
-            if (startGameButton == null) { return; }
-            startGameButton.onClick.RemoveListener(OnStartGameClicked);
-            startGameButton.onClick.AddListener(OnStartGameClicked);
-        }
-
-        private void UnbindStartButton()
-        {
-            if (startGameButton == null) { return; }
-            startGameButton.onClick.RemoveListener(OnStartGameClicked);
+            SetTmpValue(goldText, "text", $"Gold: {value}");
         }
 
         private Component CreateGoldText()
         {
-            Type textType = ResolveTmpType();
-            if (textType == null) { return null; }
-            RectTransform parent = EnsureContentRoot();
-            GameObject labelObject = CreateTextObject("GoldText", textType, parent);
-            RectTransform rect = labelObject.GetComponent<RectTransform>();
-            ConfigureGoldTextRect(rect);
-            return ConfigureAndGetGoldText(labelObject, textType);
-        }
+            Type tmpType = System.Type.GetType("TMPro.TextMeshProUGUI, Unity.TextMeshPro");
+            if (tmpType == null)
+            {
+                return null;
+            }
 
-        private Button CreateAddButton()
-        {
-            RectTransform parent = EnsureContentRoot();
-            GameObject buttonObject = CreateButtonObject(parent);
-            Button button = buttonObject.GetComponent<Button>();
-            CreateButtonLabel(buttonObject.transform);
-            return button;
-        }
-
-        private Button CreateStartButton()
-        {
-            RectTransform parent = EnsureContentRoot();
-            GameObject buttonObject = CreateButtonObject(parent);
-            buttonObject.name = "StartGameButton";
-            RectTransform rect = buttonObject.GetComponent<RectTransform>();
-            rect.anchoredPosition = new Vector2(0f, -260f);
-            Button button = buttonObject.GetComponent<Button>();
-            CreateStartButtonLabel(buttonObject.transform);
-            return button;
-        }
-
-        private GameObject CreateButtonObject(RectTransform parent)
-        {
-            GameObject buttonObject = new GameObject("AddGoldButton", typeof(RectTransform), typeof(Image), typeof(Button));
-            buttonObject.transform.SetParent(parent, false);
-            RectTransform rect = buttonObject.GetComponent<RectTransform>();
-            ConfigureButtonRect(rect);
-            Image image = buttonObject.GetComponent<Image>();
-            ConfigureButtonGraphic(buttonObject, image);
-            return buttonObject;
-        }
-
-        private void CreateButtonLabel(Transform parent)
-        {
-            Type textType = ResolveTmpType();
-            if (textType == null) { return; }
-            GameObject labelObject = CreateTextObject("Label", textType, parent);
-            RectTransform rect = labelObject.GetComponent<RectTransform>();
-            StretchToParent(rect);
-            Component text = labelObject.GetComponent(textType);
-            ConfigureButtonLabelText(text);
-        }
-
-        private RectTransform EnsureContentRoot()
-        {
             RectTransform root = transform as RectTransform;
-            return root ?? CreateRootRectTransform();
-        }
+            if (root == null)
+            {
+                root = gameObject.AddComponent<RectTransform>();
+                root.anchorMin = Vector2.zero;
+                root.anchorMax = Vector2.one;
+            }
 
-        private void ConfigureGoldTextRect(RectTransform rect)
-        {
+            GameObject textObject = new GameObject("GoldText", typeof(RectTransform), tmpType);
+            textObject.transform.SetParent(root, false);
+            RectTransform rect = textObject.GetComponent<RectTransform>();
             rect.anchorMin = new Vector2(0.5f, 0.5f);
             rect.anchorMax = new Vector2(0.5f, 0.5f);
             rect.pivot = new Vector2(0.5f, 0.5f);
             rect.anchoredPosition = new Vector2(0f, 180f);
             rect.sizeDelta = new Vector2(620f, 140f);
-        }
 
-        private void ConfigureButtonRect(RectTransform rect)
-        {
-            rect.anchorMin = new Vector2(0.5f, 0.5f);
-            rect.anchorMax = new Vector2(0.5f, 0.5f);
-            rect.pivot = new Vector2(0.5f, 0.5f);
-            rect.anchoredPosition = new Vector2(0f, -80f);
-            rect.sizeDelta = new Vector2(420f, 140f);
-        }
-
-        private void OnAddGoldClicked()
-        {
-            viewModel?.AddOneGold();
-        }
-
-        private void OnStartGameClicked()
-        {
-            viewModel?.StartGame();
-        }
-
-        private void UpdateGoldText(int value)
-        {
-            if (goldText == null) { return; }
-            SetTmpText(goldText, $"Gold: {value}");
-        }
-
-        private System.Type ResolveTmpType()
-        {
-            return System.Type.GetType("TMPro.TextMeshProUGUI, Unity.TextMeshPro");
-        }
-
-        private Component ConfigureAndGetGoldText(GameObject labelObject, Type textType)
-        {
-            Component text = labelObject.GetComponent(textType);
-            ConfigureGoldText(text);
+            Component text = textObject.GetComponent(tmpType);
+            SetTmpValue(text, "fontSize", 64f);
+            SetTmpAlignment(text, 514);
+            SetTmpValue(text, "color", Color.white);
             return text;
         }
 
-        private void ConfigureGoldText(Component text)
+        private Button CreateAddGoldButton()
         {
-            SetTmpFloat(text, "fontSize", 64f);
-            SetTmpAlignment(text, 514);
-            SetTmpColor(text, Color.white);
+            Vector2 addGoldPosition = new Vector2(0f, -80f);
+            return CreateActionButton("AddGoldButton", "Add Gold", addGoldPosition);
         }
 
-        private RectTransform CreateRootRectTransform()
+        private Button CreateStartGameButton()
         {
-            RectTransform root = gameObject.AddComponent<RectTransform>();
-            root.anchorMin = Vector2.zero;
-            root.anchorMax = Vector2.one;
-            return root;
+            Vector2 startGamePosition = new Vector2(0f, -260f);
+            return CreateActionButton("StartGameButton", "Start Game", startGamePosition);
         }
 
-        private void ConfigureButtonLabelText(Component text)
+        private Button CreateActionButton(string name, string label, Vector2 position)
         {
-            SetTmpFloat(text, "fontSize", 46f);
-            SetTmpAlignment(text, 514);
-            SetTmpText(text, "Add Gold");
-            SetTmpColor(text, Color.white);
-        }
+            Type tmpType = System.Type.GetType("TMPro.TextMeshProUGUI, Unity.TextMeshPro");
+            RectTransform root = transform as RectTransform;
+            if (root == null)
+            {
+                root = gameObject.AddComponent<RectTransform>();
+                root.anchorMin = Vector2.zero;
+                root.anchorMax = Vector2.one;
+            }
 
-        private void CreateStartButtonLabel(Transform parent)
-        {
-            Type textType = ResolveTmpType();
-            if (textType == null) { return; }
-            GameObject labelObject = CreateTextObject("Label", textType, parent);
-            RectTransform rect = labelObject.GetComponent<RectTransform>();
-            StretchToParent(rect);
-            Component text = labelObject.GetComponent(textType);
-            SetTmpFloat(text, "fontSize", 46f);
-            SetTmpAlignment(text, 514);
-            SetTmpText(text, "Start Game");
-            SetTmpColor(text, Color.white);
-        }
+            GameObject buttonObject = new GameObject(name, typeof(RectTransform), typeof(Image), typeof(Button));
+            buttonObject.transform.SetParent(root, false);
+            RectTransform buttonRect = buttonObject.GetComponent<RectTransform>();
+            buttonRect.anchorMin = new Vector2(0.5f, 0.5f);
+            buttonRect.anchorMax = new Vector2(0.5f, 0.5f);
+            buttonRect.pivot = new Vector2(0.5f, 0.5f);
+            buttonRect.anchoredPosition = position;
+            buttonRect.sizeDelta = new Vector2(420f, 140f);
 
-        private void ConfigureButtonGraphic(GameObject buttonObject, Image image)
-        {
-            image.color = new Color(0.14f, 0.57f, 0.25f, 1f);
             Button button = buttonObject.GetComponent<Button>();
+            Image image = buttonObject.GetComponent<Image>();
+            image.color = new Color(0.14f, 0.57f, 0.25f, 1f);
             button.targetGraphic = image;
+
+            TryCreateButtonLabel(buttonObject, label, tmpType);
+            return button;
         }
 
-        private GameObject CreateTextObject(string name, Type textType, Transform parent)
+        private void TryCreateButtonLabel(GameObject buttonObject, string label, Type tmpType)
         {
-            GameObject objectRef = new GameObject(name, typeof(RectTransform), textType);
-            objectRef.transform.SetParent(parent, false);
-            return objectRef;
-        }
+            if (tmpType == null)
+            {
+                return;
+            }
 
-        private void StretchToParent(RectTransform rect)
-        {
+            GameObject labelObject = new GameObject("Label", typeof(RectTransform), tmpType);
+            labelObject.transform.SetParent(buttonObject.transform, false);
+            RectTransform rect = labelObject.GetComponent<RectTransform>();
             rect.anchorMin = Vector2.zero;
             rect.anchorMax = Vector2.one;
             rect.offsetMin = Vector2.zero;
             rect.offsetMax = Vector2.zero;
+
+            Component text = labelObject.GetComponent(tmpType);
+            SetTmpValue(text, "fontSize", 46f);
+            SetTmpAlignment(text, 514);
+            SetTmpValue(text, "text", label);
+            SetTmpValue(text, "color", Color.white);
         }
 
-        private void SetTmpText(Component text, string value)
+        protected override void OnUnbind()
         {
-            SetTmpValue(text, "text", value);
+            UnbindButtons();
         }
 
-        private void SetTmpFloat(Component text, string propertyName, float value)
+        private void UnbindButtons()
         {
-            SetTmpValue(text, propertyName, value);
+            addGoldButton?.onClick.RemoveListener(OnAddGoldClicked);
+            startGameButton?.onClick.RemoveListener(OnStartGameClicked);
         }
 
-        private void SetTmpColor(Component text, Color value)
+        public void OnAddGoldClicked()
         {
-            SetTmpValue(text, "color", value);
+            viewModel?.AddOneGold();
+        }
+
+        public void OnStartGameClicked()
+        {
+            viewModel?.StartGame();
         }
 
         private void SetTmpAlignment(Component text, int enumValue)
         {
-            System.Type enumType = ResolveTmpAlignmentType();
-            if (enumType == null) { return; }
-            object value = System.Enum.ToObject(enumType, enumValue);
-            SetTmpValue(text, "alignment", value);
-        }
+            Type enumType = System.Type.GetType("TMPro.TextAlignmentOptions, Unity.TextMeshPro");
+            if (enumType == null)
+            {
+                return;
+            }
 
-        private System.Type ResolveTmpAlignmentType()
-        {
-            return System.Type.GetType("TMPro.TextAlignmentOptions, Unity.TextMeshPro");
+            object alignmentValue = Enum.ToObject(enumType, enumValue);
+            SetTmpValue(text, "alignment", alignmentValue);
         }
 
         private void SetTmpValue(Component text, string propertyName, object value)
         {
-            if (text == null) { return; }
-            System.Reflection.PropertyInfo property = text.GetType().GetProperty(propertyName);
-            if (property == null || !property.CanWrite) { return; }
+            if (text == null)
+            {
+                return;
+            }
+
+            var property = text.GetType().GetProperty(propertyName);
+            if (property == null || !property.CanWrite)
+            {
+                return;
+            }
+
             property.SetValue(text, value);
         }
     }

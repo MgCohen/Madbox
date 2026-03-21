@@ -1,4 +1,4 @@
-using System.Threading;
+﻿using System.Threading;
 using System.Threading.Tasks;
 using Madbox.Battle.Services;
 using Madbox.Levels;
@@ -56,3 +56,5 @@ namespace Madbox.Battle.Tests
         }
     }
 }
+
+

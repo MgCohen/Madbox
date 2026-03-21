@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -11,3 +11,4 @@ namespace Madbox.Addressables.Contracts
         void Release();
     }
 }
+

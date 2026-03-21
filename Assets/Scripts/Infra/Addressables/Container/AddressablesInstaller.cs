@@ -1,4 +1,4 @@
-using Madbox.Addressables.Contracts;
+﻿using Madbox.Addressables.Contracts;
 using Madbox.Scope.Contracts;
 using VContainer;
 using VContainer.Unity;
@@ -25,3 +25,4 @@ namespace Madbox.Addressables.Container
         }
     }
 }
+

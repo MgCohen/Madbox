@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using CommunityToolkit.Mvvm.ComponentModel;
 using Scaffold.MVVM;
 
@@ -25,6 +25,11 @@ namespace Madbox.Gold
             return true;
         }
 
+        private bool CanSpend(int amount)
+        {
+            return amount > 0 && CurrentGold >= amount;
+        }
+
         public void Add(int amount)
         {
             if (amount <= 0)
@@ -35,14 +40,10 @@ namespace Madbox.Gold
             AddChecked(amount);
         }
 
-        private bool CanSpend(int amount)
-        {
-            return amount > 0 && CurrentGold >= amount;
-        }
-
         private void AddChecked(int amount)
         {
             checked { CurrentGold += amount; }
         }
     }
 }
+

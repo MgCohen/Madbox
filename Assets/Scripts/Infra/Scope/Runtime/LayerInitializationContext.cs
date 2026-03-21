@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using Madbox.Scope.Contracts;
 using VContainer;
 
@@ -8,7 +8,7 @@ namespace Madbox.Scope
     {
         public LayerInitializationContext(Action<DelegatedChildRegistration> register)
         {
-            GuardRegister(register);
+            if (register == null) throw new ArgumentNullException(nameof(register));
             this.register = register;
         }
 
@@ -16,8 +16,8 @@ namespace Madbox.Scope
 
         public void RegisterTypeForChild(Type serviceType, Type implementationType, Lifetime lifetime, ChildScopeDelegationPolicy policy = ChildScopeDelegationPolicy.NextChildOnly)
         {
-            GuardServiceType(serviceType);
-            GuardImplementationType(implementationType);
+            if (serviceType == null) throw new ArgumentNullException(nameof(serviceType));
+            if (implementationType == null) throw new ArgumentNullException(nameof(implementationType));
             EnsureAssignable(serviceType, implementationType);
             Action<IContainerBuilder> apply = ChildRegistrationFactory.CreateTypeRegistration(serviceType, implementationType, lifetime);
             DelegatedChildRegistration registration = new DelegatedChildRegistration(policy, apply);
@@ -26,33 +26,13 @@ namespace Madbox.Scope
 
         public void RegisterInstanceForChild(Type serviceType, object instance, Lifetime lifetime, ChildScopeDelegationPolicy policy = ChildScopeDelegationPolicy.NextChildOnly)
         {
-            GuardServiceType(serviceType);
-            GuardInstance(instance);
+            if (serviceType == null) throw new ArgumentNullException(nameof(serviceType));
+            if (instance == null) throw new ArgumentNullException(nameof(instance));
             Type instanceType = instance.GetType();
             EnsureAssignable(serviceType, instanceType);
             Action<IContainerBuilder> apply = ChildRegistrationFactory.CreateInstanceRegistration(serviceType, instance, lifetime);
             DelegatedChildRegistration registration = new DelegatedChildRegistration(policy, apply);
             register(registration);
-        }
-
-        private void GuardRegister(Action<DelegatedChildRegistration> registerCallback)
-        {
-            if (registerCallback == null) { throw new ArgumentNullException(nameof(registerCallback)); }
-        }
-
-        private void GuardServiceType(Type serviceType)
-        {
-            if (serviceType == null) { throw new ArgumentNullException(nameof(serviceType)); }
-        }
-
-        private void GuardImplementationType(Type implementationType)
-        {
-            if (implementationType == null) { throw new ArgumentNullException(nameof(implementationType)); }
-        }
-
-        private void GuardInstance(object instance)
-        {
-            if (instance == null) { throw new ArgumentNullException(nameof(instance)); }
         }
 
         private void EnsureAssignable(Type serviceType, Type implementationType)
@@ -65,3 +45,5 @@ namespace Madbox.Scope
         }
     }
 }
+
+

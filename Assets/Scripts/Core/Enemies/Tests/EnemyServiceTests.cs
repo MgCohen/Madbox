@@ -1,4 +1,4 @@
-using Madbox.Enemies.Behaviors;
+﻿using Madbox.Enemies.Behaviors;
 using Madbox.Enemies.Services;
 using Madbox.Levels;
 using Madbox.Levels.Behaviors;
@@ -27,11 +27,11 @@ namespace Madbox.Enemies.Tests
         public void ContactAttackBehaviorRuntime_WhenConsumed_StartsCooldown()
         {
             ContactAttackBehaviorRuntime runtime = CreateContactAttackRuntime();
-            ConsumeSequenceResult sequence = ExecuteConsumeSequence(runtime);
-            AssertConsumeSequence(sequence);
+            ConsumeSequenceResult sequence = BuildExecuteConsumeSequence(runtime);
+            BuildAssertConsumeSequence(sequence);
         }
 
-        private LevelDefinition CreateLevel(int enemyCount)
+        private static LevelDefinition CreateLevel(int enemyCount)
         {
             EnemyDefinition enemy = CreateEnemyDefinition();
             LevelEnemyDefinition levelEnemy = new LevelEnemyDefinition(enemy, enemyCount);
@@ -39,34 +39,34 @@ namespace Madbox.Enemies.Tests
             return new LevelDefinition(levelId, 0, new[] { levelEnemy });
         }
 
-        private EnemyDefinition CreateEnemyDefinition()
+        private static EnemyDefinition CreateEnemyDefinition()
         {
             EntityId enemyTypeId = new EntityId("enemy-type");
             EnemyBehaviorDefinition[] behaviors = CreateEnemyBehaviors();
             return new EnemyDefinition(enemyTypeId, 20, behaviors);
         }
 
-        private EnemyBehaviorDefinition[] CreateEnemyBehaviors()
+        private static EnemyBehaviorDefinition[] CreateEnemyBehaviors()
         {
             MovementBehaviorDefinition movement = new MovementBehaviorDefinition(1f, 3f);
             ContactAttackBehaviorDefinition contactAttack = new ContactAttackBehaviorDefinition(contactDamage, 0.5f, contactCooldown);
             return new EnemyBehaviorDefinition[] { movement, contactAttack };
         }
 
-        private ContactAttackBehaviorRuntime CreateContactAttackRuntime()
+        private static ContactAttackBehaviorRuntime CreateContactAttackRuntime()
         {
             ContactAttackBehaviorDefinition definition = new ContactAttackBehaviorDefinition(contactDamage, contactRange, contactCooldown);
             return new ContactAttackBehaviorRuntime(definition);
         }
 
-        private ConsumeSequenceResult ExecuteConsumeSequence(ContactAttackBehaviorRuntime runtime)
+        private static ConsumeSequenceResult BuildExecuteConsumeSequence(ContactAttackBehaviorRuntime runtime)
         {
             ConsumeSequenceResult result = new ConsumeSequenceResult();
-            ConsumeThreeTimes(runtime, result);
+            BuildConsumeThreeTimes(runtime, result);
             return result;
         }
 
-        private void ConsumeThreeTimes(ContactAttackBehaviorRuntime runtime, ConsumeSequenceResult result)
+        private static void BuildConsumeThreeTimes(ContactAttackBehaviorRuntime runtime, ConsumeSequenceResult result)
         {
             result.FirstConsume = runtime.TryConsume(contactDamage, out int firstDamage);
             result.SecondConsume = runtime.TryConsume(contactDamage, out int secondDamage);
@@ -77,7 +77,7 @@ namespace Madbox.Enemies.Tests
             result.ThirdDamage = thirdDamage;
         }
 
-        private void AssertConsumeSequence(ConsumeSequenceResult sequence)
+        private static void BuildAssertConsumeSequence(ConsumeSequenceResult sequence)
         {
             Assert.IsTrue(sequence.FirstConsume);
             Assert.AreEqual(contactDamage, sequence.FirstDamage);
@@ -98,3 +98,5 @@ namespace Madbox.Enemies.Tests
         }
     }
 }
+
+

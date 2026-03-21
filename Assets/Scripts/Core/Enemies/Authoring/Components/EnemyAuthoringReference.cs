@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using Madbox.Enemies.Authoring.Definitions;
 #pragma warning disable SCA0007
 #pragma warning disable SCA0020
@@ -12,3 +12,4 @@ namespace Madbox.Enemies.Authoring.Components
         public EnemyDefinitionSO Definition => definition;
     }
 }
+

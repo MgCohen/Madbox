@@ -1,4 +1,4 @@
-namespace Madbox.Addressables.Contracts
+﻿namespace Madbox.Addressables.Contracts
 {
     public enum AssetHandleState
     {
@@ -8,3 +8,4 @@ namespace Madbox.Addressables.Contracts
         Released = 3
     }
 }
+

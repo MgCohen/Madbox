@@ -1,4 +1,4 @@
-using System.IO;
+﻿using System.IO;
 using System.Linq;
 using NUnit.Framework;
 
@@ -16,3 +16,5 @@ namespace Madbox.Addressables.Tests
         }
     }
 }
+
+

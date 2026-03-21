@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Reflection;
 using Madbox.App.MainMenu;
@@ -35,10 +35,14 @@ namespace Madbox.App.Bootstrap
 
         private void OpenMainMenu(LifetimeScope finalScope)
         {
-            if (finalScope == null || finalScope.Container == null) { return; }
+            if (finalScope == null || finalScope.Container == null)
+            {
+                return;
+            }
             INavigation navigation = finalScope.Container.Resolve<INavigation>();
             MainMenuViewModel mainMenu = new MainMenuViewModel();
             navigation.Open(mainMenu);
         }
     }
 }
+

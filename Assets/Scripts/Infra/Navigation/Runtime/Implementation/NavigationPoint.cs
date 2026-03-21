@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Threading.Tasks;
 using Scaffold.Navigation.Contracts;
 using UnityEngine;
@@ -19,9 +19,18 @@ namespace Scaffold.Navigation
 
         private NavigationPoint(IView view, IViewController controller, ViewConfig config, bool isSceneView, NavigationOptions options, Action<NavigationPoint> disposeAction, bool ready)
         {
-            if (controller is null) { throw new ArgumentNullException(nameof(controller)); }
-            if (config is null) { throw new ArgumentNullException(nameof(config)); }
-            if (options is null) { throw new ArgumentNullException(nameof(options)); }
+            if (controller is null)
+{
+    throw new ArgumentNullException(nameof(controller));
+}
+            if (config is null)
+{
+    throw new ArgumentNullException(nameof(config));
+}
+            if (options is null)
+{
+    throw new ArgumentNullException(nameof(options));
+}
             ViewModel = controller;
             Config = config;
             View = view;
@@ -29,9 +38,9 @@ namespace Scaffold.Navigation
             Options = options;
             this.disposeAction = disposeAction;
             if (ready)
-            {
-                readyCompletion.TrySetResult(true);
-            }
+{
+    readyCompletion.TrySetResult(true);
+}
         }
 
         public IView View { get; internal set; }
@@ -48,40 +57,30 @@ namespace Scaffold.Navigation
 
         public void SetDepth(int depth, NavigationOptions options)
         {
-            if (options is null) { throw new ArgumentNullException(nameof(options)); }
+            if (options is null)
+{
+    throw new ArgumentNullException(nameof(options));
+}
             Depth = depth;
-            if (View == null) { return; }
+            if (View == null)
+{
+    return;
+}
             ApplyDepth(options);
-        }
-
-        internal Task AwaitReadyAsync()
-        {
-            return readyCompletion.Task;
         }
 
         internal void CompleteReady(IView view)
         {
-            if (view == null) { throw new ArgumentNullException(nameof(view)); }
-            if (Disposed) { return; }
+            if (view == null)
+{
+    throw new ArgumentNullException(nameof(view));
+}
+            if (Disposed)
+{
+    return;
+}
             View = view;
             ApplyDepth(Options);
-            readyCompletion.TrySetResult(true);
-        }
-
-        internal void FailReady(Exception exception)
-        {
-            if (exception == null) { throw new ArgumentNullException(nameof(exception)); }
-            readyCompletion.TrySetException(exception);
-        }
-
-        public void Dispose()
-        {
-            if (Disposed) { return; }
-            disposeAction?.Invoke(this);
-            View = null;
-            ViewModel = null;
-            Config = null;
-            Disposed = true;
             readyCompletion.TrySetResult(true);
         }
 
@@ -89,16 +88,49 @@ namespace Scaffold.Navigation
         {
             View.Order(Depth);
             if (options.RenderOverride.HasValue)
-            {
-                ApplyRenderOverride(options.RenderOverride.Value);
-            }
+{
+    ApplyRenderOverride(options.RenderOverride.Value);
+}
         }
 
         private void ApplyRenderOverride(RenderMode renderMode)
         {
             Canvas canvas = View.gameObject.GetComponentInParent<Canvas>(true);
-            if (canvas == null) { return; }
+            if (canvas == null)
+{
+    return;
+}
             canvas.renderMode = renderMode;
+        }
+
+        internal Task AwaitReadyAsync()
+        {
+            return readyCompletion.Task;
+        }
+
+        internal void FailReady(Exception exception)
+        {
+            if (exception == null)
+{
+    throw new ArgumentNullException(nameof(exception));
+}
+            readyCompletion.TrySetException(exception);
+        }
+
+        public void Dispose()
+        {
+            if (Disposed)
+{
+    return;
+}
+            disposeAction?.Invoke(this);
+            View = null;
+            ViewModel = null;
+            Config = null;
+            Disposed = true;
+            readyCompletion.TrySetResult(true);
         }
     }
 }
+
+

@@ -1,4 +1,4 @@
-namespace Madbox.Addressables
+﻿namespace Madbox.Addressables
 {
     public enum PreloadReferenceType
     {
@@ -6,3 +6,4 @@ namespace Madbox.Addressables
         LabelReference = 1
     }
 }
+

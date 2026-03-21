@@ -12,7 +12,7 @@ namespace Scaffold.MVVM.Tests
         public void ViewModel_Bind_CallsInitialize()
         {
             TestViewModel viewModel = new TestViewModel();
-            viewModel.Bind(null);
+            viewModel.Bind(new SpyNavigation());
             Assert.IsTrue(viewModel.InitializeCalled);
         }
 
@@ -22,7 +22,7 @@ namespace Scaffold.MVVM.Tests
             SpyNavigation navigation = new SpyNavigation();
             ClosableViewModel viewModel = new ClosableViewModel();
             viewModel.Bind(navigation);
-            ExecuteCloseAndAssert(viewModel, navigation);
+            BuildExecuteCloseAndAssert(viewModel, navigation);
         }
 
         [Test]
@@ -37,8 +37,9 @@ namespace Scaffold.MVVM.Tests
         public void ViewModel_Bind_CalledTwice_InvokesInitializeTwice()
         {
             CountingInitializeViewModel viewModel = new CountingInitializeViewModel();
-            viewModel.Bind(null);
-            viewModel.Bind(null);
+            SpyNavigation navigation = new SpyNavigation();
+            viewModel.Bind(navigation);
+            viewModel.Bind(navigation);
             Assert.AreEqual(2, viewModel.InitializeCalls);
         }
 
@@ -48,7 +49,7 @@ namespace Scaffold.MVVM.Tests
             StrictBindScenario scenario = CreateStrictBindScenario(3);
             scenario.Source = 8;
             scenario.Context.Update();
-            AssertStrictBindUpdates(scenario.Bind);
+            BuildAssertStrictBindUpdates(scenario.Bind);
         }
 
         [Test]
@@ -79,7 +80,7 @@ namespace Scaffold.MVVM.Tests
             scenario.Context.Unbind(scenario.First);
             scenario.Source = 9;
             scenario.Context.Update();
-            AssertUnbindBehavior(scenario.First, scenario.Second);
+            BuildAssertUnbindBehavior(scenario.First, scenario.Second);
         }
 
         [Test]
@@ -100,7 +101,12 @@ namespace Scaffold.MVVM.Tests
             AssertContractType<IViewModel>("IViewModel");
         }
 
-        private void ExecuteCloseAndAssert(ClosableViewModel viewModel, SpyNavigation navigation)
+        private void AssertContractType<TContract>(string expectedName)
+        {
+            Assert.AreEqual(expectedName, typeof(TContract).Name);
+        }
+
+        private static void BuildExecuteCloseAndAssert(ClosableViewModel viewModel, SpyNavigation navigation)
         {
             viewModel.Close();
             Assert.AreEqual(1, navigation.CloseCalls);
@@ -108,28 +114,28 @@ namespace Scaffold.MVVM.Tests
             Assert.AreEqual(1, viewModel.OnClosedCalls);
         }
 
-        private StrictBindScenario CreateStrictBindScenario(int source)
+        private static StrictBindScenario CreateStrictBindScenario(int source)
         {
             StrictBindScenario scenario = new StrictBindScenario(source);
             scenario.Context.Bind(scenario.Bind, BindingOptions.Strict);
             return scenario;
         }
 
-        private void AssertStrictBindUpdates(SpyBind<int> bind)
+        private static void BuildAssertStrictBindUpdates(SpyBind<int> bind)
         {
             Assert.AreEqual(2, bind.Values.Count);
             Assert.AreEqual(3, bind.Values[0]);
             Assert.AreEqual(8, bind.Values[1]);
         }
 
-        private LazyNullScenario CreateLazyNullScenario()
+        private static LazyNullScenario CreateLazyNullScenario()
         {
             LazyNullScenario scenario = new LazyNullScenario();
             scenario.Context.Bind(scenario.Bind, BindingOptions.Lazy);
             return scenario;
         }
 
-        private UnbindScenario CreateUnbindScenario(int source)
+        private static UnbindScenario CreateUnbindScenario(int source)
         {
             UnbindScenario scenario = new UnbindScenario(source);
             scenario.Context.Bind(scenario.First, BindingOptions.Strict);
@@ -137,17 +143,13 @@ namespace Scaffold.MVVM.Tests
             return scenario;
         }
 
-        private void AssertUnbindBehavior(SpyBind<int> first, SpyBind<int> second)
+        private static void BuildAssertUnbindBehavior(SpyBind<int> first, SpyBind<int> second)
         {
             Assert.AreEqual(1, first.Values.Count);
             Assert.AreEqual(2, second.Values.Count);
             Assert.AreEqual(9, second.Values[1]);
         }
 
-        private void AssertContractType<TContract>(string expectedName)
-        {
-            Assert.AreEqual(expectedName, typeof(TContract).Name);
-        }
     }
 
     public sealed class StrictBindScenario
@@ -264,6 +266,8 @@ namespace Scaffold.MVVM.Tests
         }
     }
 }
+
+
 
 
 

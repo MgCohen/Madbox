@@ -6,10 +6,6 @@ using System.Threading.Tasks;
 using Madbox.Scope.Contracts;
 using VContainer;
 using VContainer.Unity;
-#pragma warning disable SCA0002
-#pragma warning disable SCA0005
-#pragma warning disable SCA0006
-#pragma warning disable SCA0012
 
 namespace Madbox.Scope
 {
@@ -28,9 +24,9 @@ namespace Madbox.Scope
             }
         }
 
-        public void ApplyDelegatedChildRegistrations(IContainerBuilder builder, IObjectResolver parentResolver)
+        public void ApplyDelegatedChildRegistrations(IContainerBuilder builder, IObjectResolver parentResolver = null)
         {
-            if (builder == null) { throw new ArgumentNullException(nameof(builder)); }
+            if (builder == null) throw new ArgumentNullException(nameof(builder));
             IReadOnlyList<DelegatedChildRegistration> snapshot = TakeRegistrationsSnapshotAndPrune(parentResolver);
             foreach (DelegatedChildRegistration registration in snapshot)
             {
@@ -38,98 +34,74 @@ namespace Madbox.Scope
             }
         }
 
-        public void ApplyDelegatedChildRegistrations(IContainerBuilder builder)
+        private IReadOnlyList<DelegatedChildRegistration> TakeRegistrationsSnapshotAndPrune(IObjectResolver parentResolver)
         {
-            ApplyDelegatedChildRegistrations(builder, null);
+            lock (sync)
+            {
+                if (delegatedChildRegistrations.Count == 0)
+{
+    return Array.Empty<DelegatedChildRegistration>();
+}
+                List<DelegatedChildRegistration> snapshot = delegatedChildRegistrations.Where(registration => registration.IsApplicableTo(parentResolver)).ToList();
+                delegatedChildRegistrations.RemoveAll(registration =>
+                    registration.IsApplicableTo(parentResolver) &&
+                    registration.Policy == ChildScopeDelegationPolicy.NextChildOnly);
+                return snapshot;
+            }
         }
 
         public async Task InitializeScopeAsync(LifetimeScope scope, CancellationToken cancellationToken)
         {
-            EnsureNotCanceled(cancellationToken);
-            IReadOnlyList<IAsyncLayerInitializable> resolved = ResolveInitializersFromScope(scope);
-            IReadOnlyList<IAsyncLayerInitializable> pending = FilterPendingInitializers(resolved);
-            IObjectResolver resolver = scope == null ? null : scope.Container;
-            await InitializePendingAsync(pending, resolver, cancellationToken);
-            RememberInitialized(pending);
+            cancellationToken.ThrowIfCancellationRequested(); IReadOnlyList<IAsyncLayerInitializable> resolved = Array.Empty<IAsyncLayerInitializable>();
+            if (scope != null)
+            {
+                try { IEnumerable<IAsyncLayerInitializable> initializers = scope.Container.Resolve<IEnumerable<IAsyncLayerInitializable>>(); resolved = initializers?.Where(initializer => initializer != null).ToArray() ?? Array.Empty<IAsyncLayerInitializable>(); }
+                catch (VContainerException) { resolved = Array.Empty<IAsyncLayerInitializable>(); }
+            }
+            List<IAsyncLayerInitializable> pending = resolved.Where(initializer => initializer != null && !initialized.Contains(initializer)).ToList();
+            IObjectResolver resolver = scope == null ? null : scope.Container; await InitializePendingAsync(pending, resolver, cancellationToken); initialized.UnionWith(pending);
         }
 
         public async Task InitializeInitializersAsync(IReadOnlyList<IAsyncLayerInitializable> initializers, IObjectResolver resolver, CancellationToken cancellationToken)
         {
-            EnsureNotCanceled(cancellationToken);
-            IReadOnlyList<IAsyncLayerInitializable> pending = FilterPendingInitializers(initializers);
-            await InitializePendingAsync(pending, resolver, cancellationToken);
-            RememberInitialized(pending);
-        }
-
-        private void EnsureNotCanceled(CancellationToken cancellationToken)
-        {
             cancellationToken.ThrowIfCancellationRequested();
-        }
-
-        private IReadOnlyList<IAsyncLayerInitializable> ResolveInitializersFromScope(LifetimeScope scope)
-        {
-            if (scope == null) { return Array.Empty<IAsyncLayerInitializable>(); }
-            return TryResolveInitializers(scope, out IReadOnlyList<IAsyncLayerInitializable> resolved)
-                ? resolved
-                : Array.Empty<IAsyncLayerInitializable>();
-        }
-
-        private bool TryResolveInitializers(LifetimeScope scope, out IReadOnlyList<IAsyncLayerInitializable> resolved)
-        {
-            try { resolved = ResolveInitializers(scope); return true; }
-            catch (VContainerException) { resolved = Array.Empty<IAsyncLayerInitializable>(); return false; }
-        }
-
-        private IReadOnlyList<IAsyncLayerInitializable> ResolveInitializers(LifetimeScope scope)
-        {
-            IEnumerable<IAsyncLayerInitializable> initializers = scope.Container.Resolve<IEnumerable<IAsyncLayerInitializable>>();
-            return initializers?.Where(initializer => initializer != null).ToArray() ?? Array.Empty<IAsyncLayerInitializable>();
-        }
-
-        private IReadOnlyList<IAsyncLayerInitializable> FilterPendingInitializers(IReadOnlyList<IAsyncLayerInitializable> initializers)
-        {
             List<IAsyncLayerInitializable> pending = new List<IAsyncLayerInitializable>();
-            foreach (IAsyncLayerInitializable initializer in initializers) { AddIfPending(pending, initializer); }
-            return pending;
-        }
-
-        private void AddIfPending(ICollection<IAsyncLayerInitializable> pending, IAsyncLayerInitializable initializer)
-        {
-            if (initializer == null || initialized.Contains(initializer)) { return; }
-            pending.Add(initializer);
+            foreach (IAsyncLayerInitializable initializer in initializers)
+            {
+                if (initializer == null || initialized.Contains(initializer)) continue;
+                pending.Add(initializer);
+            }
+            await InitializePendingAsync(pending, resolver, cancellationToken);
+            foreach (IAsyncLayerInitializable initializer in pending)
+            {
+                initialized.Add(initializer);
+            }
         }
 
         private async Task InitializePendingAsync(IReadOnlyList<IAsyncLayerInitializable> pending, IObjectResolver resolver, CancellationToken cancellationToken)
         {
-            if (pending.Count == 0) { return; }
+            if (pending.Count == 0)
+{
+    return;
+}
             Task[] tasks = BuildInitializationTasks(pending, resolver, cancellationToken);
             await Task.WhenAll(tasks);
         }
 
         private Task[] BuildInitializationTasks(IReadOnlyList<IAsyncLayerInitializable> pending, IObjectResolver resolver, CancellationToken cancellationToken)
         {
-            Task[] tasks = new Task[pending.Count];
-            LayerInitializationContext context = new LayerInitializationContext(registration => RegisterDelegatedChildRegistration(registration, resolver));
-            for (int i = 0; i < pending.Count; i++) { tasks[i] = InitializeServiceAsync(context, pending[i], resolver, cancellationToken); }
+            Task[] tasks = new Task[pending.Count]; LayerInitializationContext context = new LayerInitializationContext(registration => RegisterDelegatedChildRegistration(registration, resolver));
+            for (int i = 0; i < pending.Count; i++)
+            {
+                tasks[i] = InitializeSingleAsync(pending[i]);
+            }
             return tasks;
-        }
-
-        private async Task InitializeServiceAsync(ILayerInitializationContext context, IAsyncLayerInitializable initializer, IObjectResolver resolver, CancellationToken cancellationToken)
-        {
-            try { await initializer.InitializeAsync(context, resolver, cancellationToken); }
-            catch (OperationCanceledException) { throw; }
-            catch (Exception exception) { throw CreateInitializationFailure(initializer, exception); }
-        }
-
-        private InvalidOperationException CreateInitializationFailure(IAsyncLayerInitializable initializer, Exception exception)
-        {
-            string message = $"Initialization failed in '{initializer.GetType().FullName}'.";
-            return new InvalidOperationException(message, exception);
-        }
-
-        private void RememberInitialized(IReadOnlyList<IAsyncLayerInitializable> initializers)
-        {
-            foreach (IAsyncLayerInitializable initializer in initializers) { initialized.Add(initializer); }
+            async Task InitializeSingleAsync(IAsyncLayerInitializable initializer)
+            {
+                try { await initializer.InitializeAsync(context, resolver, cancellationToken); }
+                catch (OperationCanceledException) { throw; }
+                catch (Exception exception) { throw new InvalidOperationException($"Initialization failed in '{initializer.GetType().FullName}'.", exception); }
+            }
         }
 
         private void RegisterDelegatedChildRegistration(DelegatedChildRegistration registration, IObjectResolver ownerResolver)
@@ -141,23 +113,5 @@ namespace Madbox.Scope
             }
         }
 
-        private IReadOnlyList<DelegatedChildRegistration> TakeRegistrationsSnapshotAndPrune(IObjectResolver parentResolver)
-        {
-            lock (sync)
-            {
-                if (delegatedChildRegistrations.Count == 0) { return Array.Empty<DelegatedChildRegistration>(); }
-                List<DelegatedChildRegistration> snapshot = delegatedChildRegistrations
-                    .Where(registration => registration.IsApplicableTo(parentResolver))
-                    .ToList();
-                delegatedChildRegistrations.RemoveAll(registration =>
-                    registration.IsApplicableTo(parentResolver) &&
-                    registration.Policy == ChildScopeDelegationPolicy.NextChildOnly);
-                return snapshot;
-            }
-        }
     }
 }
-#pragma warning restore SCA0012
-#pragma warning restore SCA0006
-#pragma warning restore SCA0005
-#pragma warning restore SCA0002

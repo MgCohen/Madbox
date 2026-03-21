@@ -1,6 +1,7 @@
-namespace Scaffold.Events.Contracts
+﻿namespace Scaffold.Events.Contracts
 {
     public abstract record ContextEvent;
 }
+
 
 

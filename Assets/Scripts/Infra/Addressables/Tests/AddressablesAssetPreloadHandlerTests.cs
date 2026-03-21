@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Threading;
@@ -31,7 +31,7 @@ namespace Madbox.Addressables.Tests
         public void BuildAsync_LabelReferenceEntry_BuildsOneRegistrationPerResolvedKey()
         {
             IReadOnlyList<AddressablesPreloadRegistration> registrations = BuildByEnemyLabel();
-            AssertLabelRegistrations(registrations);
+            BuildAssertLabelRegistrations(registrations);
         }
 
         [Test]
@@ -43,14 +43,14 @@ namespace Madbox.Addressables.Tests
             Assert.Throws<InvalidOperationException>(() => handler.BuildAsync(config, CancellationToken.None).GetAwaiter().GetResult());
         }
 
-        private AddressablesPreloadConfig CreateConfig(IReadOnlyList<AddressablesPreloadConfigEntry> entries)
+        private static AddressablesPreloadConfig CreateConfig(IReadOnlyList<AddressablesPreloadConfigEntry> entries)
         {
             AddressablesPreloadConfig config = ScriptableObject.CreateInstance<AddressablesPreloadConfig>();
-            SetField(config, "entries", new List<AddressablesPreloadConfigEntry>(entries));
+            BuildSetField(config, "entries", new List<AddressablesPreloadConfigEntry>(entries));
             return config;
         }
 
-        private IReadOnlyList<AddressablesPreloadRegistration> BuildByEnemyLabel()
+        private static IReadOnlyList<AddressablesPreloadRegistration> BuildByEnemyLabel()
         {
             TestAddressableAssetClient client = new TestAddressableAssetClient();
             client.CatalogToKeys["enemy"] = new[] { "enemy/bee", "enemy/slime" };
@@ -59,7 +59,7 @@ namespace Madbox.Addressables.Tests
             return handler.BuildAsync(config, CancellationToken.None).GetAwaiter().GetResult();
         }
 
-        private void AssertLabelRegistrations(IReadOnlyList<AddressablesPreloadRegistration> registrations)
+        private static void BuildAssertLabelRegistrations(IReadOnlyList<AddressablesPreloadRegistration> registrations)
         {
             Assert.AreEqual(2, registrations.Count);
             Assert.AreEqual("enemy/bee", registrations[0].Key);
@@ -68,32 +68,35 @@ namespace Madbox.Addressables.Tests
             Assert.AreEqual(PreloadMode.NeverDie, registrations[1].Mode);
         }
 
-        private AddressablesPreloadConfigEntry CreateAssetEntry(Type assetType, string key, PreloadMode mode)
+        private static AddressablesPreloadConfigEntry CreateAssetEntry(Type assetType, string key, PreloadMode mode)
         {
             AddressablesPreloadConfigEntry entry = new AddressablesPreloadConfigEntry();
-            SetField(entry, "assetType", new TypeReference(assetType));
-            SetField(entry, "referenceType", PreloadReferenceType.AssetReference);
-            SetField(entry, "assetReference", new AssetReference(key));
-            SetField(entry, "labelReference", new AssetLabelReference());
-            SetField(entry, "mode", mode);
+            BuildSetField(entry, "assetType", new TypeReference(assetType));
+            BuildSetField(entry, "referenceType", PreloadReferenceType.AssetReference);
+            BuildSetField(entry, "assetReference", new AssetReference(key));
+            BuildSetField(entry, "labelReference", new AssetLabelReference());
+            BuildSetField(entry, "mode", mode);
             return entry;
         }
 
-        private AddressablesPreloadConfigEntry CreateLabelEntry(Type assetType, string label, PreloadMode mode)
+        private static AddressablesPreloadConfigEntry CreateLabelEntry(Type assetType, string label, PreloadMode mode)
         {
             AddressablesPreloadConfigEntry entry = new AddressablesPreloadConfigEntry();
-            SetField(entry, "assetType", new TypeReference(assetType));
-            SetField(entry, "referenceType", PreloadReferenceType.LabelReference);
-            SetField(entry, "assetReference", null);
-            SetField(entry, "labelReference", new AssetLabelReference { labelString = label });
-            SetField(entry, "mode", mode);
+            BuildSetField(entry, "assetType", new TypeReference(assetType));
+            BuildSetField(entry, "referenceType", PreloadReferenceType.LabelReference);
+            BuildSetField(entry, "assetReference", null);
+            BuildSetField(entry, "labelReference", new AssetLabelReference { labelString = label });
+            BuildSetField(entry, "mode", mode);
             return entry;
         }
 
-        private void SetField(object target, string name, object value)
+        private static void BuildSetField(object target, string name, object value)
         {
             FieldInfo field = target.GetType().GetField(name, BindingFlags.NonPublic | BindingFlags.Instance);
-            if (field == null) { throw new InvalidOperationException($"Field '{name}' not found on '{target.GetType().FullName}'."); }
+            if (field == null)
+            {
+                throw new InvalidOperationException($"Field '{name}' not found on '{target.GetType().FullName}'.");
+            }
             field.SetValue(target, value);
         }
 
@@ -113,7 +116,10 @@ namespace Madbox.Addressables.Tests
 
             public Task<IReadOnlyList<string>> ResolveLabelAsync(Type assetType, AssetLabelReference label, CancellationToken cancellationToken)
             {
-                if (CatalogToKeys.TryGetValue(label.labelString, out IReadOnlyList<string> keys)) { return Task.FromResult(keys); }
+                if (CatalogToKeys.TryGetValue(label.labelString, out IReadOnlyList<string> keys))
+                {
+                    return Task.FromResult(keys);
+                }
                 return Task.FromResult((IReadOnlyList<string>)Array.Empty<string>());
             }
 
@@ -128,3 +134,5 @@ namespace Madbox.Addressables.Tests
     }
 }
 #pragma warning restore SCA0003
+
+

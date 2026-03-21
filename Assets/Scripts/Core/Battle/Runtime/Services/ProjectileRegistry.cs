@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using Madbox.Battle.Events;
 using Madbox.Levels;
 
@@ -68,3 +68,4 @@ namespace Madbox.Battle.Services
         }
     }
 }
+

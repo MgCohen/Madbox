@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using Madbox.Enemies.Authoring.Definitions;
 using UnityEngine;
 #pragma warning disable SCA0007
@@ -17,3 +17,4 @@ namespace Madbox.Levels.Authoring.Definitions
         public int Count => count;
     }
 }
+

@@ -1,4 +1,4 @@
-using VContainer;
+﻿using VContainer;
 namespace Madbox.Scope.Contracts
 {
     public interface ILayerInstaller
@@ -6,3 +6,4 @@ namespace Madbox.Scope.Contracts
         void Install(IContainerBuilder builder);
     }
 }
+

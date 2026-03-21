@@ -1,4 +1,4 @@
-namespace Madbox.Battle
+﻿namespace Madbox.Battle
 {
     public enum GameState
     {
@@ -7,3 +7,4 @@ namespace Madbox.Battle
         Done
     }
 }
+

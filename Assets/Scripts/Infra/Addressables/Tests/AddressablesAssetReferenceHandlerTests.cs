@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -15,9 +15,9 @@ namespace Madbox.Addressables.Tests
         {
             TestAddressableAssetClient client = new TestAddressableAssetClient();
             IAssetReferenceHandler handler = new AddressablesAssetReferenceHandler(client);
-            IAssetHandle<TestAsset> first = AcquireBee(handler);
-            IAssetHandle<TestAsset> second = AcquireBee(handler);
-            AssertReleaseLifecycle(client, first, second);
+            IAssetHandle<TestAsset> first = BuildAcquireBee(handler);
+            IAssetHandle<TestAsset> second = BuildAcquireBee(handler);
+            BuildAssertReleaseLifecycle(client, first, second);
         }
 
         [Test]
@@ -27,28 +27,28 @@ namespace Madbox.Addressables.Tests
             IAssetReferenceHandler handler = new AddressablesAssetReferenceHandler(client);
             Type assetType = typeof(TestAsset);
             IAssetHandle preloaded = handler.AcquireByTypeAsync(assetType, "enemy/bee", PreloadMode.NeverDie, true, CancellationToken.None).GetAwaiter().GetResult();
-            IAssetHandle<TestAsset> consumer = AcquireBee(handler);
+            IAssetHandle<TestAsset> consumer = BuildAcquireBee(handler);
             consumer.Release();
             preloaded.Release();
             Assert.AreEqual(0, client.ReleaseCalls.Count);
         }
 
-        private IAssetHandle<TestAsset> AcquireBee(IAssetReferenceHandler handler)
+        private static IAssetHandle<TestAsset> BuildAcquireBee(IAssetReferenceHandler handler)
         {
             return handler.AcquireAsync<TestAsset>("enemy/bee", CancellationToken.None).GetAwaiter().GetResult();
         }
 
-        private void AssertReleaseLifecycle(TestAddressableAssetClient client, IAssetHandle<TestAsset> first, IAssetHandle<TestAsset> second)
+        private static void BuildAssertReleaseLifecycle(TestAddressableAssetClient client, IAssetHandle<TestAsset> first, IAssetHandle<TestAsset> second)
         {
             first.Release();
             Assert.AreEqual(0, client.ReleaseCalls.Count);
             second.Release();
             Assert.AreEqual(1, client.ReleaseCalls.Count);
-            int loadCount = CountTestAssetLoads(client);
+            int loadCount = BuildCountTestAssetLoads(client);
             Assert.AreEqual(1, loadCount);
         }
 
-        private int CountTestAssetLoads(TestAddressableAssetClient client)
+        private static int BuildCountTestAssetLoads(TestAddressableAssetClient client)
         {
             Type assetType = typeof(TestAsset);
             return client.CountLoadCallsForType(assetType);
@@ -69,7 +69,10 @@ namespace Madbox.Addressables.Tests
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 LoadCalls.Add($"{assetType.FullName}|{key}");
-                if (cache.TryGetValue(key, out TestAsset existing)) { return Task.FromResult((UnityEngine.Object)existing); }
+                if (cache.TryGetValue(key, out TestAsset existing))
+                {
+                    return Task.FromResult((UnityEngine.Object)existing);
+                }
                 TestAsset created = ScriptableObject.CreateInstance<TestAsset>();
                 created.AssetId = key;
                 cache[key] = created;
@@ -83,7 +86,10 @@ namespace Madbox.Addressables.Tests
 
             public void Release(UnityEngine.Object asset)
             {
-                if (asset is TestAsset testAsset) { ReleaseCalls.Add(testAsset.AssetId); }
+                if (asset is TestAsset testAsset)
+                {
+                    ReleaseCalls.Add(testAsset.AssetId);
+                }
             }
 
             public int CountLoadCallsForType(Type type)
@@ -92,7 +98,10 @@ namespace Madbox.Addressables.Tests
                 int count = 0;
                 for (int i = 0; i < LoadCalls.Count; i++)
                 {
-                    if (LoadCalls[i].StartsWith(prefix, StringComparison.Ordinal)) { count++; }
+                    if (LoadCalls[i].StartsWith(prefix, StringComparison.Ordinal))
+                    {
+                        count++;
+                    }
                 }
                 return count;
             }
@@ -104,3 +113,5 @@ namespace Madbox.Addressables.Tests
         }
     }
 }
+
+

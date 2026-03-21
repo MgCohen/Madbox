@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Threading;
 using Madbox.Levels.Behaviors;
 using Madbox.Levels.Contracts;
@@ -51,3 +51,5 @@ namespace Madbox.Levels.Tests
         }
     }
 }
+
+

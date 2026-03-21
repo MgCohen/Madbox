@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -9,3 +9,4 @@ namespace Madbox.Addressables.Contracts
         Task<IReadOnlyList<AddressablesPreloadRegistration>> BuildAsync(AddressablesPreloadConfig config, CancellationToken cancellationToken);
     }
 }
+

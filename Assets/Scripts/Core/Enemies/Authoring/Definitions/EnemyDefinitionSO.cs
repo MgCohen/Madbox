@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using Madbox.Levels;
 using Madbox.Levels.Behaviors;
@@ -36,11 +36,12 @@ namespace Madbox.Enemies.Authoring.Definitions
 
             List<EnemyBehaviorDefinition> copied = new List<EnemyBehaviorDefinition>(behaviorRules.Count);
             for (int i = 0; i < behaviorRules.Count; i++)
-            {
-                copied.Add(behaviorRules[i]);
-            }
+{
+    copied.Add(behaviorRules[i]);
+}
 
             return copied;
         }
     }
 }
+

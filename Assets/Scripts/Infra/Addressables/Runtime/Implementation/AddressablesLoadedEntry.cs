@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using Madbox.Addressables.Contracts;
 
 namespace Madbox.Addressables
@@ -19,7 +19,11 @@ namespace Madbox.Addressables
 
         private void GuardAsset(Object asset)
         {
-            if (asset == null) { throw new System.ArgumentNullException(nameof(asset)); }
+            if (asset == null)
+            {
+                throw new System.ArgumentNullException(nameof(asset));
+            }
         }
     }
 }
+

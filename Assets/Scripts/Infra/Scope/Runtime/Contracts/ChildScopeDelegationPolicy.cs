@@ -1,4 +1,4 @@
-namespace Madbox.Scope.Contracts
+﻿namespace Madbox.Scope.Contracts
 {
     public enum ChildScopeDelegationPolicy
     {
@@ -6,3 +6,4 @@ namespace Madbox.Scope.Contracts
         AllDescendants = 1,
     }
 }
+

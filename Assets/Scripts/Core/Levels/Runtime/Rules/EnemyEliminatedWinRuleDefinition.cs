@@ -4,20 +4,13 @@ namespace Madbox.Levels.Rules
     {
         public override bool CheckRule(BattleContext context, out GameEndReason reason)
         {
-            if (CanEvaluate(context, out reason) == false) return false;
-            return ResolveWin(context, out reason);
-        }
-
-        private bool CanEvaluate(BattleContext context, out GameEndReason reason)
-        {
-            if (context != null)
+            if (context == null)
             {
                 reason = GameEndReason.None;
-                return true;
+                return false;
             }
 
-            reason = GameEndReason.None;
-            return false;
+            return ResolveWin(context, out reason);
         }
 
         private bool ResolveWin(BattleContext context, out GameEndReason reason)

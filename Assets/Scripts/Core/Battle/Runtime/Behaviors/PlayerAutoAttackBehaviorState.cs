@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 
 namespace Madbox.Battle.Behaviors
 {
@@ -35,3 +35,4 @@ namespace Madbox.Battle.Behaviors
         }
     }
 }
+

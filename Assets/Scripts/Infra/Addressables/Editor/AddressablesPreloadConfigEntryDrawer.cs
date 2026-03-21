@@ -1,4 +1,4 @@
-using UnityEditor;
+﻿using UnityEditor;
 using UnityEngine;
 
 namespace Madbox.Addressables.Editor
@@ -19,17 +19,20 @@ namespace Madbox.Addressables.Editor
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
             EntryFields fields = CreateFields(property);
-            if (ShouldUseFallback(fields)) { DrawFallback(position, property, label); return; }
+            if (BuildShouldUseFallback(fields))
+{
+    BuildDrawFallback(position, property, label); return;
+}
             Rect content = EditorGUI.PrefixLabel(position, label);
-            DrawColumns(content, fields);
+            BuildDrawColumns(content, fields);
         }
 
-        private void DrawFallback(Rect position, SerializedProperty property, GUIContent label)
+        private static void BuildDrawFallback(Rect position, SerializedProperty property, GUIContent label)
         {
             EditorGUI.PropertyField(position, property, label, true);
         }
 
-        private EntryFields CreateFields(SerializedProperty property)
+        private static EntryFields CreateFields(SerializedProperty property)
         {
             SerializedProperty assetType = property.FindPropertyRelative("assetType");
             SerializedProperty referenceType = property.FindPropertyRelative("referenceType");
@@ -39,34 +42,34 @@ namespace Madbox.Addressables.Editor
             return new EntryFields(assetType, referenceType, assetReference, labelReference, mode);
         }
 
-        private bool ShouldUseFallback(EntryFields fields)
+        private static bool BuildShouldUseFallback(EntryFields fields)
         {
-            if (fields.AssetType == null) { return true; }
-            if (fields.ReferenceType == null) { return true; }
-            if (fields.AssetReference == null) { return true; }
-            if (fields.LabelReference == null) { return true; }
-            return fields.Mode == null;
+            return fields.AssetType == null
+                || fields.ReferenceType == null
+                || fields.AssetReference == null
+                || fields.LabelReference == null
+                || fields.Mode == null;
         }
 
-        private void DrawColumns(Rect content, EntryFields fields)
+        private static void BuildDrawColumns(Rect content, EntryFields fields)
         {
             ColumnRects rects = CreateColumnRects(content);
-            DrawWithoutLabel(rects.TypeRect, fields.AssetType);
-            DrawWithoutLabel(rects.ReferenceTypeRect, fields.ReferenceType);
-            DrawReferenceValue(rects.ValueRect, fields);
-            DrawWithoutLabel(rects.ModeRect, fields.Mode);
+            BuildDrawWithoutLabel(rects.TypeRect, fields.AssetType);
+            BuildDrawWithoutLabel(rects.ReferenceTypeRect, fields.ReferenceType);
+            BuildDrawReferenceValue(rects.ValueRect, fields);
+            BuildDrawWithoutLabel(rects.ModeRect, fields.Mode);
         }
 
-        private ColumnRects CreateColumnRects(Rect content)
+        private static ColumnRects CreateColumnRects(Rect content)
         {
-            float valueWidth = CalculateValueWidth(content.width);
-            float typeWidth = CalculateTypeWidth(content.width);
-            float referenceTypeWidth = CalculateReferenceTypeWidth(content.width);
-            float modeWidth = CalculateModeWidth(content.width);
+            float valueWidth = BuildCalculateValueWidth(content.width);
+            float typeWidth = BuildCalculateTypeWidth(content.width);
+            float referenceTypeWidth = BuildCalculateReferenceTypeWidth(content.width);
+            float modeWidth = BuildCalculateModeWidth(content.width);
             return CreateRects(content, typeWidth, referenceTypeWidth, valueWidth, modeWidth);
         }
 
-        private ColumnRects CreateRects(Rect content, float typeWidth, float referenceTypeWidth, float valueWidth, float modeWidth)
+        private static ColumnRects CreateRects(Rect content, float typeWidth, float referenceTypeWidth, float valueWidth, float modeWidth)
         {
             Rect typeRect = new Rect(content.x, content.y, typeWidth, content.height);
             Rect referenceTypeRect = new Rect(typeRect.xMax + spacing, content.y, referenceTypeWidth, content.height);
@@ -75,25 +78,25 @@ namespace Madbox.Addressables.Editor
             return new ColumnRects(typeRect, referenceTypeRect, valueRect, modeRect);
         }
 
-        private float CalculateTypeWidth(float fullWidth)
+        private static float BuildCalculateTypeWidth(float fullWidth)
         {
             float width = fullWidth - (spacing * 3f);
             return width * typeWidthRatio;
         }
 
-        private float CalculateReferenceTypeWidth(float fullWidth)
+        private static float BuildCalculateReferenceTypeWidth(float fullWidth)
         {
             float width = fullWidth - (spacing * 3f);
             return width * referenceTypeRatio;
         }
 
-        private float CalculateModeWidth(float fullWidth)
+        private static float BuildCalculateModeWidth(float fullWidth)
         {
             float width = fullWidth - (spacing * 3f);
             return width * modeWidthRatio;
         }
 
-        private float CalculateValueWidth(float fullWidth)
+        private static float BuildCalculateValueWidth(float fullWidth)
         {
             float width = fullWidth - (spacing * 3f);
             float typeWidth = width * typeWidthRatio;
@@ -102,18 +105,18 @@ namespace Madbox.Addressables.Editor
             return width - typeWidth - referenceTypeWidth - modeWidth;
         }
 
-        private void DrawReferenceValue(Rect rect, EntryFields fields)
+        private static void BuildDrawReferenceValue(Rect rect, EntryFields fields)
         {
-            SerializedProperty selected = IsLabelReference(fields.ReferenceType) ? fields.LabelReference : fields.AssetReference;
-            DrawWithoutLabel(rect, selected);
+            SerializedProperty selected = BuildIsLabelReference(fields.ReferenceType) ? fields.LabelReference : fields.AssetReference;
+            BuildDrawWithoutLabel(rect, selected);
         }
 
-        private bool IsLabelReference(SerializedProperty referenceType)
+        private static bool BuildIsLabelReference(SerializedProperty referenceType)
         {
             return referenceType.enumValueIndex == (int)PreloadReferenceType.LabelReference;
         }
 
-        private void DrawWithoutLabel(Rect rect, SerializedProperty property)
+        private static void BuildDrawWithoutLabel(Rect rect, SerializedProperty property)
         {
             EditorGUI.PropertyField(rect, property, GUIContent.none, true);
         }
@@ -153,3 +156,6 @@ namespace Madbox.Addressables.Editor
         }
     }
 }
+
+
+

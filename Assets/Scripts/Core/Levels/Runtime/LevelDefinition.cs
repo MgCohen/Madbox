@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using Madbox.Levels.Rules;
 
@@ -11,11 +11,7 @@ namespace Madbox.Levels
         {
         }
 
-        public LevelDefinition(
-            LevelId levelId,
-            int goldReward,
-            IReadOnlyList<LevelEnemyDefinition> enemies,
-            IReadOnlyList<LevelGameRuleDefinition> gameRules)
+        public LevelDefinition(LevelId levelId, int goldReward, IReadOnlyList<LevelEnemyDefinition> enemies, IReadOnlyList<LevelGameRuleDefinition> gameRules)
         {
             if (levelId == null)
             {
@@ -64,9 +60,9 @@ namespace Madbox.Levels
         {
             HashSet<EntityId> seenEnemyTypes = new HashSet<EntityId>();
             for (int i = 0; i < enemies.Count; i++)
-            {
-                ValidateEnemyEntry(enemies, seenEnemyTypes, enemies[i]);
-            }
+{
+    ValidateEnemyEntry(enemies, seenEnemyTypes, enemies[i]);
+}
         }
 
         private void ValidateEnemyEntry(IReadOnlyList<LevelEnemyDefinition> enemies, HashSet<EntityId> seenEnemyTypes, LevelEnemyDefinition entry)
@@ -104,7 +100,9 @@ namespace Madbox.Levels
         private void EnsureGameRulesContainValues(IReadOnlyList<LevelGameRuleDefinition> gameRules)
         {
             for (int i = 0; i < gameRules.Count; i++)
+            {
                 if (gameRules[i] == null) throw new ArgumentException("Game rules cannot contain null.", nameof(gameRules));
+            }
         }
 
         private IReadOnlyList<LevelGameRuleDefinition> NormalizeGameRules(IReadOnlyList<LevelGameRuleDefinition> gameRules)
@@ -128,12 +126,15 @@ namespace Madbox.Levels
             gameRules.Add(playerDefeatedRule);
         }
 
-        private bool ContainsRule<TRule>(IEnumerable<LevelGameRuleDefinition> gameRules)
-            where TRule : LevelGameRuleDefinition
+        private bool ContainsRule<TRule>(IEnumerable<LevelGameRuleDefinition> gameRules) where TRule : LevelGameRuleDefinition
         {
             foreach (LevelGameRuleDefinition rule in gameRules)
+            {
                 if (rule is TRule)
+                {
                     return true;
+                }
+            }
             return false;
         }
 
@@ -143,3 +144,4 @@ namespace Madbox.Levels
         }
     }
 }
+

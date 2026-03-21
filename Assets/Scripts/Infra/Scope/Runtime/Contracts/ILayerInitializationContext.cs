@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using VContainer;
 
 namespace Madbox.Scope.Contracts
@@ -9,3 +9,4 @@ namespace Madbox.Scope.Contracts
         void RegisterInstanceForChild(Type serviceType, object instance, Lifetime lifetime, ChildScopeDelegationPolicy policy = ChildScopeDelegationPolicy.NextChildOnly);
     }
 }
+

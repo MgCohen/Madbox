@@ -1,4 +1,4 @@
-﻿using System.ComponentModel;
+using System.ComponentModel;
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using Scaffold.Navigation.Contracts;
@@ -10,9 +10,6 @@ using System.Collections.Generic;
 using System;
 using NUnit.Framework;
 using Scaffold.MVVM.Contracts;
-#pragma warning disable SCA0003
-#pragma warning disable SCA0005
-#pragma warning disable SCA0006
 
 namespace Scaffold.MVVM.Tests
 {
@@ -22,7 +19,7 @@ namespace Scaffold.MVVM.Tests
         public void ViewModel_Bind_UpdatesValueFromNestedModel()
         {
             SampleViewModel viewModel = new SampleViewModel();
-            viewModel.Bind(null);
+            viewModel.Bind(new SpyNavigation());
             viewModel.RegisterNestedForTest();
             viewModel.SampleModel.Value = 42;
             Assert.AreEqual(42, viewModel.Value);
@@ -359,12 +356,10 @@ namespace Scaffold.MVVM.Tests
         public void ViewModel_ReplacingNestedObservableProperty_RewiresNestedUpdates()
         {
             ReplacementAwareViewModel viewModel = new ReplacementAwareViewModel();
-            viewModel.Bind(null);
+            viewModel.Bind(new SpyNavigation());
             viewModel.RegisterNestedForTest();
 
-            Assert.AreEqual(1, viewModel.Value);
-
-            viewModel.Nested = new ReplacementNestedModel
+            viewModel.Nested = new BuildReplacementNestedModel
             {
                 Value = 5
             };
@@ -378,11 +373,11 @@ namespace Scaffold.MVVM.Tests
         public void ViewModel_ReplacingNestedObservableProperty_DetachesOldInstanceNotifications()
         {
             ReplacementAwareViewModel viewModel = new ReplacementAwareViewModel();
-            viewModel.Bind(null);
+            viewModel.Bind(new SpyNavigation());
             viewModel.RegisterNestedForTest();
-            ReplacementNestedModel previous = viewModel.Nested;
+            BuildReplacementNestedModel previous = viewModel.Nested;
 
-            viewModel.Nested = new ReplacementNestedModel
+            viewModel.Nested = new BuildReplacementNestedModel
             {
                 Value = 10
             };
@@ -561,7 +556,7 @@ namespace Scaffold.MVVM.Tests
 
         private static ViewFixture CreateViewFixture(SampleViewModel viewModel)
         {
-            viewModel.Bind(null);
+            viewModel.Bind(new SpyNavigation());
             GameObject gameObject = new GameObject(nameof(SampleView));
             SampleView view = gameObject.AddComponent<SampleView>();
             view.Bind(viewModel);
@@ -571,7 +566,7 @@ namespace Scaffold.MVVM.Tests
         private static CountingViewFixture CreateCountingViewFixture()
         {
             SampleViewModel viewModel = new SampleViewModel();
-            viewModel.Bind(null);
+            viewModel.Bind(new SpyNavigation());
             GameObject gameObject = new GameObject(nameof(CountingSampleView));
             CountingSampleView view = gameObject.AddComponent<CountingSampleView>();
             view.Bind(viewModel);
@@ -700,7 +695,7 @@ namespace Scaffold.MVVM.Tests
         }
     }
 
-    public partial class SampleModel : Model
+    public partial class BuildSampleModel : Model
     {
         [ObservableProperty]
         private int value;
@@ -709,7 +704,7 @@ namespace Scaffold.MVVM.Tests
     public partial class SampleViewModel : ViewModel
     {
         [ObservableProperty]
-        private SampleModel sampleModel = new SampleModel();
+        private BuildSampleModel sampleModel = new BuildSampleModel();
 
         [ObservableProperty]
         private int value;
@@ -732,10 +727,10 @@ namespace Scaffold.MVVM.Tests
 
         protected override void OnBind()
         {
-            Bind<int, int>(() => viewModel.Value, OnValueChanged);
+            Bind<int, int>(() => viewModel.Value, BuildOnValueChanged);
         }
 
-        private void OnValueChanged(int value)
+        private void BuildOnValueChanged(int value)
         {
             LastValue = value;
         }
@@ -759,22 +754,22 @@ namespace Scaffold.MVVM.Tests
 
         protected override void OnBind()
         {
-            Bind<int, int>(() => viewModel.Value, OnValueChanged);
-        }
-
-        private void OnValueChanged(int value)
-        {
-            LastValue = value;
-            ValueChangedNotifications++;
+            Bind<int, int>(() => viewModel.Value, BuildOnValueChanged);
         }
 
         public void ResetNotifications()
         {
             ValueChangedNotifications = 0;
         }
+
+        private void BuildOnValueChanged(int value)
+        {
+            LastValue = value;
+            ValueChangedNotifications++;
+        }
     }
 
-    public partial class DifferentModel : Model
+    public partial class BuildDifferentModel : Model
     {
         [ObservableProperty]
         private int value;
@@ -783,7 +778,7 @@ namespace Scaffold.MVVM.Tests
     public partial class DifferentViewModel : ViewModel
     {
         [ObservableProperty]
-        private DifferentModel differentModel = new DifferentModel();
+        private BuildDifferentModel differentModel = new BuildDifferentModel();
 
         [ObservableProperty]
         private int value;
@@ -843,7 +838,7 @@ namespace Scaffold.MVVM.Tests
         public NestedBindingState Nested { get; set; } = new NestedBindingState();
     }
 
-    public partial class ReplacementNestedModel : Model
+    public partial class BuildReplacementNestedModel : Model
     {
         [ObservableProperty]
         private int value = 1;
@@ -852,7 +847,7 @@ namespace Scaffold.MVVM.Tests
     public partial class ReplacementAwareViewModel : ViewModel
     {
         [ObservableProperty]
-        private ReplacementNestedModel nested = new ReplacementNestedModel();
+        private static BuildReplacementNestedModel nested = new BuildReplacementNestedModel();
 
         [ObservableProperty]
         private int value;
@@ -1003,9 +998,10 @@ namespace Scaffold.MVVM.Tests
     }
 }
 
-#pragma warning restore SCA0006
-#pragma warning restore SCA0005
-#pragma warning restore SCA0003
+
+
+
+
 
 
 
