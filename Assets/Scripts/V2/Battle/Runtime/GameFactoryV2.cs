@@ -16,10 +16,6 @@ namespace Madbox.V2.Battle
             return new GameV2(level, enemyService, ruleHandlers);
         }
 
-        /// <summary>
-        /// Loads each enemy entry from Addressables (per row on <see cref="LevelDefinitionV2.EnemyEntries"/>),
-        /// then asks <see cref="GameV2"/> to instantiate that many copies. Releases each load handle after spawning.
-        /// </summary>
         public async Task PrepareAndSpawnEnemiesFromLevelAsync(GameV2 game, Vector3 origin, float spacingPerIndex)
         {
             if (game == null)
@@ -27,40 +23,61 @@ namespace Madbox.V2.Battle
                 throw new ArgumentNullException(nameof(game));
             }
 
-            LevelDefinitionV2 level = game.Level;
-            IReadOnlyList<LevelEnemySpawnEntryV2> entries = level.EnemyEntries;
+            IReadOnlyList<LevelEnemySpawnEntryV2> entries = game.Level.EnemyEntries;
             if (entries == null || entries.Count == 0)
             {
                 return;
             }
 
+            await RunAllEnemyEntriesAsync(game, entries, origin, spacingPerIndex);
+        }
+
+        private async Task RunAllEnemyEntriesAsync(GameV2 game, IReadOnlyList<LevelEnemySpawnEntryV2> entries, Vector3 origin, float spacingPerIndex)
+        {
             for (int i = 0; i < entries.Count; i++)
             {
-                LevelEnemySpawnEntryV2 entry = entries[i];
-                if (entry == null || entry.Count <= 0)
-                {
-                    continue;
-                }
+                await TrySpawnFromEntryAsync(game, entries[i], i, origin, spacingPerIndex);
+            }
+        }
 
-                AsyncOperationHandle<EnemyActor> handle = entry.EnemyAssetReference.LoadAssetAsync<EnemyActor>();
-                try
-                {
-                    await handle.Task;
-                    if (handle.Status != AsyncOperationStatus.Succeeded)
-                    {
-                        throw new InvalidOperationException($"Failed to load enemy prefab for level entry {i}.");
-                    }
+        private async Task TrySpawnFromEntryAsync(GameV2 game, LevelEnemySpawnEntryV2 entry, int entryIndex, Vector3 origin, float spacingPerIndex)
+        {
+            if (entry == null || entry.Count <= 0)
+            {
+                return;
+            }
 
-                    EnemyActor prefab = handle.Result;
-                    game.SpawnEnemyCopies(prefab, entry.Count, origin, spacingPerIndex);
-                }
-                finally
+            await SpawnFromLoadedEntryAsync(game, entry, entryIndex, origin, spacingPerIndex);
+        }
+
+        private async Task SpawnFromLoadedEntryAsync(GameV2 game, LevelEnemySpawnEntryV2 entry, int entryIndex, Vector3 origin, float spacingPerIndex)
+        {
+            AsyncOperationHandle<EnemyActor> handle = entry.EnemyAssetReference.LoadAssetAsync<EnemyActor>();
+            try
+            {
+                await CompleteLoadAndSpawnForEntryAsync(game, entry, entryIndex, origin, spacingPerIndex, handle);
+            }
+            finally
+            {
+                if (handle.IsValid())
                 {
-                    if (handle.IsValid())
-                    {
-                        Addressables.Release(handle);
-                    }
+                    Addressables.Release(handle);
                 }
+            }
+        }
+
+        private async Task CompleteLoadAndSpawnForEntryAsync(GameV2 game, LevelEnemySpawnEntryV2 entry, int entryIndex, Vector3 origin, float spacingPerIndex, AsyncOperationHandle<EnemyActor> handle)
+        {
+            await handle.Task;
+            ThrowIfEnemyLoadFailed(handle, entryIndex);
+            game.SpawnEnemyCopies(handle.Result, entry.Count, origin, spacingPerIndex);
+        }
+
+        private void ThrowIfEnemyLoadFailed(AsyncOperationHandle<EnemyActor> handle, int entryIndex)
+        {
+            if (handle.Status != AsyncOperationStatus.Succeeded)
+            {
+                throw new InvalidOperationException($"Failed to load enemy prefab for level entry {entryIndex}.");
             }
         }
     }

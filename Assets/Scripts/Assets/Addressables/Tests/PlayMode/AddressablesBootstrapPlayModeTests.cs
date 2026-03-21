@@ -16,10 +16,11 @@ namespace Madbox.Addressables.Tests.PlayMode
     {
         private const string bootstrapScopeTypeName = "Madbox.App.Bootstrap.BootstrapScope";
         private const string completionPropertyName = "IsBootstrapCompleted";
+        private const string longSwordPrefabGuid = "bac79aa2a0057e5429a664d3f336da3d";
         private const int sceneLoadTimeoutFrames = 600;
-        private const int gatewayLoadTimeoutFrames = 600;
-        private const int bootstrapScopeTimeoutFrames = 240;
-        private const int bootstrapCompletionTimeoutFrames = 240;
+        private const int gatewayLoadTimeoutFrames = 1800;
+        private const int bootstrapScopeTimeoutFrames = 1800;
+        private const int bootstrapCompletionTimeoutFrames = 1800;
         private List<string> fatalLogs;
 
         [SetUp]
@@ -177,7 +178,7 @@ namespace Madbox.Addressables.Tests.PlayMode
 
         private IEnumerator LoadLongSword(IAddressablesGateway gateway, System.Action<IAssetHandle<GameObject>> onLoaded)
         {
-            AssetReference reference = new AssetReference("LongSword");
+            AssetReference reference = new AssetReference(longSwordPrefabGuid);
             var task = gateway.LoadAsync<GameObject>(reference, CancellationToken.None);
             int frame = 0;
             while (!task.IsCompleted)

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Madbox.V2.Enemies;
 using Madbox.V2.Levels;
+using Madbox.V2.Levels.Rules;
 using UnityEngine;
 
 namespace Madbox.V2.Battle
@@ -37,10 +38,6 @@ namespace Madbox.V2.Battle
 
         public event Action<GameEndReasonV2> OnCompleted;
 
-        /// <summary>
-        /// Instantiates <paramref name="count"/> enemies from <paramref name="prefab"/> via <see cref="EnemyServiceV2"/>.
-        /// Addressable loading is expected to happen outside (e.g. <see cref="GameFactoryV2.PrepareAndSpawnEnemiesFromLevelAsync"/>).
-        /// </summary>
         public void SpawnEnemyCopies(EnemyActor prefab, int count, Vector3 origin, float spacingPerIndex)
         {
             if (prefab == null)
@@ -53,9 +50,15 @@ namespace Madbox.V2.Battle
                 return;
             }
 
+            SpawnEnemyCopiesCore(prefab, count, origin, spacingPerIndex);
+        }
+
+        private void SpawnEnemyCopiesCore(EnemyActor prefab, int count, Vector3 origin, float spacingPerIndex)
+        {
             for (int i = 0; i < count; i++)
             {
-                Vector3 position = origin + Vector3.right * (spacingPerIndex * i);
+                Vector3 offset = Vector3.right * (spacingPerIndex * i);
+                Vector3 position = origin + offset;
                 enemyService.Spawn(prefab, position, Quaternion.identity);
             }
         }
