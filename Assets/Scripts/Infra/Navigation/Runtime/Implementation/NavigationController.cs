@@ -15,25 +15,25 @@ namespace Scaffold.Navigation
         public NavigationController(IEventBus events, NavigationSettings settings, Transform viewHolder, IEnumerable<INavigationMiddleware> middlewares, IAddressablesGateway addressablesGateway)
         {
             if (events is null)
-{
-    throw new System.ArgumentNullException(nameof(events));
-}
+            {
+                throw new System.ArgumentNullException(nameof(events));
+            }
             if (settings is null)
-{
-    throw new System.ArgumentNullException(nameof(settings));
-}
+            {
+                throw new System.ArgumentNullException(nameof(settings));
+            }
             if (viewHolder is null)
-{
-    throw new System.ArgumentNullException(nameof(viewHolder));
-}
+            {
+                throw new System.ArgumentNullException(nameof(viewHolder));
+            }
             if (middlewares is null)
-{
-    throw new System.ArgumentNullException(nameof(middlewares));
-}
+            {
+                throw new System.ArgumentNullException(nameof(middlewares));
+            }
             if (addressablesGateway is null)
-{
-    throw new System.ArgumentNullException(nameof(addressablesGateway));
-}
+            {
+                throw new System.ArgumentNullException(nameof(addressablesGateway));
+            }
             this.settings = settings;
             this.viewHolder = viewHolder;
 
@@ -83,9 +83,9 @@ namespace Scaffold.Navigation
         private void ClosePoint(NavigationPoint point)
         {
             if (point == CurrentPoint)
-{
-    Return();
-}
+            {
+                Return();
+            }
             else
             {
                 RemoveAndDispose(point);
@@ -97,9 +97,9 @@ namespace Scaffold.Navigation
             if (stack == null || provider == null || transitions == null || middleware == null) throw new InvalidOperationException("NavigationController has not been initialized correctly.");
             var targetPoint = this.stack.PreviousPoint;
             if (targetPoint == null)
-{
-    return null;
-}
+            {
+                return null;
+            }
             var defaultOptions = new NavigationOptions();
             GoTo(targetPoint, true, defaultOptions);
             return targetPoint.ViewModel;
@@ -120,9 +120,9 @@ namespace Scaffold.Navigation
         {
             var substack = stack.GetAllStackedScreens((p) => p != point);
             foreach (var otherPoint in substack)
-{
-    RemoveAndDispose(otherPoint);
-}
+            {
+                RemoveAndDispose(otherPoint);
+            }
         }
 
         private void RemoveAndDispose(NavigationPoint point)
@@ -135,9 +135,9 @@ namespace Scaffold.Navigation
         private void ClosePointView(NavigationPoint point)
         {
             if (point?.View != null)
-{
-    point.View.Close();
-}
+            {
+                point.View.Close();
+            }
         }
     }
 }

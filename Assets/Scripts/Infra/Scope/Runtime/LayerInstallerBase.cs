@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -195,8 +195,8 @@ namespace Madbox.Scope
             cancellationToken.ThrowIfCancellationRequested();
             IObjectResolver resolver = currentScope?.Container;
             await InitializeAsync(resolver, cancellationToken);
-            await BuildChildrenAsync(cancellationToken);
             await OnCompletedAsync(resolver, cancellationToken);
+            await BuildChildrenAsync(cancellationToken);
         }
 
         private async Task InitializeResolvedInitializersAsync(IObjectResolver resolver, CancellationToken cancellationToken)

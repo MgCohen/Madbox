@@ -1,17 +1,19 @@
-using System;
-using System.Reflection;
-using Madbox.Addressables.Container;
+﻿using Madbox.Addressables.Container;
 using Madbox.Addressables.Contracts;
+using Madbox.Bootstrap;
 using Madbox.Scope;
+using Scaffold.Navigation;
+using System;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 using VContainer;
+using static UnityEditor.ObjectChangeEventStream;
 
 namespace Madbox.App.Bootstrap
 {
     internal sealed class BootstrapAssetInstaller : LayerInstallerBase
     {
-        private static readonly MethodInfo registerInstanceMethod =
-            typeof(BootstrapAssetInstaller).GetMethod(nameof(RegisterInstanceGeneric), BindingFlags.NonPublic | BindingFlags.Static);
-
         protected override void Install(IContainerBuilder builder)
         {
             if (builder == null)
@@ -21,52 +23,35 @@ namespace Madbox.App.Bootstrap
 
             AddressablesInstaller installer = new AddressablesInstaller();
             installer.Install(builder);
+
+            RegisterProvider<NavigationAssetProvider>(builder);
         }
 
-        protected override void ConfigureChildBuilder(LayerInstallerBase child, IObjectResolver parentResolver, IContainerBuilder childBuilder)
+        private void RegisterProvider<T>(IContainerBuilder builder) where T: IAssetProvider
         {
-            if (parentResolver == null || childBuilder == null)
+            builder.Register<T>(Lifetime.Scoped).AsImplementedInterfaces().AsSelf();
+        }
+
+        protected override async Task OnCompletedAsync(IObjectResolver resolver, CancellationToken cancellationToken)
+        {
+            IEnumerable<IAssetProvider> resolvedProviders = resolver.Resolve<IEnumerable<IAssetProvider>>();
+            foreach (IAssetProvider provider in resolvedProviders)
+            {
+                await provider.PreloadAsync(cancellationToken);
+            }
+        }
+
+        protected override void ConfigureChildBuilder(LayerInstallerBase child, IObjectResolver resolver, IContainerBuilder childBuilder)
+        {
+            if (childBuilder == null)
             {
                 return;
             }
-
-            IPreloadedAssetProvider preloadedAssetProvider;
-            try
+            var registrars = resolver.Resolve<IEnumerable<IAssetRegistrar>>();
+            foreach (var registrar in registrars)
             {
-                preloadedAssetProvider = parentResolver.Resolve<IPreloadedAssetProvider>();
+                registrar.Register(childBuilder);
             }
-            catch (VContainerException)
-            {
-                return;
-            }
-
-            var preloadedAssets = preloadedAssetProvider.GetPreloadedAssets();
-            foreach (var pair in preloadedAssets)
-            {
-                if (pair.Key == null || pair.Value == null)
-                {
-                    continue;
-                }
-
-                RegisterUntypedInstance(childBuilder, pair.Key, pair.Value);
-            }
-        }
-
-        private static void RegisterUntypedInstance(IContainerBuilder builder, Type serviceType, UnityEngine.Object instance)
-        {
-            if (!serviceType.IsInstanceOfType(instance))
-            {
-                throw new InvalidOperationException($"Preloaded asset instance type '{instance.GetType().FullName}' is not assignable to '{serviceType.FullName}'.");
-            }
-
-            MethodInfo closed = registerInstanceMethod.MakeGenericMethod(serviceType);
-            closed.Invoke(null, new object[] { builder, instance });
-        }
-
-        private static void RegisterInstanceGeneric<TService>(IContainerBuilder builder, UnityEngine.Object instance)
-            where TService : class
-        {
-            builder.RegisterInstance(instance as TService);
         }
     }
 }

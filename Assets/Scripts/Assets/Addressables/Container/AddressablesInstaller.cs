@@ -11,18 +11,15 @@ namespace Madbox.Addressables.Container
         {
             IAddressablesAssetClient assetClient = new AddressablesAssetClient();
             IAssetReferenceHandler assetReferenceHandler = new AddressablesAssetReferenceHandler(assetClient);
-            IAssetPreloadHandler assetPreloadHandler = new AddressablesAssetPreloadHandler(assetClient);
-            RegisterGateway(builder, assetClient, assetReferenceHandler, assetPreloadHandler);
+            RegisterGateway(builder, assetClient, assetReferenceHandler);
         }
 
-        private void RegisterGateway(IContainerBuilder builder, IAddressablesAssetClient assetClient, IAssetReferenceHandler assetReferenceHandler, IAssetPreloadHandler assetPreloadHandler)
+        private void RegisterGateway(IContainerBuilder builder, IAddressablesAssetClient assetClient, IAssetReferenceHandler assetReferenceHandler)
         {
             builder.Register<IAddressablesGateway, AddressablesGateway>(Lifetime.Scoped)
                 .WithParameter<IAddressablesAssetClient>(assetClient)
                 .WithParameter<IAssetReferenceHandler>(assetReferenceHandler)
-                .WithParameter<IAssetPreloadHandler>(assetPreloadHandler)
                 .AsImplementedInterfaces();
         }
     }
 }
-

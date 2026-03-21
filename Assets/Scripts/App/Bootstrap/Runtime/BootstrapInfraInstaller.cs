@@ -12,13 +12,11 @@ namespace Madbox.App.Bootstrap
 {
     internal sealed class BootstrapInfraInstaller : LayerInstallerBase
     {
-        internal BootstrapInfraInstaller(NavigationSettings navigationSettings, Transform viewHolder)
+        internal BootstrapInfraInstaller(Transform viewHolder)
         {
-            this.navigationSettings = navigationSettings ?? throw new ArgumentNullException(nameof(navigationSettings));
             this.viewHolder = viewHolder ?? throw new ArgumentNullException(nameof(viewHolder));
         }
 
-        private readonly NavigationSettings navigationSettings;
         private readonly Transform viewHolder;
 
         protected override void Install(IContainerBuilder builder)
@@ -31,7 +29,7 @@ namespace Madbox.App.Bootstrap
             EventsInstaller eventsInstaller = new EventsInstaller();
             eventsInstaller.Install(builder);
             
-            NavigationInstaller navigationInstaller = new NavigationInstaller(navigationSettings, viewHolder);
+            NavigationInstaller navigationInstaller = new NavigationInstaller(viewHolder);
             navigationInstaller.Install(builder);
 
             GoldInstaller goldInstaller = new GoldInstaller();

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -9,21 +9,18 @@ using VContainer;
 
 namespace Madbox.Addressables
 {
-    public sealed class AddressablesGateway : IAddressablesGateway, IAsyncLayerInitializable, IPreloadedAssetProvider
+    public sealed class AddressablesGateway : IAddressablesGateway, IAsyncLayerInitializable
     {
         private readonly IAddressablesAssetClient client;
         private readonly IAssetReferenceHandler assetReferenceHandler;
-        private readonly IAssetPreloadHandler assetPreloadHandler;
         private readonly object initSync = new object();
-        private readonly Dictionary<Type, UnityEngine.Object> preloadedAssetsByType = new Dictionary<Type, UnityEngine.Object>();
 
         private bool initialized;
 
-        public AddressablesGateway(IAddressablesAssetClient client, IAssetReferenceHandler assetReferenceHandler, IAssetPreloadHandler assetPreloadHandler)
+        public AddressablesGateway(IAddressablesAssetClient client, IAssetReferenceHandler assetReferenceHandler)
         {
             this.client = client ?? throw new ArgumentNullException(nameof(client));
             this.assetReferenceHandler = assetReferenceHandler ?? throw new ArgumentNullException(nameof(assetReferenceHandler));
-            this.assetPreloadHandler = assetPreloadHandler ?? throw new ArgumentNullException(nameof(assetPreloadHandler));
         }
 
         public Task InitializeAsync(CancellationToken cancellationToken = default)
@@ -34,14 +31,6 @@ namespace Madbox.Addressables
         Task IAsyncLayerInitializable.InitializeAsync(IObjectResolver resolver, CancellationToken cancellationToken)
         {
             return InitializeCoreAsync(cancellationToken);
-        }
-
-        public IReadOnlyDictionary<Type, UnityEngine.Object> GetPreloadedAssets()
-        {
-            lock (initSync)
-            {
-                return new Dictionary<Type, UnityEngine.Object>(preloadedAssetsByType);
-            }
         }
 
         public async Task<IAssetHandle<T>> LoadAsync<T>(AssetReference reference, CancellationToken cancellationToken = default) where T : UnityEngine.Object
@@ -107,8 +96,6 @@ namespace Madbox.Addressables
             }
 
             await RunCatalogSyncAsync(cancellationToken);
-            IReadOnlyList<AddressablesPreloadRegistration> preload = await LoadPreloadRegistrationsAsync(cancellationToken);
-            await ApplyPreloadAsync(preload, cancellationToken);
 
             lock (initSync)
             {
@@ -125,60 +112,6 @@ namespace Madbox.Addressables
             catch (Exception exception) when (exception is not OperationCanceledException)
             {
                 UnityEngine.Debug.LogWarning($"Addressables catalog/content sync failed. Continuing startup. {exception.GetType().Name}: {exception.Message}");
-            }
-        }
-
-        private async Task<IReadOnlyList<AddressablesPreloadRegistration>> LoadPreloadRegistrationsAsync(CancellationToken cancellationToken)
-        {
-            try
-            {
-                UnityEngine.Object raw = await client.LoadAssetAsync(AddressablesPreloadConstants.BootstrapConfigAssetKey, typeof(AddressablesPreloadConfig), cancellationToken);
-                AddressablesPreloadConfig config = raw as AddressablesPreloadConfig;
-                if (config == null)
-                {
-                    return Array.Empty<AddressablesPreloadRegistration>();
-                }
-
-                return await assetPreloadHandler.BuildAsync(config, cancellationToken);
-            }
-            catch (Exception exception) when (exception is not OperationCanceledException)
-            {
-                UnityEngine.Debug.LogWarning($"Addressables preload config '{AddressablesPreloadConstants.BootstrapConfigAssetKey}' was not found or failed to load. Continuing without startup preload. {exception.GetType().Name}: {exception.Message}");
-                return Array.Empty<AddressablesPreloadRegistration>();
-            }
-        }
-
-        private async Task ApplyPreloadAsync(IReadOnlyList<AddressablesPreloadRegistration> preload, CancellationToken cancellationToken)
-        {
-            HashSet<string> seenPreload = new HashSet<string>(StringComparer.Ordinal);
-            for (int i = 0; i < preload.Count; i++)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-                AddressablesPreloadRegistration registration = preload[i];
-                string preloadId = $"{registration.AssetType.FullName}|{registration.Key}";
-                if (!seenPreload.Add(preloadId))
-                {
-                    continue;
-                }
-
-                IAssetHandle handle = await assetReferenceHandler.AcquireByTypeAsync(registration.AssetType, registration.Key, registration.Mode, true, cancellationToken);
-                RememberPreloadedAsset(registration.AssetType, handle?.UntypedAsset);
-            }
-        }
-
-        private void RememberPreloadedAsset(Type assetType, UnityEngine.Object asset)
-        {
-            if (assetType == null || asset == null)
-            {
-                return;
-            }
-
-            lock (initSync)
-            {
-                if (!preloadedAssetsByType.ContainsKey(assetType))
-                {
-                    preloadedAssetsByType.Add(assetType, asset);
-                }
             }
         }
 
@@ -239,7 +172,7 @@ namespace Madbox.Addressables
 
         private void GuardRuntimeInvariants()
         {
-            if (client == null || assetReferenceHandler == null || assetPreloadHandler == null)
+            if (client == null || assetReferenceHandler == null)
             {
                 throw new InvalidOperationException("Addressables gateway is not properly initialized.");
             }

@@ -10,13 +10,12 @@ namespace Madbox.App.Bootstrap
 {
     public sealed class BootstrapScope : LayeredScope
     {
-        [SerializeField] private NavigationSettings navigationSettings;
         [SerializeField] private Transform viewHolder;
 
         protected override LayerInstallerBase BuildLayerTree()
         {
             BootstrapAssetInstaller asset = new BootstrapAssetInstaller();
-            BootstrapInfraInstaller infra = new BootstrapInfraInstaller(navigationSettings, viewHolder);
+            BootstrapInfraInstaller infra = new BootstrapInfraInstaller(viewHolder);
             asset.AddChild(infra);
             return asset;
         }
