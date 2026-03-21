@@ -1,0 +1,24 @@
+{
+    "name": "Madbox.V2.Battle.Tests",
+    "rootNamespace": "Madbox.V2.Battle.Tests",
+    "references": [
+        "Madbox.V2.Battle",
+        "Madbox.V2.Levels",
+        "Madbox.V2.Enemies",
+        "Unity.Addressables"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false,
+    "optionalUnityReferences": [
+        "TestAssemblies"
+    ]
+}

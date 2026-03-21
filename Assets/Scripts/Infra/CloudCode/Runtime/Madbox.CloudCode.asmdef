@@ -1,0 +1,19 @@
+{
+    "name": "Madbox.CloudCode",
+    "rootNamespace": "Madbox.CloudCode",
+    "references": [
+        "Madbox.Ugs",
+        "Unity.Services.Core",
+        "Unity.Services.Authentication",
+        "Unity.Services.CloudCode"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
