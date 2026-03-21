@@ -8,22 +8,12 @@ namespace Madbox.App.Bootstrap.Tests
 {
     public sealed class BootstrapScopeValidationTests
     {
-        [Test]
-        public void BuildLayerTree_Throws_WhenNavigationSettingsMissing()
-        {
-            using ScopeHarness harness = CreateScopeHarness();
-            ConfigureScope(harness.Scope, includeNavigationSettings: false, includeViewHolder: true);
-            Exception exception = CaptureBuildLayerTreeException(harness.Scope);
-            Assert.IsNotNull(exception);
-            Assert.IsInstanceOf<ArgumentNullException>(exception);
-            Assert.AreEqual("navigationSettings", ((ArgumentNullException)exception).ParamName);
-        }
 
         [Test]
         public void BuildLayerTree_Throws_WhenViewHolderMissing()
         {
             using ScopeHarness harness = CreateScopeHarness();
-            ConfigureScope(harness.Scope, includeNavigationSettings: true, includeViewHolder: false);
+            ConfigureScope(harness.Scope, includeViewHolder: false);
             Exception exception = CaptureBuildLayerTreeException(harness.Scope);
             Assert.IsNotNull(exception);
             Assert.IsInstanceOf<ArgumentNullException>(exception);
@@ -34,7 +24,7 @@ namespace Madbox.App.Bootstrap.Tests
         public void BuildLayerTree_ReturnsAssetRootWithInfraChild_WhenSerializedFieldsPresent()
         {
             using ScopeHarness harness = CreateScopeHarness();
-            ConfigureScope(harness.Scope, includeNavigationSettings: true, includeViewHolder: true);
+            ConfigureScope(harness.Scope, includeViewHolder: true);
             LayerInstallerBase root = InvokeBuildLayerTree(harness.Scope);
             Assert.IsNotNull(root);
             Assert.AreEqual(1, root.Children.Count);
@@ -43,7 +33,7 @@ namespace Madbox.App.Bootstrap.Tests
 
         private static ScopeHarness CreateScopeHarness()
         {
-            GameObject root = new GameObject(nameof(BuildLayerTree_Throws_WhenNavigationSettingsMissing));
+            GameObject root = new GameObject("BootstrapScopeValidationViewHolder");
             Component scope = AddBootstrapScope(root);
             return new ScopeHarness(root, scope);
         }
@@ -85,19 +75,9 @@ namespace Madbox.App.Bootstrap.Tests
             return result as LayerInstallerBase;
         }
 
-        private static void ConfigureScope(Component scope, bool includeNavigationSettings, bool includeViewHolder)
+        private static void ConfigureScope(Component scope, bool includeViewHolder)
         {
-            SetPrivateField(scope, "navigationSettings", includeNavigationSettings ? CreateNavigationSettingsInstance() : null);
             SetPrivateField(scope, "viewHolder", includeViewHolder ? CreateViewHolderTransform(scope) : null);
-        }
-
-        private static ScriptableObject CreateNavigationSettingsInstance()
-        {
-            Type type = Type.GetType("Scaffold.Navigation.NavigationSettings, Scaffold.Navigation");
-            Assert.IsNotNull(type);
-            ScriptableObject instance = ScriptableObject.CreateInstance(type);
-            Assert.IsNotNull(instance);
-            return instance;
         }
 
         private static Transform CreateViewHolderTransform(Component scope)

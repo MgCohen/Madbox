@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -64,7 +64,8 @@ namespace Madbox.Addressables.Tests
 
             IAssetGroupHandle<TestAsset> group = CreateEnemyLabelGroupHandle(gateway);
             Assert.AreEqual(2, group.Assets.Count);
-            Assert.AreEqual(2, client.CountLoadCallsForType(typeof(TestAsset)));
+            Assert.AreEqual(1, client.LabelLoadCalls.Count);
+            Assert.AreEqual(0, client.CountLoadCallsForType(typeof(TestAsset)));
         }
 
         [Test]
@@ -141,15 +142,15 @@ namespace Madbox.Addressables.Tests
         {
             TestAddressableAssetClient client = CreateClient();
             BuildEnemyCatalog(client);
-            client.ResolveLabelGate = new TaskCompletionSource<bool>();
+            client.LabelLoadGate = new TaskCompletionSource<bool>();
             AddressablesGateway gateway = CreateGateway(client);
 
             IAssetGroupHandle<TestAsset> group = gateway.Load<TestAsset>(CreateEnemyLabelReference(), CancellationToken.None);
             Assert.IsNotNull(group);
             Assert.AreEqual(0, group.Assets.Count);
-
-            client.ResolveLabelGate.SetResult(true);
-            BuildWaitUntil(() => group.Assets.Count == 2, 1000);
+            Assert.AreEqual(0, client.CountLoadCallsForType(typeof(TestAsset)));
+            client.LabelLoadGate.SetResult(true);
+            group.WhenReady.GetAwaiter().GetResult();
             Assert.AreEqual(2, group.Assets.Count);
         }
 
@@ -210,7 +211,9 @@ namespace Madbox.Addressables.Tests
 
         private static IAssetGroupHandle<TestAsset> CreateEnemyLabelGroupHandle(AddressablesGateway gateway)
         {
-            return gateway.LoadAsync<TestAsset>(CreateEnemyLabelReference(), CancellationToken.None).GetAwaiter().GetResult();
+            IAssetGroupHandle<TestAsset> group = gateway.LoadAsync<TestAsset>(CreateEnemyLabelReference(), CancellationToken.None).GetAwaiter().GetResult();
+            group.WhenReady.GetAwaiter().GetResult();
+            return group;
         }
 
         private static void BuildGatewayInitialization(AddressablesGateway gateway)
@@ -266,7 +269,9 @@ namespace Madbox.Addressables.Tests
             public bool ThrowOnSync { get; set; }
             public TaskCompletionSource<bool> LoadGate { get; set; }
             public TaskCompletionSource<bool> ResolveLabelGate { get; set; }
+            public TaskCompletionSource<bool> LabelLoadGate { get; set; }
             public readonly List<string> LoadCalls = new List<string>();
+            public readonly List<string> LabelLoadCalls = new List<string>();
             public readonly List<string> ReleaseCalls = new List<string>();
             public readonly Dictionary<string, IReadOnlyList<string>> CatalogToKeys = new Dictionary<string, IReadOnlyList<string>>(StringComparer.Ordinal);
             public readonly Dictionary<string, UnityEngine.Object> ObjectAssets = new Dictionary<string, UnityEngine.Object>(StringComparer.Ordinal);
@@ -324,6 +329,43 @@ namespace Madbox.Addressables.Tests
                 return count;
             }
 
+            public async Task<IReadOnlyList<UnityEngine.Object>> LoadAssetsByLabelAsync(Type assetType, AssetLabelReference label, CancellationToken cancellationToken)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                LabelLoadCalls.Add($"{assetType.FullName}|{label?.labelString}");
+                if (LabelLoadGate != null)
+                {
+                    await LabelLoadGate.Task;
+                }
+
+                if (label == null || !CatalogToKeys.TryGetValue(label.labelString, out IReadOnlyList<string> keys))
+                {
+                    return Array.Empty<UnityEngine.Object>();
+                }
+
+                List<UnityEngine.Object> assets = new List<UnityEngine.Object>(keys.Count);
+                for (int i = 0; i < keys.Count; i++)
+                {
+                    string key = keys[i];
+                    if (ObjectAssets.TryGetValue(key, out UnityEngine.Object existing))
+                    {
+                        assets.Add(existing);
+                        continue;
+                    }
+
+                    if (!cache.TryGetValue(key, out TestAsset cachedAsset))
+                    {
+                        cachedAsset = ScriptableObject.CreateInstance<TestAsset>();
+                        cachedAsset.AssetId = key;
+                        cache[key] = cachedAsset;
+                    }
+
+                    assets.Add(cachedAsset);
+                }
+
+                return assets;
+            }
+
             public void Release(UnityEngine.Object asset)
             {
                 if (asset is TestAsset testAsset)
@@ -332,19 +374,19 @@ namespace Madbox.Addressables.Tests
                 }
             }
 
-            public Task<IReadOnlyList<string>> ResolveLabelAsync(Type assetType, AssetLabelReference label, CancellationToken cancellationToken)
+            public async Task<IReadOnlyList<string>> ResolveLabelAsync(Type assetType, AssetLabelReference label, CancellationToken cancellationToken)
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 if (ResolveLabelGate != null)
                 {
-                    ResolveLabelGate.Task.GetAwaiter().GetResult();
+                    await ResolveLabelGate.Task;
                 }
                 if (CatalogToKeys.TryGetValue(label.labelString, out IReadOnlyList<string> keys))
                 {
-                    return Task.FromResult(keys);
+                    return keys;
                 }
 
-                return Task.FromResult((IReadOnlyList<string>)Array.Empty<string>());
+                return Array.Empty<string>();
             }
         }
 

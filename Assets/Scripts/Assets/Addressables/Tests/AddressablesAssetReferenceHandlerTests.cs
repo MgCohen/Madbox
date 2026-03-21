@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -77,6 +77,11 @@ namespace Madbox.Addressables.Tests
                 created.AssetId = key;
                 cache[key] = created;
                 return Task.FromResult((UnityEngine.Object)created);
+            }
+
+            public Task<IReadOnlyList<UnityEngine.Object>> LoadAssetsByLabelAsync(Type assetType, UnityEngine.AddressableAssets.AssetLabelReference label, CancellationToken cancellationToken)
+            {
+                return Task.FromResult((IReadOnlyList<UnityEngine.Object>)Array.Empty<UnityEngine.Object>());
             }
 
             public Task<IReadOnlyList<string>> ResolveLabelAsync(Type assetType, UnityEngine.AddressableAssets.AssetLabelReference label, CancellationToken cancellationToken)

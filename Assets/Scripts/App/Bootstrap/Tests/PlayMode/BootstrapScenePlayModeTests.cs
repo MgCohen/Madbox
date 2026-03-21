@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Reflection;
 using NUnit.Framework;
 using UnityEngine;
@@ -12,6 +12,9 @@ namespace Madbox.Bootstrap.Tests.PlayMode
     {
         private const string bootstrapScopeTypeName = "Madbox.App.Bootstrap.BootstrapScope";
         private const string completionPropertyName = "IsBootstrapCompleted";
+        private const int sceneLoadTimeoutFrames = 600;
+        private const int bootstrapScopeTimeoutFrames = 300;
+        private const int bootstrapCompletionTimeoutFrames = 300;
         private List<string> fatalLogs;
 
         [SetUp]
@@ -29,7 +32,6 @@ namespace Madbox.Bootstrap.Tests.PlayMode
         }
 
         [UnityTest]
-        [Ignore("Temporarily disabled while bootstrap runtime throws NullReferenceException in PlayMode startup.")]
         public IEnumerator BootstrapScene_Loads_AndCompletesBootstrapInitialization()
         {
             yield return LoadBootstrapScene();
@@ -42,52 +44,58 @@ namespace Madbox.Bootstrap.Tests.PlayMode
         {
             AsyncOperation operation = SceneManager.LoadSceneAsync("Bootstrap", LoadSceneMode.Single);
             Assert.IsNotNull(operation);
+            int frame = 0;
             while (!operation.isDone)
-{
-    yield return null;
-}
+            {
+                if (frame++ >= sceneLoadTimeoutFrames)
+                {
+                    Assert.Fail($"Bootstrap scene load did not complete within {sceneLoadTimeoutFrames} frames.");
+                }
+
+                yield return null;
+            }
         }
 
         private IEnumerator WaitForBootstrapInitialization()
         {
-            const float timeoutSeconds = 5f;
-            yield return WaitForBootstrapScope(timeoutSeconds);
-            yield return WaitForBootstrapCompletion(timeoutSeconds);
+            yield return WaitForBootstrapScope(bootstrapScopeTimeoutFrames);
+            yield return WaitForBootstrapCompletion(bootstrapCompletionTimeoutFrames);
         }
 
-        private IEnumerator WaitForBootstrapScope(float timeoutSeconds)
+        private IEnumerator WaitForBootstrapScope(int maxFrames)
         {
-            float startedAt = Time.realtimeSinceStartup;
+            int frame = 0;
             MonoBehaviour scope = FindBootstrapScope();
-            while (scope == null && !HasTimedOut(startedAt, timeoutSeconds))
+            while (scope == null)
             {
+                if (frame++ >= maxFrames)
+                {
+                    Assert.Fail($"Bootstrap scope '{bootstrapScopeTypeName}' not found within {maxFrames} frames.");
+                }
+
                 yield return null;
                 scope = FindBootstrapScope();
             }
         }
 
-        private IEnumerator WaitForBootstrapCompletion(float timeoutSeconds)
+        private IEnumerator WaitForBootstrapCompletion(int maxFrames)
         {
-            float startedAt = Time.realtimeSinceStartup;
-            while (ShouldWaitForBootstrapCompletion(startedAt, timeoutSeconds))
-{
-    yield return null;
-}
-        }
+            int frame = 0;
+            while (true)
+            {
+                MonoBehaviour scope = FindBootstrapScope();
+                if (IsBootstrapCompleted(scope))
+                {
+                    yield break;
+                }
 
-        private bool ShouldWaitForBootstrapCompletion(float startedAt, float timeoutSeconds)
-        {
-            if (HasTimedOut(startedAt, timeoutSeconds))
-{
-    return false;
-}
-            MonoBehaviour scope = FindBootstrapScope();
-            return !IsBootstrapCompleted(scope);
-        }
+                if (frame++ >= maxFrames)
+                {
+                    Assert.Fail($"Bootstrap completion flag '{completionPropertyName}' did not become true within {maxFrames} frames.");
+                }
 
-        private bool HasTimedOut(float startedAt, float timeoutSeconds)
-        {
-            return Time.realtimeSinceStartup - startedAt >= timeoutSeconds;
+                yield return null;
+            }
         }
 
         private void AssertBootstrapCompleted()
@@ -133,9 +141,9 @@ namespace Madbox.Bootstrap.Tests.PlayMode
         private bool IsBootstrapScope(MonoBehaviour behaviour)
         {
             if (behaviour == null)
-{
-    return false;
-}
+            {
+                return false;
+            }
             return behaviour.GetType().FullName == bootstrapScopeTypeName;
         }
 
@@ -143,9 +151,9 @@ namespace Madbox.Bootstrap.Tests.PlayMode
         {
             PropertyInfo property = GetCompletionProperty(scope);
             if (property == null)
-{
-    return false;
-}
+            {
+                return false;
+            }
             object value = property.GetValue(scope, null);
             return value is bool completed && completed;
         }
@@ -159,19 +167,19 @@ namespace Madbox.Bootstrap.Tests.PlayMode
         private PropertyInfo GetCompletionProperty(MonoBehaviour scope)
         {
             if (scope == null)
-{
-    return null;
-}
+            {
+                return null;
+            }
             return scope.GetType().GetProperty(completionPropertyName, BindingFlags.Instance | BindingFlags.Public);
         }
 
         private void OnLogMessageReceived(string condition, string stackTrace, LogType type)
         {
             if (!IsFatal(type))
-{
-    return;
-}
-            fatalLogs.Add($"{type}: {condition}");
+            {
+                return;
+            }
+            fatalLogs.Add($"{type}: {condition}\n{stackTrace}");
         }
 
         private bool IsFatal(LogType type)
@@ -182,9 +190,9 @@ namespace Madbox.Bootstrap.Tests.PlayMode
         private void AssertNoFatalLogs()
         {
             if (fatalLogs == null || fatalLogs.Count == 0)
-{
-    return;
-}
+            {
+                return;
+            }
             string message = string.Join("\n", fatalLogs);
             Assert.Fail(message);
         }

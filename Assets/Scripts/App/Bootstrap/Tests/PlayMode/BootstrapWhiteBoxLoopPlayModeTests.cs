@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using NUnit.Framework;
 using UnityEngine;
@@ -12,6 +12,7 @@ namespace Madbox.Bootstrap.Tests.PlayMode
 {
     public sealed class BootstrapWhiteBoxLoopPlayModeTests
     {
+        private const int sceneLoadTimeoutFrames = 600;
         private List<string> fatalLogs;
 
         [SetUp]
@@ -29,7 +30,6 @@ namespace Madbox.Bootstrap.Tests.PlayMode
         }
 
         [UnityTest]
-        [Ignore("Temporarily disabled while bootstrap runtime throws NullReferenceException in PlayMode startup.")]
         public IEnumerator WhiteBoxLoop_MainMenuToGameAndBack_Works()
         {
             yield return LoadBootstrapScene();
@@ -45,10 +45,16 @@ namespace Madbox.Bootstrap.Tests.PlayMode
         {
             AsyncOperation operation = SceneManager.LoadSceneAsync("Bootstrap", LoadSceneMode.Single);
             Assert.IsNotNull(operation);
+            int frame = 0;
             while (!operation.isDone)
-{
-    yield return null;
-}
+            {
+                if (frame++ >= sceneLoadTimeoutFrames)
+                {
+                    Assert.Fail($"Bootstrap scene load did not complete within {sceneLoadTimeoutFrames} frames.");
+                }
+
+                yield return null;
+            }
         }
 
         private IEnumerator WaitForMainMenu()
@@ -178,7 +184,7 @@ namespace Madbox.Bootstrap.Tests.PlayMode
         {
             if (type == LogType.Assert || type == LogType.Error || type == LogType.Exception)
             {
-                fatalLogs.Add($"{type}: {condition}");
+                fatalLogs.Add($"{type}: {condition}\n{stackTrace}");
             }
         }
 
