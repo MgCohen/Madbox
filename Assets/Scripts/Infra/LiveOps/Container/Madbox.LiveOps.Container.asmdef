@@ -1,0 +1,17 @@
+{
+    "name": "Madbox.LiveOps.Container",
+    "rootNamespace": "Madbox.LiveOps.Container",
+    "references": [
+        "Madbox.LiveOps",
+        "VContainer"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
