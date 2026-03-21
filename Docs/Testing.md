@@ -55,6 +55,7 @@ Coverage goals and best practices are documented in [AutomatedTesting.md](Automa
 - `run-editmode-tests.ps1`: `-ProjectPath`, `-UnityPath`, `-AssemblyNames`, `-EnableCoverage`, `-CoverageResultsPath`, `-CoverageOptions`, `-TimeoutMinutes` (default `30`)
 - `run-playmode-tests.ps1`: `-ProjectPath`, `-UnityPath`, `-AssemblyNames`, `-EnableCoverage`, `-CoverageResultsPath`, `-CoverageOptions`, `-TimeoutMinutes` (default `30`)
 - `check-analyzers.ps1`: `-ProjectPath`, `-TimeoutMinutes` (default `10`), `-AnalyzerTestsTimeoutMinutes` (default `10`)
+  Default behavior excludes diagnostics from test assemblies. Add `-IncludeTestAssemblies` to include them.
 - `check-scripts-asmdef-references.ps1`: `-ProjectPath`, `-ScriptsRoot` (default `Assets/Scripts`), `-ExcludedAssemblyNames`, `-ExcludedGuidReferences`
 - `check-pragma-warning-suppressions.ps1`: `-ProjectPath`, `-AllowlistPath` (default `.agents/scripts/pragma-warning-disable-allowlist.txt`)
 - `run-coverage-audit.ps1`: `-ProjectPath`, `-UnityPath`, `-AssemblyNames`, `-CoverageResultsPath`, `-CoverageAssemblyFilters`, `-KeepCoverageArtifacts`, `-CompilationTimeoutMinutes`, `-EditModeTimeoutMinutes`, `-PlayModeTimeoutMinutes`

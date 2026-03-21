@@ -14,6 +14,12 @@ Use the PowerShell script in this Windows workspace (do not use `/bin/bash` here
 powershell -ExecutionPolicy Bypass -File ".\.agents\scripts\check-analyzers.ps1"
 ```
 
+By default, test assemblies are excluded. To include them:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File ".\.agents\scripts\check-analyzers.ps1" -IncludeTestAssemblies
+```
+
 If you are on a Unix-like shell, the bash equivalent remains available:
 
 ```bash
