@@ -13,13 +13,13 @@ A contributor can verify the improvement by running analyzer tests and observing
 ## Progress
 
 - [x] (2026-03-21 00:00Z) Authored initial ExecPlan with architecture, test-harness strategy, and phased migration path.
-- [ ] Implement structural graph fixture model and builder utilities in analyzer tests.
-- [ ] Integrate fixture model into `AnalyzerTestHarness` without breaking existing tests.
-- [ ] Add structural test coverage for `SCA0012`/`SCA0017` external usage scenarios.
-- [ ] Add structural test coverage for `SCA0026` same-layer initialization call-chain scenarios.
-- [ ] Refactor or extend `SCA0022` tests to use shared structural fixtures where it reduces duplication.
-- [ ] Update analyzer documentation and test guidance.
-- [ ] Run analyzer tests, analyzer build, and `.agents/scripts/validate-changes.cmd`; iterate until clean.
+- [x] (2026-03-21 00:40Z) Implemented `StructuralTestGraph` fixture model and fluent builder utilities in analyzer tests.
+- [x] (2026-03-21 00:48Z) Integrated fixture model into `AnalyzerTestHarness` via graph overloads while preserving string-based APIs.
+- [x] (2026-03-21 00:55Z) Added structural coverage for `SCA0012`/`SCA0017` external usage scenarios by migrating invariant/constructor suites to shared graph fixtures.
+- [x] (2026-03-21 01:00Z) Added structural call-chain coverage for `SCA0026` with multi-file graph scenarios.
+- [x] (2026-03-21 01:05Z) Refactored `SCA0022` tests to remove duplicated temp-workspace setup and use shared structural graph fixtures.
+- [x] (2026-03-21 01:08Z) Updated analyzer/testing docs with structural fixture guidance.
+- [ ] Run analyzer tests, analyzer build, and `.agents/scripts/validate-changes.cmd`; iterate until clean. (Analyzer tests + analyzer build are clean; repository gate still reports pre-existing PlayMode/analyzer debt outside this plan scope.)
 
 ## Surprises & Discoveries
 
@@ -28,6 +28,12 @@ A contributor can verify the improvement by running analyzer tests and observing
 
 - Observation: `SCA0026` mostly reasons from source symbol paths and call-chain data, while `SCA0022` reasons over referenced assembly names and filesystem module layouts.
   Evidence: `InitializationSameLayerUsageAnalyzer.cs` infers layer from `/Assets/Scripts/` source paths; `RuntimeAssemblyBoundaryAnalyzer.cs` scans referenced assemblies and `Contracts`/`Runtime` asmdef locations.
+
+- Observation: Structural graph fixtures must emit real `.asmdef` files under `Assets/Scripts` to activate filesystem-backed analyzer logic (`InvariantUsageScope`, `SCA0022` contracts probing).
+  Evidence: Initial fixture run produced false negatives until asmdef generation recognized relative `Assets/Scripts/...` paths.
+
+- Observation: Repository-wide `validate-changes` currently fails for unrelated existing quality debt and one PlayMode flake, even when analyzer-focused changes are green.
+  Evidence: `validate-changes.cmd` reported PlayMode failure in `AddressablesBootstrapPlayModeTests` and `TOTAL:179` analyzer warnings across unrelated runtime modules.
 
 ## Decision Log
 
@@ -45,7 +51,12 @@ A contributor can verify the improvement by running analyzer tests and observing
 
 ## Outcomes & Retrospective
 
-Not completed yet. Expected outcome is a reusable, deterministic structural test method for analyzer rules with fewer one-off fixtures and stronger cross-assembly scenario coverage.
+Implemented: analyzer suites now have a reusable structural graph fixture and harness overloads that produce deterministic assembly/source topology for graph-sensitive rules. `SCA0012`, `SCA0017`, `SCA0022`, and `SCA0026` structural scenarios are now covered without ad-hoc per-test workspace boilerplate.
+
+Validation status:
+- `dotnet test` for `Scaffold.Analyzers.Tests`: PASS.
+- `dotnet build` for `Scaffold.Analyzers`: PASS.
+- `.agents/scripts/validate-changes.cmd`: FAIL due to unrelated pre-existing PlayMode/analyzer issues outside this change set.
 
 ## Context and Orientation
 

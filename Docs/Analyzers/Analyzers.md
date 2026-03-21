@@ -79,6 +79,7 @@ If Analyzers/Output/Scaffold.Analyzers.dll is missing, analyzer diagnostics will
 - Prefer conservative diagnostics with precise messages and examples.
 - Respect `.editorconfig` severity overrides via `AnalyzerConfig`.
 - Add/update analyzer tests for every rule behavior change.
+- For graph-dependent rules (`SCA0012`, `SCA0017`, `SCA0022`, `SCA0026`), prefer `StructuralTestGraph` fixtures in `Scaffold.Analyzers.Tests` over ad-hoc per-test temp workspaces.
 
 ## Anti-Patterns
 
@@ -89,6 +90,9 @@ If Analyzers/Output/Scaffold.Analyzers.dll is missing, analyzer diagnostics will
 ## Testing
 
 - Analyzer tests: `Analyzers/Scaffold/Scaffold.Analyzers.Tests`.
+- Structural graph fixture entry points:
+  - `StructuralTestGraph.Create(rootAssembly)`
+  - `AnalyzerTestHarness.GetDiagnosticsByIdAsync(graph, analyzer, diagnosticId)`
 - Build analyzer:
 
 ```bash

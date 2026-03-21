@@ -1,5 +1,3 @@
-using System;
-using System.IO;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -10,19 +8,27 @@ public sealed class RuntimeAssemblyBoundaryAnalyzerTests
     [Fact]
     public async Task Diagnostic_WhenNonBootstrapReferencesForeignRuntimeAssembly()
     {
-        const string source = @"
-namespace Madbox.MainMenu
-{
-    public sealed class MenuPresenter { }
-}";
+        var graph = StructuralTestGraph
+            .Create("Madbox.MainMenu.Runtime")
+            .Assembly("Madbox.MainMenu.Runtime")
+                .WithSource(
+                    "Assets/Scripts/App/MainMenu/Runtime/MenuPresenter.cs",
+                    @"namespace Madbox.MainMenu { public sealed class MenuPresenter { } }")
+                .References("Madbox.Meta.Gold.Runtime")
+            .Assembly("Madbox.Meta.Gold.Runtime")
+                .WithSource(
+                    "Assets/Scripts/Meta/Gold/Runtime/GoldService.cs",
+                    @"namespace Madbox.Meta.Gold { public sealed class GoldService { } }")
+            .Assembly("Madbox.Meta.Gold.Contracts")
+                .WithSource(
+                    "Assets/Scripts/Meta/Gold/Contracts/IGoldService.cs",
+                    @"namespace Madbox.Meta.Gold.Contracts { public interface IGoldService { } }")
+            .Build();
 
         var diagnostics = await AnalyzerTestHarness.GetDiagnosticsByIdAsync(
-            source,
-            @"C:\Repo\Assets\Scripts\App\MainMenu\Runtime\MenuPresenter.cs",
+            graph,
             new RuntimeAssemblyBoundaryAnalyzer(),
-            RuntimeAssemblyBoundaryAnalyzer.DiagnosticId,
-            compilationAssemblyName: "Madbox.MainMenu.Runtime",
-            additionalAssemblyNames: new[] { "Madbox.Meta.Gold.Runtime" });
+            RuntimeAssemblyBoundaryAnalyzer.DiagnosticId);
 
         var diagnostic = Assert.Single(diagnostics);
         Assert.Contains("Madbox.MainMenu.Runtime", diagnostic.GetMessage());
@@ -32,19 +38,23 @@ namespace Madbox.MainMenu
     [Fact]
     public async Task NoDiagnostic_WhenBootstrapReferencesForeignRuntimeAssembly()
     {
-        const string source = @"
-namespace Madbox.Bootstrap
-{
-    public sealed class BootstrapCompositionRoot { }
-}";
+        var graph = StructuralTestGraph
+            .Create("Madbox.Bootstrap.Runtime")
+            .Assembly("Madbox.Bootstrap.Runtime")
+                .WithSource(
+                    "Assets/Scripts/App/Bootstrap/Runtime/BootstrapCompositionRoot.cs",
+                    @"namespace Madbox.Bootstrap { public sealed class BootstrapCompositionRoot { } }")
+                .References("Madbox.Meta.Gold.Runtime")
+            .Assembly("Madbox.Meta.Gold.Runtime")
+                .WithSource(
+                    "Assets/Scripts/Meta/Gold/Runtime/GoldService.cs",
+                    @"namespace Madbox.Meta.Gold { public sealed class GoldService { } }")
+            .Build();
 
         var diagnostics = await AnalyzerTestHarness.GetDiagnosticsByIdAsync(
-            source,
-            @"C:\Repo\Assets\Scripts\App\Bootstrap\Runtime\BootstrapCompositionRoot.cs",
+            graph,
             new RuntimeAssemblyBoundaryAnalyzer(),
-            RuntimeAssemblyBoundaryAnalyzer.DiagnosticId,
-            compilationAssemblyName: "Madbox.Bootstrap.Runtime",
-            additionalAssemblyNames: new[] { "Madbox.Meta.Gold.Runtime" });
+            RuntimeAssemblyBoundaryAnalyzer.DiagnosticId);
 
         Assert.Empty(diagnostics);
     }
@@ -52,19 +62,23 @@ namespace Madbox.Bootstrap
     [Fact]
     public async Task NoDiagnostic_WhenReferencingOwnRuntimeAssembly()
     {
-        const string source = @"
-namespace Madbox.Meta.Gold.Tests
-{
-    public sealed class GoldTests { }
-}";
+        var graph = StructuralTestGraph
+            .Create("Madbox.Meta.Gold.Tests")
+            .Assembly("Madbox.Meta.Gold.Tests")
+                .WithSource(
+                    "Assets/Scripts/Meta/Gold/Tests/GoldTests.cs",
+                    @"namespace Madbox.Meta.Gold.Tests { public sealed class GoldTests { } }")
+                .References("Madbox.Meta.Gold.Runtime")
+            .Assembly("Madbox.Meta.Gold.Runtime")
+                .WithSource(
+                    "Assets/Scripts/Meta/Gold/Runtime/GoldService.cs",
+                    @"namespace Madbox.Meta.Gold { public sealed class GoldService { } }")
+            .Build();
 
         var diagnostics = await AnalyzerTestHarness.GetDiagnosticsByIdAsync(
-            source,
-            @"C:\Repo\Assets\Scripts\Meta\Gold\Tests\GoldTests.cs",
+            graph,
             new RuntimeAssemblyBoundaryAnalyzer(),
-            RuntimeAssemblyBoundaryAnalyzer.DiagnosticId,
-            compilationAssemblyName: "Madbox.Meta.Gold.Tests",
-            additionalAssemblyNames: new[] { "Madbox.Meta.Gold.Runtime" });
+            RuntimeAssemblyBoundaryAnalyzer.DiagnosticId);
 
         Assert.Empty(diagnostics);
     }
@@ -72,19 +86,23 @@ namespace Madbox.Meta.Gold.Tests
     [Fact]
     public async Task NoDiagnostic_WhenOnlyContractsAreReferenced()
     {
-        const string source = @"
-namespace Madbox.MainMenu
-{
-    public sealed class MenuPresenter { }
-}";
+        var graph = StructuralTestGraph
+            .Create("Madbox.MainMenu.Runtime")
+            .Assembly("Madbox.MainMenu.Runtime")
+                .WithSource(
+                    "Assets/Scripts/App/MainMenu/Runtime/MenuPresenter.cs",
+                    @"namespace Madbox.MainMenu { public sealed class MenuPresenter { } }")
+                .References("Madbox.Meta.Gold.Contracts")
+            .Assembly("Madbox.Meta.Gold.Contracts")
+                .WithSource(
+                    "Assets/Scripts/Meta/Gold/Contracts/IGoldService.cs",
+                    @"namespace Madbox.Meta.Gold.Contracts { public interface IGoldService { } }")
+            .Build();
 
         var diagnostics = await AnalyzerTestHarness.GetDiagnosticsByIdAsync(
-            source,
-            @"C:\Repo\Assets\Scripts\App\MainMenu\Runtime\MenuPresenter.cs",
+            graph,
             new RuntimeAssemblyBoundaryAnalyzer(),
-            RuntimeAssemblyBoundaryAnalyzer.DiagnosticId,
-            compilationAssemblyName: "Madbox.MainMenu.Runtime",
-            additionalAssemblyNames: new[] { "Madbox.Meta.Gold.Contracts" });
+            RuntimeAssemblyBoundaryAnalyzer.DiagnosticId);
 
         Assert.Empty(diagnostics);
     }
@@ -92,19 +110,23 @@ namespace Madbox.MainMenu
     [Fact]
     public async Task NoDiagnostic_WhenTestAssemblyReferencesForeignRuntimeAssembly()
     {
-        const string source = @"
-namespace Madbox.MainMenu.Tests
-{
-    public sealed class MenuPresenterTests { }
-}";
+        var graph = StructuralTestGraph
+            .Create("Madbox.MainMenu.Tests")
+            .Assembly("Madbox.MainMenu.Tests")
+                .WithSource(
+                    "Assets/Scripts/App/MainMenu/Tests/MenuPresenterTests.cs",
+                    @"namespace Madbox.MainMenu.Tests { public sealed class MenuPresenterTests { } }")
+                .References("Madbox.Meta.Gold.Runtime")
+            .Assembly("Madbox.Meta.Gold.Runtime")
+                .WithSource(
+                    "Assets/Scripts/Meta/Gold/Runtime/GoldService.cs",
+                    @"namespace Madbox.Meta.Gold { public sealed class GoldService { } }")
+            .Build();
 
         var diagnostics = await AnalyzerTestHarness.GetDiagnosticsByIdAsync(
-            source,
-            @"C:\Repo\Assets\Scripts\App\MainMenu\Tests\MenuPresenterTests.cs",
+            graph,
             new RuntimeAssemblyBoundaryAnalyzer(),
-            RuntimeAssemblyBoundaryAnalyzer.DiagnosticId,
-            compilationAssemblyName: "Madbox.MainMenu.Tests",
-            additionalAssemblyNames: new[] { "Madbox.Meta.Gold.Runtime" });
+            RuntimeAssemblyBoundaryAnalyzer.DiagnosticId);
 
         Assert.Empty(diagnostics);
     }
@@ -112,19 +134,23 @@ namespace Madbox.MainMenu.Tests
     [Fact]
     public async Task NoDiagnostic_WhenContainerAssemblyReferencesForeignRuntimeAssembly()
     {
-        const string source = @"
-namespace Scaffold.Navigation.Container
-{
-    public sealed class NavigationInstaller { }
-}";
+        var graph = StructuralTestGraph
+            .Create("Scaffold.Navigation.Container")
+            .Assembly("Scaffold.Navigation.Container")
+                .WithSource(
+                    "Assets/Scripts/Infra/Navigation/Container/NavigationInstaller.cs",
+                    @"namespace Scaffold.Navigation.Container { public sealed class NavigationInstaller { } }")
+                .References("Scaffold.Navigation.Runtime")
+            .Assembly("Scaffold.Navigation.Runtime")
+                .WithSource(
+                    "Assets/Scripts/Infra/Navigation/Runtime/NavigationService.cs",
+                    @"namespace Scaffold.Navigation { public sealed class NavigationService { } }")
+            .Build();
 
         var diagnostics = await AnalyzerTestHarness.GetDiagnosticsByIdAsync(
-            source,
-            @"C:\Repo\Assets\Scripts\Infra\Navigation\Container\NavigationInstaller.cs",
+            graph,
             new RuntimeAssemblyBoundaryAnalyzer(),
-            RuntimeAssemblyBoundaryAnalyzer.DiagnosticId,
-            compilationAssemblyName: "Scaffold.Navigation.Container",
-            additionalAssemblyNames: new[] { "Scaffold.Navigation.Runtime" });
+            RuntimeAssemblyBoundaryAnalyzer.DiagnosticId);
 
         Assert.Empty(diagnostics);
     }
@@ -132,105 +158,85 @@ namespace Scaffold.Navigation.Container
     [Fact]
     public async Task NoDiagnostic_WhenReferencedRuntimeModuleHasNoContractsFolder()
     {
-        const string source = @"
-namespace Madbox.MainMenu
-{
-    public sealed class MenuPresenter { }
-}";
+        var graph = StructuralTestGraph
+            .Create("Madbox.MainMenu.Runtime")
+            .Assembly("Madbox.MainMenu.Runtime")
+                .WithSource(
+                    "Assets/Scripts/App/MainMenu/Runtime/MenuPresenter.cs",
+                    @"namespace Madbox.MainMenu { public sealed class MenuPresenter { } }")
+                .References("Madbox.Meta.Gold.Runtime")
+            .Assembly("Madbox.Meta.Gold.Runtime")
+                .WithSource(
+                    "Assets/Scripts/Meta/Gold/Runtime/GoldService.cs",
+                    @"namespace Madbox.Meta.Gold { public sealed class GoldService { } }")
+            .Build();
 
-        string workspace = CreateTempWorkspace();
-        try
-        {
-            var sourcePath = WriteSourceFile(
-                workspace,
-                "Assets/Scripts/App/MainMenu/Runtime/MenuPresenter.cs",
-                source);
+        var diagnostics = await AnalyzerTestHarness.GetDiagnosticsByIdAsync(
+            graph,
+            new RuntimeAssemblyBoundaryAnalyzer(),
+            RuntimeAssemblyBoundaryAnalyzer.DiagnosticId);
 
-            WriteAsmdef(
-                workspace,
-                "Assets/Scripts/Meta/Gold/Runtime/Madbox.Meta.Gold.Runtime.asmdef",
-                "Madbox.Meta.Gold.Runtime");
-
-            var diagnostics = await AnalyzerTestHarness.GetDiagnosticsByIdAsync(
-                source,
-                sourcePath,
-                new RuntimeAssemblyBoundaryAnalyzer(),
-                RuntimeAssemblyBoundaryAnalyzer.DiagnosticId,
-                compilationAssemblyName: "Madbox.MainMenu.Runtime",
-                additionalAssemblyNames: new[] { "Madbox.Meta.Gold.Runtime" });
-
-            Assert.Empty(diagnostics);
-        }
-        finally
-        {
-            DeleteTempWorkspace(workspace);
-        }
+        Assert.Empty(diagnostics);
     }
 
     [Fact]
     public async Task Diagnostic_WhenReferencedRuntimeModuleHasContractsFolder()
     {
-        const string source = @"
-namespace Madbox.MainMenu
-{
-    public sealed class MenuPresenter { }
-}";
+        var graph = StructuralTestGraph
+            .Create("Madbox.MainMenu.Runtime")
+            .Assembly("Madbox.MainMenu.Runtime")
+                .WithSource(
+                    "Assets/Scripts/App/MainMenu/Runtime/MenuPresenter.cs",
+                    @"namespace Madbox.MainMenu { public sealed class MenuPresenter { } }")
+                .References("Madbox.Meta.Gold.Runtime")
+            .Assembly("Madbox.Meta.Gold.Runtime")
+                .WithSource(
+                    "Assets/Scripts/Meta/Gold/Runtime/GoldService.cs",
+                    @"namespace Madbox.Meta.Gold { public sealed class GoldService { } }")
+            .Assembly("Madbox.Meta.Gold.Contracts")
+                .WithSource(
+                    "Assets/Scripts/Meta/Gold/Contracts/IGoldService.cs",
+                    @"namespace Madbox.Meta.Gold.Contracts { public interface IGoldService { } }")
+            .Build();
 
-        string workspace = CreateTempWorkspace();
-        try
-        {
-            var sourcePath = WriteSourceFile(
-                workspace,
-                "Assets/Scripts/App/MainMenu/Runtime/MenuPresenter.cs",
-                source);
+        var diagnostics = await AnalyzerTestHarness.GetDiagnosticsByIdAsync(
+            graph,
+            new RuntimeAssemblyBoundaryAnalyzer(),
+            RuntimeAssemblyBoundaryAnalyzer.DiagnosticId);
 
-            WriteAsmdef(
-                workspace,
-                "Assets/Scripts/Meta/Gold/Runtime/Madbox.Meta.Gold.Runtime.asmdef",
-                "Madbox.Meta.Gold.Runtime");
-            WriteAsmdef(
-                workspace,
-                "Assets/Scripts/Meta/Gold/Contracts/Madbox.Meta.Gold.Contracts.asmdef",
-                "Madbox.Meta.Gold.Contracts");
-
-            var diagnostics = await AnalyzerTestHarness.GetDiagnosticsByIdAsync(
-                source,
-                sourcePath,
-                new RuntimeAssemblyBoundaryAnalyzer(),
-                RuntimeAssemblyBoundaryAnalyzer.DiagnosticId,
-                compilationAssemblyName: "Madbox.MainMenu.Runtime",
-                additionalAssemblyNames: new[] { "Madbox.Meta.Gold.Runtime" });
-
-            var diagnostic = Assert.Single(diagnostics);
-            Assert.Contains("Madbox.MainMenu.Runtime", diagnostic.GetMessage());
-            Assert.Contains("Madbox.Meta.Gold.Runtime", diagnostic.GetMessage());
-        }
-        finally
-        {
-            DeleteTempWorkspace(workspace);
-        }
+        var diagnostic = Assert.Single(diagnostics);
+        Assert.Contains("Madbox.MainMenu.Runtime", diagnostic.GetMessage());
+        Assert.Contains("Madbox.Meta.Gold.Runtime", diagnostic.GetMessage());
     }
 
     [Fact]
     public async Task NoDiagnostic_WhenReferencedModuleIsConfiguredAsNoContractModule()
     {
-        const string source = @"
-namespace Madbox.MainMenu
-{
-    public sealed class MenuPresenter { }
-}";
+        var graph = StructuralTestGraph
+            .Create("Madbox.MainMenu.Runtime")
+            .Assembly("Madbox.MainMenu.Runtime")
+                .WithSource(
+                    "Assets/Scripts/App/MainMenu/Runtime/MenuPresenter.cs",
+                    @"namespace Madbox.MainMenu { public sealed class MenuPresenter { } }")
+                .References("Madbox.Meta.Gold.Runtime")
+            .Assembly("Madbox.Meta.Gold.Runtime")
+                .WithSource(
+                    "Assets/Scripts/Meta/Gold/Runtime/GoldService.cs",
+                    @"namespace Madbox.Meta.Gold { public sealed class GoldService { } }")
+            .Assembly("Madbox.Meta.Gold.Contracts")
+                .WithSource(
+                    "Assets/Scripts/Meta/Gold/Contracts/IGoldService.cs",
+                    @"namespace Madbox.Meta.Gold.Contracts { public interface IGoldService { } }")
+            .Build();
 
         var diagnostics = await AnalyzerTestHarness.GetDiagnosticsByIdAsync(
-            source,
-            @"C:\Repo\Assets\Scripts\App\MainMenu\Runtime\MenuPresenter.cs",
+            graph,
             new RuntimeAssemblyBoundaryAnalyzer(),
             RuntimeAssemblyBoundaryAnalyzer.DiagnosticId,
             analyzerOptions: new System.Collections.Generic.Dictionary<string, string>
             {
                 ["scaffold.SCA0022.no_contract_modules"] = "Madbox.Meta.Gold"
-            },
-            compilationAssemblyName: "Madbox.MainMenu.Runtime",
-            additionalAssemblyNames: new[] { "Madbox.Meta.Gold.Runtime" });
+            });
 
         Assert.Empty(diagnostics);
     }
@@ -238,60 +244,19 @@ namespace Madbox.MainMenu
     [Fact]
     public async Task NoDiagnostic_WhenExternalRuntimeAssemblyIsReferenced()
     {
-        const string source = @"
-namespace Madbox.MainMenu
-{
-    public sealed class MenuPresenter { }
-}";
+        const string source = @"namespace Madbox.MainMenu { public sealed class MenuPresenter { } }";
+        var graph = StructuralTestGraph
+            .Create("Madbox.MainMenu.Runtime")
+            .Assembly("Madbox.MainMenu.Runtime")
+                .WithSource("Assets/Scripts/App/MainMenu/Runtime/MenuPresenter.cs", source)
+                .References("System.Runtime")
+            .Build();
 
         var diagnostics = await AnalyzerTestHarness.GetDiagnosticsByIdAsync(
-            source,
-            @"C:\Repo\Assets\Scripts\App\MainMenu\Runtime\MenuPresenter.cs",
+            graph,
             new RuntimeAssemblyBoundaryAnalyzer(),
-            RuntimeAssemblyBoundaryAnalyzer.DiagnosticId,
-            compilationAssemblyName: "Madbox.MainMenu.Runtime",
-            additionalAssemblyNames: new[] { "System.Runtime" });
+            RuntimeAssemblyBoundaryAnalyzer.DiagnosticId);
 
         Assert.Empty(diagnostics);
-    }
-
-    private static string CreateTempWorkspace()
-    {
-        string workspace = Path.Combine(Path.GetTempPath(), "sca0022-tests-" + Guid.NewGuid().ToString("N"));
-        Directory.CreateDirectory(workspace);
-        return workspace;
-    }
-
-    private static string WriteSourceFile(string workspaceRoot, string relativePath, string source)
-    {
-        string path = Path.Combine(workspaceRoot, relativePath);
-        string? directory = Path.GetDirectoryName(path);
-        if (!string.IsNullOrWhiteSpace(directory))
-        {
-            Directory.CreateDirectory(directory);
-        }
-
-        File.WriteAllText(path, source);
-        return path;
-    }
-
-    private static void WriteAsmdef(string workspaceRoot, string relativePath, string asmdefName)
-    {
-        string path = Path.Combine(workspaceRoot, relativePath);
-        string? directory = Path.GetDirectoryName(path);
-        if (!string.IsNullOrWhiteSpace(directory))
-        {
-            Directory.CreateDirectory(directory);
-        }
-
-        File.WriteAllText(path, "{ \"name\": \"" + asmdefName + "\" }");
-    }
-
-    private static void DeleteTempWorkspace(string workspaceRoot)
-    {
-        if (Directory.Exists(workspaceRoot))
-        {
-            Directory.Delete(workspaceRoot, recursive: true);
-        }
     }
 }

@@ -90,6 +90,7 @@ Prefer:
 - Fakes/stubs over real infrastructure.
 - Explicit builders/helpers for readability.
 - Event/property assertions when state notifications matter.
+- For analyzer unit tests that depend on assembly/source topology, use shared structural fixtures (`StructuralTestGraph`) instead of one-off temporary workspace wiring.
 
 Avoid:
 

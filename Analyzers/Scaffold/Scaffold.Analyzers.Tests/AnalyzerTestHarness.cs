@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -13,13 +14,50 @@ namespace Scaffold.Analyzers.Tests;
 internal static class AnalyzerTestHarness
 {
     public static async Task<ImmutableArray<Diagnostic>> GetDiagnosticsAsync(
+        StructuralTestGraph graph,
+        DiagnosticAnalyzer analyzer,
+        IDictionary<string, string>? analyzerOptions = null,
+        bool includeUnityEngineReference = false)
+    {
+        var model = graph?.Model ?? throw new ArgumentNullException(nameof(graph));
+        var rootNode = model.Assemblies.FirstOrDefault(node => string.Equals(node.Name, model.RootAssemblyName, StringComparison.OrdinalIgnoreCase));
+        if (rootNode == null)
+        {
+            throw new InvalidOperationException($"Root assembly '{model.RootAssemblyName}' is not present in structural graph.");
+        }
+
+        using var workspace = StructuralGraphWorkspace.Create(model);
+        return await GetDiagnosticsAsync(
+            string.Join(Environment.NewLine + Environment.NewLine, rootNode.SourceFiles.Select(source => source.Content)),
+            workspace.GetPrimarySourcePath(model.RootAssemblyName),
+            analyzer,
+            analyzerOptions,
+            includeUnityEngineReference,
+            model.RootAssemblyName,
+            workspace.GetMetadataReferenceAssemblyNames(model.RootAssemblyName),
+            workspace.GetMetadataReferenceSources());
+    }
+
+    public static async Task<ImmutableArray<Diagnostic>> GetDiagnosticsByIdAsync(
+        StructuralTestGraph graph,
+        DiagnosticAnalyzer analyzer,
+        string diagnosticId,
+        IDictionary<string, string>? analyzerOptions = null,
+        bool includeUnityEngineReference = false)
+    {
+        var diagnostics = await GetDiagnosticsAsync(graph, analyzer, analyzerOptions, includeUnityEngineReference);
+        return diagnostics.Where(diagnostic => diagnostic.Id == diagnosticId).ToImmutableArray();
+    }
+
+    public static async Task<ImmutableArray<Diagnostic>> GetDiagnosticsAsync(
         string source,
         string filePath,
         DiagnosticAnalyzer analyzer,
         IDictionary<string, string>? analyzerOptions = null,
         bool includeUnityEngineReference = false,
         string compilationAssemblyName = "AnalyzerTests",
-        IEnumerable<string>? additionalAssemblyNames = null)
+        IEnumerable<string>? additionalAssemblyNames = null,
+        IDictionary<string, string>? assemblySources = null)
     {
         var parseOptions = new CSharpParseOptions(LanguageVersion.CSharp12);
         var syntaxTree = CSharpSyntaxTree.ParseText(source, parseOptions, filePath);
@@ -41,6 +79,12 @@ internal static class AnalyzerTestHarness
             foreach (var assemblyName in additionalAssemblyNames)
             {
                 if (string.IsNullOrWhiteSpace(assemblyName)) continue;
+                if (assemblySources != null && assemblySources.TryGetValue(assemblyName, out var assemblySource))
+                {
+                    references.Add(CreateReferenceAssembly(assemblyName, assemblySource));
+                    continue;
+                }
+
                 references.Add(CreateReferenceAssembly(assemblyName));
             }
         }
@@ -81,7 +125,8 @@ internal static class AnalyzerTestHarness
             analyzerOptions,
             includeUnityEngineReference,
             compilationAssemblyName,
-            additionalAssemblyNames);
+            additionalAssemblyNames,
+            assemblySources: null);
         return diagnostics.Where(diagnostic => diagnostic.Id == diagnosticId).ToImmutableArray();
     }
 
@@ -151,6 +196,134 @@ internal static class AnalyzerTestHarness
         public override bool TryGetValue(string key, out string value)
         {
             return values.TryGetValue(key, out value!);
+        }
+    }
+
+    private sealed class StructuralGraphWorkspace : IDisposable
+    {
+        private readonly string workspaceRoot;
+        private readonly Dictionary<string, string> primarySourcePathByAssembly;
+        private readonly Dictionary<string, string> synthesizedSourcesByAssembly;
+        private readonly Dictionary<string, ImmutableArray<string>> directReferencesByAssembly;
+
+        private StructuralGraphWorkspace(
+            string workspaceRoot,
+            Dictionary<string, string> primarySourcePathByAssembly,
+            Dictionary<string, string> synthesizedSourcesByAssembly,
+            Dictionary<string, ImmutableArray<string>> directReferencesByAssembly)
+        {
+            this.workspaceRoot = workspaceRoot;
+            this.primarySourcePathByAssembly = primarySourcePathByAssembly;
+            this.synthesizedSourcesByAssembly = synthesizedSourcesByAssembly;
+            this.directReferencesByAssembly = directReferencesByAssembly;
+        }
+
+        public static StructuralGraphWorkspace Create(StructuralTestGraphModel model)
+        {
+            var workspaceRoot = Path.Combine(Path.GetTempPath(), "analyzer-structural-graph-" + Guid.NewGuid().ToString("N"));
+            Directory.CreateDirectory(workspaceRoot);
+
+            var sourcePathByAssembly = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            var sourceByAssembly = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            var directReferencesByAssembly = new Dictionary<string, ImmutableArray<string>>(StringComparer.OrdinalIgnoreCase);
+
+            foreach (var assembly in model.Assemblies)
+            {
+                string? firstPath = null;
+                var sourceBuilder = new StringBuilder();
+                for (var i = 0; i < assembly.SourceFiles.Length; i++)
+                {
+                    var sourceFile = assembly.SourceFiles[i];
+                    var absolutePath = Path.Combine(workspaceRoot, sourceFile.Path.Replace('/', Path.DirectorySeparatorChar));
+                    var directoryPath = Path.GetDirectoryName(absolutePath);
+                    if (!string.IsNullOrWhiteSpace(directoryPath))
+                    {
+                        Directory.CreateDirectory(directoryPath);
+                    }
+
+                    File.WriteAllText(absolutePath, sourceFile.Content);
+                    firstPath ??= absolutePath;
+
+                    if (i > 0)
+                    {
+                        sourceBuilder.AppendLine();
+                    }
+
+                    sourceBuilder.AppendLine(sourceFile.Content);
+                }
+
+                if (firstPath == null)
+                {
+                    throw new InvalidOperationException($"Assembly '{assembly.Name}' has no sources.");
+                }
+
+                sourcePathByAssembly[assembly.Name] = firstPath;
+                sourceByAssembly[assembly.Name] = sourceBuilder.ToString();
+                directReferencesByAssembly[assembly.Name] = assembly.References;
+
+                var asmdefPath = TryGetAsmdefPath(workspaceRoot, assembly);
+                if (!string.IsNullOrWhiteSpace(asmdefPath))
+                {
+                    var asmdefDirectory = Path.GetDirectoryName(asmdefPath);
+                    if (!string.IsNullOrWhiteSpace(asmdefDirectory))
+                    {
+                        Directory.CreateDirectory(asmdefDirectory);
+                    }
+
+                    var referencesJson = assembly.References.Length == 0
+                        ? string.Empty
+                        : string.Join(", ", assembly.References.Select(reference => "\"" + reference + "\""));
+                    var asmdefContent = "{ \"name\": \"" + assembly.Name + "\", \"references\": [" + referencesJson + "] }";
+                    File.WriteAllText(asmdefPath, asmdefContent);
+                }
+            }
+
+            return new StructuralGraphWorkspace(workspaceRoot, sourcePathByAssembly, sourceByAssembly, directReferencesByAssembly);
+        }
+
+        public string GetPrimarySourcePath(string assemblyName) => primarySourcePathByAssembly[assemblyName];
+
+        public IEnumerable<string> GetMetadataReferenceAssemblyNames(string assemblyName)
+        {
+            if (!directReferencesByAssembly.TryGetValue(assemblyName, out var references))
+            {
+                return Enumerable.Empty<string>();
+            }
+
+            return references;
+        }
+
+        public IDictionary<string, string> GetMetadataReferenceSources()
+        {
+            return synthesizedSourcesByAssembly;
+        }
+
+        public void Dispose()
+        {
+            if (Directory.Exists(workspaceRoot))
+            {
+                Directory.Delete(workspaceRoot, recursive: true);
+            }
+        }
+
+        private static string TryGetAsmdefPath(string workspaceRoot, StructuralAssemblyNode assembly)
+        {
+            var candidate = assembly.SourceFiles.FirstOrDefault(source =>
+                source.Path.IndexOf("/Assets/Scripts/", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                source.Path.IndexOf("Assets/Scripts/", StringComparison.OrdinalIgnoreCase) == 0);
+            if (candidate == null)
+            {
+                return string.Empty;
+            }
+
+            var relativePath = candidate.Path.Replace('\\', '/');
+            var directory = Path.GetDirectoryName(relativePath.Replace('/', Path.DirectorySeparatorChar));
+            if (string.IsNullOrWhiteSpace(directory))
+            {
+                return string.Empty;
+            }
+
+            return Path.Combine(workspaceRoot, directory, assembly.Name + ".asmdef");
         }
     }
 }

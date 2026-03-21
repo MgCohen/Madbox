@@ -1,6 +1,3 @@
-using System;
-using System.IO;
-using System.Linq;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -11,113 +8,40 @@ public sealed class ConstructorInvariantAnalyzerTests
     [Fact]
     public async Task Diagnostic_WhenTypeIsMentionedByNonSiblingRuntimeAssembly()
     {
-        string workspace = CreateTempWorkspace();
-        try
-        {
-            string sourceFilePath = Path.Combine(workspace, "Assets", "Scripts", "Core", "Model", "Runtime", "Widget.cs");
-            WriteAsmdef(Path.Combine(workspace, "Assets", "Scripts", "Core", "Model", "Runtime", "Madbox.Model.asmdef"), "Madbox.Model");
-            WriteAsmdef(
-                Path.Combine(workspace, "Assets", "Scripts", "Core", "Gameplay", "Runtime", "Madbox.Gameplay.asmdef"),
-                "Madbox.Gameplay",
-                "Madbox.Model");
-            WriteFile(
-                Path.Combine(workspace, "Assets", "Scripts", "Core", "Gameplay", "Runtime", "Usage.cs"),
-                "namespace Madbox.Gameplay { public sealed class Usage { private Madbox.Model.Widget widget; } }");
+        var diagnostics = await AnalyzerTestHarness.GetDiagnosticsByIdAsync(
+            CreateExternalConsumerGraph(CreateConstructorSource(withValidation: false), "private Madbox.Model.Widget widget;"),
+            new ConstructorInvariantAnalyzer(),
+            ConstructorInvariantAnalyzer.DiagnosticId);
 
-            var diagnostics = await AnalyzerTestHarness.GetDiagnosticsByIdAsync(
-                CreateConstructorSource(withValidation: false),
-                sourceFilePath,
-                new ConstructorInvariantAnalyzer(),
-                ConstructorInvariantAnalyzer.DiagnosticId,
-                compilationAssemblyName: "Madbox.Model");
-
-            Assert.Single(diagnostics);
-        }
-        finally
-        {
-            DeleteTempWorkspace(workspace);
-        }
+        Assert.Single(diagnostics);
     }
 
     [Fact]
     public async Task NoDiagnostic_WhenExternallyUsedTypeHasLeadingGuard()
     {
-        string workspace = CreateTempWorkspace();
-        try
-        {
-            string sourceFilePath = Path.Combine(workspace, "Assets", "Scripts", "Core", "Model", "Runtime", "Widget.cs");
-            WriteAsmdef(Path.Combine(workspace, "Assets", "Scripts", "Core", "Model", "Runtime", "Madbox.Model.asmdef"), "Madbox.Model");
-            WriteAsmdef(
-                Path.Combine(workspace, "Assets", "Scripts", "Core", "Gameplay", "Runtime", "Madbox.Gameplay.asmdef"),
-                "Madbox.Gameplay",
-                "Madbox.Model");
-            WriteFile(
-                Path.Combine(workspace, "Assets", "Scripts", "Core", "Gameplay", "Runtime", "Usage.cs"),
-                "namespace Madbox.Gameplay { public sealed class Usage { private Madbox.Model.Widget widget; } }");
+        var diagnostics = await AnalyzerTestHarness.GetDiagnosticsByIdAsync(
+            CreateExternalConsumerGraph(CreateConstructorSource(withValidation: true), "private Madbox.Model.Widget widget;"),
+            new ConstructorInvariantAnalyzer(),
+            ConstructorInvariantAnalyzer.DiagnosticId);
 
-            var diagnostics = await AnalyzerTestHarness.GetDiagnosticsByIdAsync(
-                CreateConstructorSource(withValidation: true),
-                sourceFilePath,
-                new ConstructorInvariantAnalyzer(),
-                ConstructorInvariantAnalyzer.DiagnosticId,
-                compilationAssemblyName: "Madbox.Model");
-
-            Assert.Empty(diagnostics);
-        }
-        finally
-        {
-            DeleteTempWorkspace(workspace);
-        }
+        Assert.Empty(diagnostics);
     }
 
     [Fact]
     public async Task NoDiagnostic_WhenTypeIsNotExternallyMentioned()
     {
-        string workspace = CreateTempWorkspace();
-        try
-        {
-            string sourceFilePath = Path.Combine(workspace, "Assets", "Scripts", "Core", "Model", "Runtime", "Widget.cs");
-            WriteAsmdef(Path.Combine(workspace, "Assets", "Scripts", "Core", "Model", "Runtime", "Madbox.Model.asmdef"), "Madbox.Model");
-            WriteAsmdef(
-                Path.Combine(workspace, "Assets", "Scripts", "Core", "Gameplay", "Runtime", "Madbox.Gameplay.asmdef"),
-                "Madbox.Gameplay",
-                "Madbox.Model");
-            WriteFile(
-                Path.Combine(workspace, "Assets", "Scripts", "Core", "Gameplay", "Runtime", "Usage.cs"),
-                "namespace Madbox.Gameplay { public sealed class Usage { } }");
+        var diagnostics = await AnalyzerTestHarness.GetDiagnosticsByIdAsync(
+            CreateExternalConsumerGraph(CreateConstructorSource(withValidation: false), string.Empty),
+            new ConstructorInvariantAnalyzer(),
+            ConstructorInvariantAnalyzer.DiagnosticId);
 
-            var diagnostics = await AnalyzerTestHarness.GetDiagnosticsByIdAsync(
-                CreateConstructorSource(withValidation: false),
-                sourceFilePath,
-                new ConstructorInvariantAnalyzer(),
-                ConstructorInvariantAnalyzer.DiagnosticId,
-                compilationAssemblyName: "Madbox.Model");
-
-            Assert.Empty(diagnostics);
-        }
-        finally
-        {
-            DeleteTempWorkspace(workspace);
-        }
+        Assert.Empty(diagnostics);
     }
 
     [Fact]
     public async Task Diagnostic_WhenExternallyMentionedInterfaceHasImplementation()
     {
-        string workspace = CreateTempWorkspace();
-        try
-        {
-            string sourceFilePath = Path.Combine(workspace, "Assets", "Scripts", "Core", "Model", "Runtime", "Widget.cs");
-            WriteAsmdef(Path.Combine(workspace, "Assets", "Scripts", "Core", "Model", "Runtime", "Madbox.Model.asmdef"), "Madbox.Model");
-            WriteAsmdef(
-                Path.Combine(workspace, "Assets", "Scripts", "Core", "Gameplay", "Runtime", "Madbox.Gameplay.asmdef"),
-                "Madbox.Gameplay",
-                "Madbox.Model");
-            WriteFile(
-                Path.Combine(workspace, "Assets", "Scripts", "Core", "Gameplay", "Runtime", "Usage.cs"),
-                "namespace Madbox.Gameplay { public sealed class Usage { private Madbox.Model.IWidgetApi api; } }");
-
-            const string source = @"
+        const string source = @"
 namespace Madbox.Model
 {
     public interface IWidgetApi
@@ -137,19 +61,12 @@ namespace Madbox.Model
     }
 }";
 
-            var diagnostics = await AnalyzerTestHarness.GetDiagnosticsByIdAsync(
-                source,
-                sourceFilePath,
-                new ConstructorInvariantAnalyzer(),
-                ConstructorInvariantAnalyzer.DiagnosticId,
-                compilationAssemblyName: "Madbox.Model");
+        var diagnostics = await AnalyzerTestHarness.GetDiagnosticsByIdAsync(
+            CreateExternalConsumerGraph(source, "private Madbox.Model.IWidgetApi api;"),
+            new ConstructorInvariantAnalyzer(),
+            ConstructorInvariantAnalyzer.DiagnosticId);
 
-            Assert.Single(diagnostics);
-        }
-        finally
-        {
-            DeleteTempWorkspace(workspace);
-        }
+        Assert.Single(diagnostics);
     }
 
     private static string CreateConstructorSource(bool withValidation)
@@ -187,36 +104,19 @@ namespace Madbox.Model
 }";
     }
 
-    private static string CreateTempWorkspace()
+    private static StructuralTestGraph CreateExternalConsumerGraph(string modelSource, string consumerField)
     {
-        string path = Path.Combine(Path.GetTempPath(), "sca0017-tests-" + Guid.NewGuid().ToString("N"));
-        Directory.CreateDirectory(path);
-        return path;
-    }
+        var consumerSource = string.IsNullOrWhiteSpace(consumerField)
+            ? "namespace Madbox.Gameplay { public sealed class Usage { } }"
+            : "namespace Madbox.Gameplay { public sealed class Usage { " + consumerField + " } }";
 
-    private static void WriteAsmdef(string path, string name, params string[] references)
-    {
-        string referencesJson = references.Length == 0 ? string.Empty : string.Join(", ", references.Select(reference => "\"" + reference + "\""));
-        string content = "{ \"name\": \"" + name + "\", \"references\": [" + referencesJson + "] }";
-        WriteFile(path, content);
-    }
-
-    private static void WriteFile(string path, string content)
-    {
-        string? directory = Path.GetDirectoryName(path);
-        if (!string.IsNullOrWhiteSpace(directory))
-        {
-            Directory.CreateDirectory(directory);
-        }
-
-        File.WriteAllText(path, content);
-    }
-
-    private static void DeleteTempWorkspace(string path)
-    {
-        if (Directory.Exists(path))
-        {
-            Directory.Delete(path, true);
-        }
+        return StructuralTestGraph
+            .Create("Madbox.Model")
+            .Assembly("Madbox.Model")
+                .WithSource("Assets/Scripts/Core/Model/Runtime/Widget.cs", modelSource)
+            .Assembly("Madbox.Gameplay")
+                .WithSource("Assets/Scripts/Core/Gameplay/Runtime/Usage.cs", consumerSource)
+                .References("Madbox.Model")
+            .Build();
     }
 }
