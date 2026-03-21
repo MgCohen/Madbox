@@ -30,7 +30,7 @@ namespace Madbox.App.Bootstrap
 
             EventsInstaller eventsInstaller = new EventsInstaller();
             eventsInstaller.Install(builder);
-
+            
             NavigationInstaller navigationInstaller = new NavigationInstaller(navigationSettings, viewHolder);
             navigationInstaller.Install(builder);
 
