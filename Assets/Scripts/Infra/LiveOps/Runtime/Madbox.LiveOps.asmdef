@@ -1,0 +1,19 @@
+{
+    "name": "Madbox.LiveOps",
+    "rootNamespace": "Madbox.LiveOps",
+    "references": [
+        "VContainer",
+        "Unity.Services.Core",
+        "Unity.Services.Authentication",
+        "Unity.Services.CloudCode"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
