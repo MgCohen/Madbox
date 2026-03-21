@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using UnityEngine;
 
 namespace Madbox.Addressables.Contracts
@@ -7,8 +8,9 @@ namespace Madbox.Addressables.Contracts
     public interface IAssetGroupHandle<out T> : IDisposable where T : UnityEngine.Object
     {
         bool IsReleased { get; }
-        IReadOnlyList<IAssetHandle<T>> TypedHandles { get; }
+        bool IsReady { get; }
+        Task WhenReady { get; }
+        IReadOnlyList<T> Assets { get; }
         void Release();
     }
 }
-

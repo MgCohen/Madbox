@@ -23,17 +23,11 @@ namespace Madbox.Addressables
         public async Task PreloadAsync(CancellationToken cancellationToken)
         {
             IAssetGroupHandle<TAsset> group = await LoadCoreAsync(cancellationToken);
+            await group.WhenReady;
             loadedAssets.Clear();
-            IReadOnlyList<IAssetHandle<TAsset>> handles = group.TypedHandles;
-            for (int i = 0; i < handles.Count; i++)
+            for (int i = 0; i < group.Assets.Count; i++)
             {
-                IAssetHandle<TAsset> handle = handles[i];
-                if (handle == null || !handle.IsReady)
-                {
-                    continue;
-                }
-
-                loadedAssets.Add(handle.Asset);
+                loadedAssets.Add(group.Assets[i]);
             }
         }
 

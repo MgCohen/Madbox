@@ -63,7 +63,7 @@ namespace Madbox.Addressables.Tests
             AddressablesGateway gateway = CreateGateway(client);
 
             IAssetGroupHandle<TestAsset> group = CreateEnemyLabelGroupHandle(gateway);
-            Assert.AreEqual(2, group.TypedHandles.Count);
+            Assert.AreEqual(2, group.Assets.Count);
             Assert.AreEqual(2, client.CountLoadCallsForType(typeof(TestAsset)));
         }
 
@@ -75,7 +75,7 @@ namespace Madbox.Addressables.Tests
             AddressablesGateway gateway = CreateGateway(client);
 
             IAssetGroupHandle<TestAsset> group = CreateEnemyLabelGroupHandle(gateway);
-            Assert.AreEqual(2, group.TypedHandles.Count);
+            Assert.AreEqual(2, group.Assets.Count);
             group.Release();
             BuildReleaseCountAssertion(client, 2);
         }
@@ -134,6 +134,23 @@ namespace Madbox.Addressables.Tests
 
             handle.Release();
             Assert.AreEqual(1, client.ReleaseCalls.Count);
+        }
+
+        [Test]
+        public void Load_ByLabel_ReturnsImmediately_AndCompletesInBackground()
+        {
+            TestAddressableAssetClient client = CreateClient();
+            BuildEnemyCatalog(client);
+            client.ResolveLabelGate = new TaskCompletionSource<bool>();
+            AddressablesGateway gateway = CreateGateway(client);
+
+            IAssetGroupHandle<TestAsset> group = gateway.Load<TestAsset>(CreateEnemyLabelReference(), CancellationToken.None);
+            Assert.IsNotNull(group);
+            Assert.AreEqual(0, group.Assets.Count);
+
+            client.ResolveLabelGate.SetResult(true);
+            BuildWaitUntil(() => group.Assets.Count == 2, 1000);
+            Assert.AreEqual(2, group.Assets.Count);
         }
 
         [Test]
@@ -230,11 +247,25 @@ namespace Madbox.Addressables.Tests
             BuildReleaseCountAssertion(client, 1);
         }
 
+        private static void BuildWaitUntil(Func<bool> predicate, int timeoutMs)
+        {
+            DateTime start = DateTime.UtcNow;
+            while (!predicate())
+            {
+                if ((DateTime.UtcNow - start).TotalMilliseconds > timeoutMs)
+                {
+                    Assert.Fail("Condition was not satisfied in time.");
+                }
+                Thread.Sleep(10);
+            }
+        }
+
         private class TestAddressableAssetClient : IAddressablesAssetClient
         {
             public int SyncCalls { get; private set; }
             public bool ThrowOnSync { get; set; }
             public TaskCompletionSource<bool> LoadGate { get; set; }
+            public TaskCompletionSource<bool> ResolveLabelGate { get; set; }
             public readonly List<string> LoadCalls = new List<string>();
             public readonly List<string> ReleaseCalls = new List<string>();
             public readonly Dictionary<string, IReadOnlyList<string>> CatalogToKeys = new Dictionary<string, IReadOnlyList<string>>(StringComparer.Ordinal);
@@ -304,6 +335,10 @@ namespace Madbox.Addressables.Tests
             public Task<IReadOnlyList<string>> ResolveLabelAsync(Type assetType, AssetLabelReference label, CancellationToken cancellationToken)
             {
                 cancellationToken.ThrowIfCancellationRequested();
+                if (ResolveLabelGate != null)
+                {
+                    ResolveLabelGate.Task.GetAwaiter().GetResult();
+                }
                 if (CatalogToKeys.TryGetValue(label.labelString, out IReadOnlyList<string> keys))
                 {
                     return Task.FromResult(keys);

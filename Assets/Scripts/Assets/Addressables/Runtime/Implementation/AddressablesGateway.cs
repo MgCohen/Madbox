@@ -52,9 +52,9 @@ namespace Madbox.Addressables
         {
             GuardRuntimeInvariants();
             cancellationToken.ThrowIfCancellationRequested();
-            IReadOnlyList<string> keys = await ResolveLabelKeysAsync<T>(label, cancellationToken);
-            IReadOnlyList<IAssetHandle<T>> handles = await LoadLabelHandlesAsync<T>(keys, cancellationToken);
-            return new AssetGroupHandle<T>(handles);
+            AssetGroupHandle<T> group = new AssetGroupHandle<T>();
+            await CompleteGroupLoadAsync<T>(label, group, cancellationToken);
+            return group;
         }
 
         public IAssetHandle<T> Load<T>(AssetReference reference, CancellationToken cancellationToken = default) where T : UnityEngine.Object
@@ -78,9 +78,9 @@ namespace Madbox.Addressables
         {
             GuardRuntimeInvariants();
             cancellationToken.ThrowIfCancellationRequested();
-            IReadOnlyList<string> keys = ResolveLabelKeysAsync<T>(label, cancellationToken).GetAwaiter().GetResult();
-            IReadOnlyList<IAssetHandle<T>> handles = LoadLabelHandlesSync<T>(keys, cancellationToken);
-            return new AssetGroupHandle<T>(handles);
+            AssetGroupHandle<T> group = new AssetGroupHandle<T>();
+            _ = CompleteGroupLoadAsync<T>(label, group, cancellationToken);
+            return group;
         }
 
         private async Task InitializeCoreAsync(CancellationToken cancellationToken)
@@ -115,28 +115,24 @@ namespace Madbox.Addressables
             }
         }
 
-        private async Task<IReadOnlyList<IAssetHandle<T>>> LoadLabelHandlesAsync<T>(IReadOnlyList<string> keys, CancellationToken cancellationToken) where T : UnityEngine.Object
+        private async Task CompleteGroupLoadAsync<T>(AssetLabelReference label, AssetGroupHandle<T> group, CancellationToken cancellationToken) where T : UnityEngine.Object
         {
-            List<IAssetHandle<T>> handles = new List<IAssetHandle<T>>(keys.Count);
-            for (int i = 0; i < keys.Count; i++)
+            try
             {
-                handles.Add(await assetReferenceHandler.AcquireAsync<T>(keys[i], cancellationToken));
+                GuardLabel(label);
+                IReadOnlyList<string> keys = await ResolveLabelKeysAsync<T>(label, cancellationToken);
+                for (int i = 0; i < keys.Count; i++)
+                {
+                    IAssetHandle<T> handle = Load<T>(new AssetReference(keys[i]), cancellationToken);
+                    group.AddHandle(handle);
+                }
+
+                await group.CompleteAsync(cancellationToken);
             }
-
-            return handles;
-        }
-
-        private IReadOnlyList<IAssetHandle<T>> LoadLabelHandlesSync<T>(IReadOnlyList<string> keys, CancellationToken cancellationToken) where T : UnityEngine.Object
-        {
-            List<IAssetHandle<T>> handles = new List<IAssetHandle<T>>(keys.Count);
-            for (int i = 0; i < keys.Count; i++)
+            catch (Exception exception)
             {
-                AssetReference reference = new AssetReference(keys[i]);
-                IAssetHandle<T> handle = Load<T>(reference, cancellationToken);
-                handles.Add(handle);
+                group.Fail(exception);
             }
-
-            return handles;
         }
 
         private async Task CompleteLoadAsync<T>(string key, AssetHandle<T> handle, CancellationToken cancellationToken) where T : UnityEngine.Object
