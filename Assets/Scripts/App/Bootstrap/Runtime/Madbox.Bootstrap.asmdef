@@ -15,6 +15,7 @@
                        "Madbox.Addressables.Container",
                        "Madbox.Addressables",
                        "Madbox.Gold.Container",
+                       "Madbox.LiveOps.Container",
                        "Madbox.GameView.Container",
                        "Madbox.GameView.Runtime",
                        "Madbox.MainMenu.Runtime",

@@ -1,6 +1,7 @@
 using System;
 using Madbox.App.GameView.Container;
 using Madbox.Gold.Container;
+using Madbox.LiveOps.Container;
 using Madbox.Scope;
 using Scaffold.Events.Container;
 using Scaffold.Navigation;
@@ -34,6 +35,9 @@ namespace Madbox.App.Bootstrap
 
             GoldInstaller goldInstaller = new GoldInstaller();
             goldInstaller.Install(builder);
+
+            LiveOpsInstaller liveOpsInstaller = new LiveOpsInstaller();
+            liveOpsInstaller.Install(builder);
 
             GameViewInstaller gameViewInstaller = new GameViewInstaller();
             gameViewInstaller.Install(builder);
