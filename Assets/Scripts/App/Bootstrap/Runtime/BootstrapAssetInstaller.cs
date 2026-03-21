@@ -1,4 +1,4 @@
-﻿using Madbox.Addressables.Container;
+using Madbox.Addressables.Container;
 using Madbox.Addressables.Contracts;
 using Madbox.Bootstrap;
 using Madbox.Scope;
@@ -25,17 +25,17 @@ namespace Madbox.App.Bootstrap
             RegisterProvider<NavigationAssetProvider>(builder);
         }
 
-        private void RegisterProvider<T>(IContainerBuilder builder) where T: IAssetProvider
+        private void RegisterProvider<T>(IContainerBuilder builder) where T: IAssetPreloader
         {
             builder.Register<T>(Lifetime.Scoped).AsImplementedInterfaces().AsSelf();
         }
 
         protected override async Task OnCompletedAsync(IObjectResolver resolver, CancellationToken cancellationToken)
         {
-            IEnumerable<IAssetProvider> resolvedProviders = resolver.Resolve<IEnumerable<IAssetProvider>>();
-            foreach (IAssetProvider provider in resolvedProviders)
+            IEnumerable<IAssetPreloader> preloaders = resolver.Resolve<IEnumerable<IAssetPreloader>>();
+            foreach (IAssetPreloader preloader in preloaders)
             {
-                await provider.PreloadAsync(cancellationToken);
+                await preloader.PreloadAsync(cancellationToken);
             }
         }
 

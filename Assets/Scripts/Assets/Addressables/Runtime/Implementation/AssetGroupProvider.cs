@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -8,7 +8,7 @@ using VContainer;
 
 namespace Madbox.Addressables
 {
-    public abstract class AssetGroupProvider<TAsset> : IAssetGroupProvider<TAsset>, IAssetRegistrar where TAsset : UnityEngine.Object
+    public abstract class AssetGroupProvider<TAsset> : IAssetGroupProvider<TAsset>, IAssetPreloader, IAssetRegistrar where TAsset : UnityEngine.Object
     {
         private readonly IAddressablesGateway gateway;
         private readonly List<TAsset> loadedAssets = new List<TAsset>();

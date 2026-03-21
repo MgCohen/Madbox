@@ -1,13 +1,17 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using VContainer;
 
 namespace Madbox.Addressables.Contracts
 {
-    public interface IAssetProvider
+    public interface IAssetPreloader
     {
         Task PreloadAsync(CancellationToken cancellationToken);
+    }
+
+    public interface IAssetProvider
+    {
     }
 
     public interface IAssetProvider<TAsset> : IAssetProvider where TAsset : UnityEngine.Object

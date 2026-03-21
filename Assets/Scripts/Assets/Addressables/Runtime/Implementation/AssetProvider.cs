@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Madbox.Addressables.Contracts;
@@ -7,18 +7,17 @@ using VContainer;
 
 namespace Madbox.Addressables
 {
-    public abstract class AssetProvider<TAsset> : IAssetProvider<TAsset>, IAssetRegistrar where TAsset : UnityEngine.Object
+    public abstract class AssetProvider<TAsset> : IAssetProvider<TAsset>, IAssetPreloader, IAssetRegistrar where TAsset : UnityEngine.Object
     {
-        private readonly IAddressablesGateway gateway;
-
         protected AssetProvider(IAddressablesGateway gateway)
         {
             this.gateway = gateway ?? throw new ArgumentNullException(nameof(gateway));
         }
 
-        protected TAsset LoadedAsset { get; private set; }
-
         protected abstract AssetReference AssetKey { get; }
+        protected TAsset LoadedAsset { get; private set; }
+        
+        private readonly IAddressablesGateway gateway;
 
         public async Task PreloadAsync(CancellationToken cancellationToken)
         {
