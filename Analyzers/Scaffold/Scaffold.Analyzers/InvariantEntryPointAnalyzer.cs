@@ -64,8 +64,51 @@ namespace Scaffold.Analyzers
             if (symbol.MethodKind != MethodKind.Ordinary) return false;
             if (symbol.ContainingType?.TypeKind == TypeKind.Interface) return false;
             if (symbol.Parameters.Length == 0) return false;
+            if (ImplementsUnityEventSystemInterfaceMethod(symbol)) return false;
 
             return IsRuntimePath(methodDeclaration.SyntaxTree.FilePath);
+        }
+
+        private static bool ImplementsUnityEventSystemInterfaceMethod(IMethodSymbol symbol)
+        {
+            if (symbol == null) return false;
+            if (symbol.ContainingType == null) return false;
+
+            if (symbol.ExplicitInterfaceImplementations.Any(IsUnityEventSystemInterfaceMember))
+            {
+                return true;
+            }
+
+            foreach (var iface in symbol.ContainingType.AllInterfaces)
+            {
+                if (IsUnityEventSystemInterface(iface) == false) continue;
+
+                foreach (var member in iface.GetMembers().OfType<IMethodSymbol>())
+                {
+                    var implementation = symbol.ContainingType.FindImplementationForInterfaceMember(member) as IMethodSymbol;
+                    if (SymbolEqualityComparer.Default.Equals(implementation, symbol))
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        private static bool IsUnityEventSystemInterfaceMember(IMethodSymbol methodSymbol)
+        {
+            if (methodSymbol == null) return false;
+            return IsUnityEventSystemInterface(methodSymbol.ContainingType);
+        }
+
+        private static bool IsUnityEventSystemInterface(INamedTypeSymbol interfaceSymbol)
+        {
+            if (interfaceSymbol == null) return false;
+            if (interfaceSymbol.TypeKind != TypeKind.Interface) return false;
+
+            var namespaceName = interfaceSymbol.ContainingNamespace?.ToDisplayString();
+            return string.Equals(namespaceName, "UnityEngine.EventSystems", StringComparison.Ordinal);
         }
 
         private static bool IsRuntimePath(string filePath)

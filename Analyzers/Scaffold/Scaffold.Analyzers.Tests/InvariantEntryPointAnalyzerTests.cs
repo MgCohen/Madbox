@@ -231,4 +231,42 @@ namespace Madbox.Model
             Directory.Delete(path, true);
         }
     }
+
+    [Fact]
+    public async Task NoDiagnostic_ForUnityEventSystemInterfaceImplementations()
+    {
+        const string source = @"
+namespace UnityEngine.EventSystems
+{
+    public class PointerEventData {}
+
+    public interface IPointerClickHandler
+    {
+        void OnPointerClick(PointerEventData eventData);
+    }
+}
+
+namespace Scaffold.App.GameView
+{
+    using UnityEngine.EventSystems;
+
+    public class VirtualJoystickInput : IPointerClickHandler
+    {
+        public void OnPointerClick(PointerEventData eventData)
+        {
+            Handle(eventData);
+        }
+
+        private void Handle(PointerEventData eventData) { }
+    }
+}";
+
+        var diagnostics = await AnalyzerTestHarness.GetDiagnosticsByIdAsync(
+            source,
+            @"C:\Repo\Assets\Scripts\App\GameView\Runtime\VirtualJoystickInput.cs",
+            new InvariantEntryPointAnalyzer(),
+            InvariantEntryPointAnalyzer.DiagnosticId);
+
+        Assert.Empty(diagnostics);
+    }
 }
