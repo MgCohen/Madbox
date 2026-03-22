@@ -24,10 +24,10 @@ namespace Madbox.App.GameView.Tests
             list.arraySize = 2;
             SerializedProperty e0 = list.GetArrayElementAtIndex(0);
             e0.FindPropertyRelative("attribute").objectReferenceValue = damageAttr;
-            e0.FindPropertyRelative("value").floatValue = 10f;
+            e0.FindPropertyRelative("baseValue").floatValue = 10f;
             SerializedProperty e1 = list.GetArrayElementAtIndex(1);
             e1.FindPropertyRelative("attribute").objectReferenceValue = speedAttr;
-            e1.FindPropertyRelative("value").floatValue = 7f;
+            e1.FindPropertyRelative("baseValue").floatValue = 7f;
             so.ApplyModifiedPropertiesWithoutUndo();
 
             Assert.That(data.Damage, Is.EqualTo(10f).Within(0.0001f));

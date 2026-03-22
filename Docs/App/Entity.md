@@ -2,7 +2,7 @@
 
 ## TL;DR
 
-- Purpose: Reusable entity view data (float attributes), behavior runner (first-accept-wins stack), and animator sync from attribute changes.
+- Purpose: Reusable entity view data (float attributes with additive modifiers), behavior runner (first-accept-wins stack), and animator sync from attribute changes.
 - Location: `Assets/Scripts/App/Entity/Runtime/` (`Madbox.Entity` assembly), tests in `Assets/Scripts/App/Entity/Tests/` (`Madbox.Entity.Tests`).
 - Depends on: `Madbox.Animation` (for `EntityAttributeAnimatorDriver`).
 - Used by: `Madbox.GameView` (`PlayerData`, `EnemyData`, `ProjectileData`, and thin subclasses of generic runners/drivers).
@@ -12,8 +12,9 @@
 | Symbol | Role |
 |--------|------|
 | `EntityAttribute` | Base ScriptableObject id for a stat/flag (asset name as logical id via `AttributeName`). |
-| `EntityAttributeEntry` | Serialized list item: attribute reference, float value, optional `UnityEvent<float>`. |
-| `EntityData` | `attributeEntries`, `Get/SetFloat/BoolAttribute`, `AttributeValueChanged`. Subclass for typed accessors. |
+| `EntityAttributeEntry` | Serialized list item: attribute reference, base float, effective = base + modifiers, optional `UnityEvent<float>`. |
+| `EntityAttributeModifierEntry` | Serializable pair: attribute reference + additive delta. |
+| `EntityData` | `attributeEntries`, `attributeModifiers`, `Add/Remove/ClearAttributeModifier`, `Get/SetFloat/BoolAttribute` (set updates base), `AttributeValueChanged` (effective value). Recomputes on modifier changes, base changes, and after deserialize. Subclass for typed accessors. |
 | `IEntityBehavior<TData,TInput>` | `TryAcceptControl`, `Execute`, `OnQuit` for ordered behaviors. |
 | `IEntityFrameInputProvider<TInput>` | `GetFrameInput()` for runners that need per-frame context. |
 | `EntityBehaviorRunner<TData,TInput>` | Runs behaviors in order; tracks active flow and `OnQuit` on switch. |
