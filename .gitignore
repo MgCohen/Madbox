@@ -17,6 +17,8 @@ SavesXcode
 
 # Visual Studio 2015 cache directory
 /.vs/
+# Nested solutions (root /.vs/ does not apply outside repo root)
+LiveOps/.vs/
 /.vscode/
 /.idea/
 JetBrains.meta
