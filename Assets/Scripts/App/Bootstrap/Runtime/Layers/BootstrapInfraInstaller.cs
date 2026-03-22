@@ -28,24 +28,15 @@ namespace Madbox.App.Bootstrap
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            RunInfraInstallers(builder);
-        }
-
-        private void RunInfraInstallers(IContainerBuilder builder)
-        {
             InstallSharedInfra(builder);
         }
 
         private void InstallSharedInfra(IContainerBuilder builder)
         {
-            EventsInstaller eventsInstaller = new EventsInstaller();
-            eventsInstaller.Install(builder);
-            NavigationInstaller navigationInstaller = new NavigationInstaller(viewHolder);
-            navigationInstaller.Install(builder);
-            UgsInstaller ugsInstaller = new UgsInstaller();
-            ugsInstaller.Install(builder);
-            CloudCodeInstaller cloudCodeInstaller = new CloudCodeInstaller();
-            cloudCodeInstaller.Install(builder);
+            Install(builder, new EventsInstaller());
+            Install(builder, new NavigationInstaller(viewHolder));
+            Install(builder, new UgsInstaller());
+            Install(builder, new CloudCodeInstaller());
         }
     }
 }

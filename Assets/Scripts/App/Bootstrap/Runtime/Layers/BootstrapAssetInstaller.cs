@@ -19,10 +19,10 @@ namespace Madbox.App.Bootstrap
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            AddressablesInstaller installer = new AddressablesInstaller();
-            installer.Install(builder);
+            Install(builder, new AddressablesInstaller());
 
             RegisterProvider<NavigationAssetProvider>(builder);
+            RegisterProvider<LevelAssetProvider>(builder);
         }
 
         private void RegisterProvider<T>(IContainerBuilder builder) where T: IAssetPreloader

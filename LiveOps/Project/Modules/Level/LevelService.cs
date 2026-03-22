@@ -43,14 +43,14 @@ namespace GameModule.Modules.Level
             if (index < 0)
             {
                 _logger.LogWarning("[LevelService] Attempted to complete level {AttemptedLevel} but it is not in the valid levels list", request.LevelId);
-                return await _moduleRequestHandler.ResolveResponse(context, request, new CompleteLevelResponse(false));
+                return await _moduleRequestHandler.ResolveResponse(context, request, SnapshotResponse(false, persistence, config, null));
             }
 
             HashSet<int> completed = new HashSet<int>(persistence.CompletedLevelIds);
             if (completed.Contains(request.LevelId))
             {
                 _logger.LogWarning("[LevelService] Level {LevelId} is already completed", request.LevelId);
-                return await _moduleRequestHandler.ResolveResponse(context, request, new CompleteLevelResponse(false));
+                return await _moduleRequestHandler.ResolveResponse(context, request, SnapshotResponse(false, persistence, config, null));
             }
 
             if (index > 0)
@@ -59,7 +59,7 @@ namespace GameModule.Modules.Level
                 if (!completed.Contains(previousId))
                 {
                     _logger.LogWarning("[LevelService] Previous level {PreviousId} is not completed for {AttemptedLevel}", previousId, request.LevelId);
-                    return await _moduleRequestHandler.ResolveResponse(context, request, new CompleteLevelResponse(false));
+                    return await _moduleRequestHandler.ResolveResponse(context, request, SnapshotResponse(false, persistence, config, null));
                 }
             }
 
@@ -68,8 +68,14 @@ namespace GameModule.Modules.Level
 
             _logger.LogInformation("[LevelService] Level {LevelId} completed successfully for player {PlayerId}", request.LevelId, context.PlayerId);
 
-            CompleteLevelResponse response = new CompleteLevelResponse(true, request.LevelId);
+            CompleteLevelResponse response = SnapshotResponse(true, persistence, config, request.LevelId);
             return await _moduleRequestHandler.ResolveResponse(context, request, response);
+        }
+
+        private static CompleteLevelResponse SnapshotResponse(bool succeeded, LevelPersistence persistence, LevelConfig config, int? completedLevelId)
+        {
+            LevelGameData data = new LevelGameData(persistence, config);
+            return new CompleteLevelResponse(succeeded, data, completedLevelId);
         }
 
         private static int IndexOfLevelId(IReadOnlyList<int> levels, int levelId)

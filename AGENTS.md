@@ -1,4 +1,4 @@
-﻿# Madbox - AI Agent Instructions
+# Madbox - AI Agent Instructions
 
 This is the **primary context file** for all AI coding agents in this repository. Read it fully before making any changes. It takes precedence over any other instructions.
 
@@ -40,7 +40,7 @@ Directory layout, module relationships, and architectural structure are document
 
 ## How to Test
 
-- **Milestone quality gate (default)**: Run `.agents/scripts/validate-changes.cmd` from the repository root to execute EditMode tests, PlayMode tests, and analyzer checks in one command (always runs PowerShell with `-ExecutionPolicy Bypass`).
+- **Milestone quality gate (default)**: Run `.agents/scripts/validate-changes.cmd` from the repository root to execute EditMode tests, PlayMode tests, and analyzer checks in one command (always runs PowerShell with `-ExecutionPolicy Bypass`). On Windows PowerShell 5.x, `&&` is not valid for chaining—use `;`, wrap with `cmd /c "…"`, or run from repo root; see `Docs/Testing.md`.
 - **Headless EditMode**: Run `.agents/scripts/run-editmode-tests.ps1` from the repository root for EditMode test execution. If your execution policy blocks scripts, invoke via `powershell -NoProfile -ExecutionPolicy Bypass -File ".\.agents\scripts\run-editmode-tests.ps1"`. The script prints a pass/fail report and deletes its temporary XML/log files before exiting.
 - **Headless PlayMode**: Run `.agents/scripts/run-playmode-tests.ps1` from the repository root for PlayMode test execution. If your execution policy blocks scripts, invoke via `powershell -NoProfile -ExecutionPolicy Bypass -File ".\.agents\scripts\run-playmode-tests.ps1"`. The script prints a pass/fail report and deletes its temporary XML/log files before exiting.
 - **Unity path resolution**: `run-editmode-tests.ps1` and `run-playmode-tests.ps1` resolve Unity in this order: `-UnityPath`, `UNITY_PATH`, then auto-detect based on `ProjectSettings/ProjectVersion.txt`.

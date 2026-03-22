@@ -14,6 +14,23 @@ Run from repository root:
 & ".\.agents\scripts\validate-changes.cmd"
 ```
 
+### PowerShell 5.x and command chaining
+
+Windows PowerShell 5.x (common default on Windows) does **not** support `&&` as a statement separator; using it fails parsing before any script runs. PowerShell 7+ supports `&&`.
+
+- **Simplest**: stay at the repository root and run the gate as above (no `cd` needed).
+- **Chain in PS 5**: use `;` instead of `&&`, or delegate to cmd when you need `&&` short-circuiting:
+
+```powershell
+Set-Location "c:\Unity\Madbox"; cmd /c ".agents\scripts\validate-changes.cmd"
+```
+
+```powershell
+cmd /c "cd /d c:\Unity\Madbox && .agents\scripts\validate-changes.cmd"
+```
+
+`cd /d` is a **cmd.exe** idiom; in PowerShell use `Set-Location` (or `cd` without `/d`).
+
 Current pipeline order:
 
 1. `.agents/scripts/check-scripts-asmdef-references.ps1`

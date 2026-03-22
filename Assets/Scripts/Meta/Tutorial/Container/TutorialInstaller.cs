@@ -10,7 +10,7 @@ namespace Madbox.Tutorial.Container
     {
         public void Install(IContainerBuilder builder)
         {
-            builder.Register<TutorialService>(Lifetime.Scoped).AsSelf().As<IGameClientModule>().As<IAsyncLayerInitializable>();
+            builder.Register<TutorialService>(Lifetime.Scoped).AsSelf().AsImplementedInterfaces();
         }
     }
 }

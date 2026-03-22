@@ -21,11 +21,12 @@
         "Madbox.Ads.Container",
         "Madbox.Tutorial",
         "Madbox.Tutorial.Container",
-        "Madbox.Level",
         "Madbox.Level.Container",
+        "Madbox.Levels",
         "Madbox.LiveOps",
         "Madbox.LiveOps.Container",
         "Madbox.MainMenu.Runtime",
+        "Madbox.SceneFlow",
         "Scaffold.Types",
         "Unity.Addressables",
         "UnityEngine.UI"
