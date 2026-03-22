@@ -74,16 +74,6 @@ Coverage goals and best practices are documented in [AutomatedTesting.md](Automa
 - Project already open in another Unity process: close it and rerun.
 - Timeout: rerun with a larger timeout while investigating the root cause.
 
-## Agentic task loop (Cursor CLI)
-
-For a scripted loop that reads tasks from a file, runs the Cursor CLI agent, collects optional input, runs a deterministic evaluation script, and then routes to either a fix or git agent step, use:
-
-```bash
-./.agents/scripts/run-agentic-task-loop.sh -w "$(pwd)" -e /path/to/eval.sh tasks.txt
-```
-
-See the header comment in `.agents/scripts/run-agentic-task-loop.sh` for environment variables (`AGENT_RUNNER`, `GET_INPUT_CMD`, eval exit codes). A smoke test lives at `.agents/scripts/tests/run-agentic-task-loop-smoke.sh`.
-
 ## Related Files
 
 - `.agents/scripts/check-unity-compilation.ps1`
@@ -96,6 +86,5 @@ See the header comment in `.agents/scripts/run-agentic-task-loop.sh` for environ
 - `.agents/scripts/run-coverage-audit.ps1`
 - `.agents/scripts/validate-changes.cmd`
 - `.agents/scripts/validate-changes.ps1`
-- `.agents/scripts/run-agentic-task-loop.sh`
 - `Architecture.md`
 - `AGENTS.md`

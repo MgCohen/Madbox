@@ -152,10 +152,6 @@ The official docs include a **minimal Node.js client** that spawns `agent acp`, 
 2. **Orchestrators** that need structured control: permissions, session lifecycle, cancel, and streaming — beyond a single `agent -p` invocation.
 3. **Internal tools** that embed the agent as a child process and treat it as a service.
 
-### Related: local loop in this repository
-
-For a file-driven bash loop (code agent → eval → fix/git) without ACP, see `.agents/scripts/run-agentic-task-loop.sh` and `Docs/Testing.md`.
-
 ---
 
 ## 3. Cloud Agents API
