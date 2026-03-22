@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using GameModuleDTO.GameModule;
 using GameModuleDTO.ModuleRequests;
+using GameModuleDTO.Modules.Level;
 using Madbox.CloudCode;
 using Madbox.Scope.Contracts;
 using VContainer;
@@ -50,7 +51,25 @@ namespace Madbox.LiveOps
             cancellationToken.ThrowIfCancellationRequested();
             Dictionary<string, object> payload = new Dictionary<string, object> { { "request", request } };
             Task<TResponse> endpointCall = cloudCodeModuleService.CallEndpointAsync<TResponse>(request.ModuleName, request.FunctionName, payload: payload, cancellationToken: cancellationToken);
-            return await endpointCall.ConfigureAwait(false);
+            TResponse response = await endpointCall.ConfigureAwait(false);
+            ApplyCompleteLevelSnapshot(response);
+            return response;
+        }
+
+        private void ApplyCompleteLevelSnapshot<TResponse>(TResponse response) where TResponse : ModuleResponse
+        {
+            if (gameData == null)
+            {
+                return;
+            }
+
+            if (response is not CompleteLevelResponse complete || complete.Data == null)
+            {
+                return;
+            }
+
+            gameData.ModulesData.RemoveAll(static m => m is LevelGameData);
+            gameData.AddModuleData(complete.Data);
         }
 
         private async Task LoadInitialGameDataAsync(CancellationToken cancellationToken)
