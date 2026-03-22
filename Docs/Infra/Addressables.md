@@ -1,10 +1,10 @@
-﻿# Scaffold Infra Addressables
+# Scaffold Infra Addressables
 
 ## TL;DR
 
 - Purpose: keep Addressables runtime small and focused on loading APIs.
-- Location: `Assets/Scripts/Infra/Addressables/Runtime/`.
-- Depends on: `Madbox.Scope`, `Unity.Addressables`, `VContainer`, `Scaffold.Maps`.
+- Location: `Assets/Scripts/Assets/Addressables/Runtime/`.
+- Depends on: `Madbox.Scope`, `Unity.Addressables`, `VContainer`, `Scaffold.Maps`. Editor also references `com.unity.services.ccd.management` for CCD **Build & Release** (see `Packages/manifest.json`).
 - Used by: bootstrap startup and runtime services that load assets.
 
 ## Responsibilities
@@ -46,6 +46,23 @@ This module no longer owns preload config parsing/build/apply inside the gateway
 - Concrete classes can implement both interfaces.
 - Concrete providers may inject `IAddressablesGateway` in constructor; the interface itself does not require it.
 
+## Remote catalog and Cloud Content Delivery (CCD)
+
+Addressable Asset Settings enable **Build Remote Catalog** and **CCD** (`Assets/AddressableAssetsData/AddressableAssetSettings.asset`). **Remote Catalog Build Path** and **Remote Catalog Load Path** use the same profile variables as remote bundles (**RemoteBuildPath** / **RemoteLoadPath**).
+
+Sample remote group: **Remote Weapons (Sample)** holds `GreatSword`, `CurvedSword`, and `LongSword` (prefabs under `Assets/Prefabs/Weapons/`) with **RemoteBuildPath** and **RemoteLoadPath** so they ship from the remote host, not **Default Local Group**.
+
+**Package:** `com.unity.services.ccd.management` (CCD Management) is listed in `Packages/manifest.json` for Addressables **Build & Release** in the Editor.
+
+**Editor workflow (required for a working CCD URL):**
+
+1. Link the Unity project to your **Unity Cloud** project (**Edit > Project Settings > Services**).
+2. In the Unity Dashboard, open **Cloud Content Delivery**, create a **development** bucket (for example `Madbox Addressables Sample`). Prefer a **public** bucket for first tests; **private** buckets need `Addressables.WebRequestOverride` to add the bucket access token header (see Unity’s CCD + Addressables documentation).
+3. Open **Window > Asset Management > Addressables > Groups > Manage Profiles**. Set the **Remote** path source to **Cloud Content Delivery** and select that bucket so **RemoteLoadPath** becomes the HTTPS `client-api.unity3dusercontent.com` entry-by-path base (Unity fills this; do not commit real project or bucket IDs as plain text in shared docs).
+4. Run **Build > Build & Release** to upload built content and create a **release** (updates the **`latest`** badge). Alternatively: **New Build > Default Build Script**, then Dashboard **Upload** the **RemoteBuildPath** output and **Create Release**.
+
+Runtime startup still runs `SyncCatalogAndContentAsync` on `IAddressablesGateway` initialization; CCD only changes where catalog and bundle URLs resolve.
+
 ## Best Practices
 
 - Keep all Addressables loads through `IAddressablesGateway`.
@@ -69,12 +86,13 @@ Run from repository root:
 
 - `Architecture.md`
 - `Docs/Infra/Scope.md`
-- `Assets/Scripts/Infra/Addressables/Runtime/Contracts/IAddressablesGateway.cs`
-- `Assets/Scripts/Infra/Addressables/Runtime/Contracts/IAssetProvider.cs`
-- `Assets/Scripts/Infra/Addressables/Runtime/Implementation/AddressablesGateway.cs`
-- `Assets/Scripts/Infra/Addressables/Runtime/Implementation/AddressablesAssetReferenceHandler.cs`
+- `Assets/Scripts/Assets/Addressables/Runtime/Contracts/IAddressablesGateway.cs`
+- `Assets/Scripts/Assets/Addressables/Runtime/Contracts/IAssetProvider.cs`
+- `Assets/Scripts/Assets/Addressables/Runtime/Implementation/AddressablesGateway.cs`
+- `Assets/Scripts/Assets/Addressables/Runtime/Implementation/AddressablesAssetReferenceHandler.cs`
 
 ## Changelog
 
+- 2026-03-22: Documented CCD remote catalog setup, **Remote Weapons (Sample)** group, and corrected runtime source paths under `Assets/Scripts/Assets/Addressables/`.
 - 2026-03-21: Moved preload ownership out of `AddressablesGateway` to provider/registrar bootstrap flow; removed preload config pipeline files and contracts.
 - 2026-03-18: Updated for gateway-centered simplification and reference-first loading API.

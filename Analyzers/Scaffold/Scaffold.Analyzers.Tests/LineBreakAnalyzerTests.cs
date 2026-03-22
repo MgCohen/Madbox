@@ -88,6 +88,89 @@ namespace Demo
     }
 
     [Fact]
+    public async Task Diagnostic_WhenConstructorInitializerStartsOnNewLine()
+    {
+        const string source = @"
+namespace Demo
+{
+    public class Sample
+    {
+        public Sample(string value)
+            : base(value)
+        {
+        }
+    }
+}";
+
+        var diagnostics = await AnalyzerTestHarness.GetDiagnosticsByIdAsync(
+            source,
+            @"C:\Repo\Assets\Scripts\Core\Sample.cs",
+            new LineBreakAnalyzer(),
+            LineBreakAnalyzer.DiagnosticId);
+
+        Assert.Single(diagnostics);
+    }
+
+    [Fact]
+    public async Task Diagnostic_WhenConstructorInitializerArgumentsSpanMultipleLines()
+    {
+        const string source = @"
+namespace Demo
+{
+    public class Sample : Base
+    {
+        public Sample(string value) : base(
+            value)
+        {
+        }
+    }
+
+    public class Base
+    {
+        protected Base(string value)
+        {
+        }
+    }
+}";
+
+        var diagnostics = await AnalyzerTestHarness.GetDiagnosticsByIdAsync(
+            source,
+            @"C:\Repo\Assets\Scripts\Core\Sample.cs",
+            new LineBreakAnalyzer(),
+            LineBreakAnalyzer.DiagnosticId);
+
+        Assert.Single(diagnostics);
+    }
+
+    [Fact]
+    public async Task NoDiagnostic_WhenConstructorInitializerIsSingleLine()
+    {
+        const string source = @"
+namespace Demo
+{
+    public class Sample : Base
+    {
+        public Sample(string value) : base(value) { }
+        public Sample() : base() { }
+    }
+
+    public class Base
+    {
+        protected Base() { }
+        protected Base(string value) { }
+    }
+}";
+
+        var diagnostics = await AnalyzerTestHarness.GetDiagnosticsByIdAsync(
+            source,
+            @"C:\Repo\Assets\Scripts\Core\Sample.cs",
+            new LineBreakAnalyzer(),
+            LineBreakAnalyzer.DiagnosticId);
+
+        Assert.Empty(diagnostics);
+    }
+
+    [Fact]
     public async Task Diagnostic_WhenMethodWhereClauseSpansMultipleLines()
     {
         const string source = @"

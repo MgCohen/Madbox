@@ -26,11 +26,11 @@ namespace Madbox.GameEngine
 
         var diagnostics = await AnalyzerTestHarness.GetDiagnosticsByIdAsync(
             source,
-            @"C:\Repo\Assets\Scripts\Core\GameEngine\Runtime\Game.cs",
+            @"C:\Repo\Assets\Scripts\Core\GameEngine\Runtime\GameEngine.cs",
             new TypePlacementAnalyzer(),
             TypePlacementAnalyzer.DiagnosticId);
 
-        Assert.Single(diagnostics);
+        Assert.Empty(diagnostics);
     }
 
     [Fact]
@@ -54,7 +54,7 @@ namespace Madbox.GameEngine
 
         var diagnostics = await AnalyzerTestHarness.GetDiagnosticsByIdAsync(
             source,
-            @"C:\Repo\Assets\Scripts\Core\GameEngine\Runtime\Game.cs",
+            @"C:\Repo\Assets\Scripts\Core\GameEngine\Runtime\GameEngine.cs",
             new TypePlacementAnalyzer(),
             TypePlacementAnalyzer.DiagnosticId);
 
@@ -82,7 +82,7 @@ namespace Madbox.GameEngine
 
         var diagnostics = await AnalyzerTestHarness.GetDiagnosticsByIdAsync(
             source,
-            @"C:\Repo\Assets\Scripts\Core\GameEngine\Runtime\Game.cs",
+            @"C:\Repo\Assets\Scripts\Core\GameEngine\Runtime\GameEngine.cs",
             new TypePlacementAnalyzer(),
             TypePlacementAnalyzer.DiagnosticId);
 
@@ -115,7 +115,7 @@ namespace Madbox.GameEngine
 
         var diagnostics = await AnalyzerTestHarness.GetDiagnosticsByIdAsync(
             source,
-            @"C:\Repo\Assets\Scripts\Core\GameEngine\Runtime\Game.cs",
+            @"C:\Repo\Assets\Scripts\Core\GameEngine\Runtime\GameEngine.cs",
             new TypePlacementAnalyzer(),
             TypePlacementAnalyzer.DiagnosticId);
 
@@ -138,7 +138,7 @@ namespace Madbox.GameEngine
 
         var diagnostics = await AnalyzerTestHarness.GetDiagnosticsByIdAsync(
             source,
-            @"C:\Repo\Assets\Scripts\Core\GameEngine\Runtime\Game.cs",
+            @"C:\Repo\Assets\Scripts\Core\GameEngine\Runtime\GameEngine.cs",
             new TypePlacementAnalyzer(),
             TypePlacementAnalyzer.DiagnosticId);
 

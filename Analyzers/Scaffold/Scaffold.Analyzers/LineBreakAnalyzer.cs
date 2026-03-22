@@ -73,6 +73,20 @@ namespace Scaffold.Analyzers
             {
                 var diagnostic = Diagnostic.Create(rule, constructorDeclaration.Identifier.GetLocation());
                 context.ReportDiagnostic(diagnostic);
+                return;
+            }
+
+            if (constructorDeclaration.Initializer == null)
+            {
+                return;
+            }
+
+            var initSpan = constructorDeclaration.Initializer.GetLocation().GetLineSpan();
+            if (initSpan.StartLinePosition.Line != paramEndLine ||
+                initSpan.StartLinePosition.Line != initSpan.EndLinePosition.Line)
+            {
+                var diagnostic = Diagnostic.Create(rule, constructorDeclaration.Identifier.GetLocation());
+                context.ReportDiagnostic(diagnostic);
             }
         }
 
