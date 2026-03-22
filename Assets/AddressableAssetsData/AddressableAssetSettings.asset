@@ -69,7 +69,7 @@ MonoBehaviour:
       - m_Id: 1c75832286464fb49a0c199f933e520a
         m_Value: '[UnityEngine.AddressableAssets.Addressables.BuildPath]/[BuildTarget]'
       - m_Id: 2cc5e8760dd088d4cbef12da501c8f63
-        m_Value: http://localhost/[BuildTarget]
+        m_Value: https://eaa7b29d-2917-48ff-99dc-9f38ea1ef705.client-api.unity3dusercontent.com/client_api/v1/environments/production/buckets/56238143-1efc-4ca0-a07d-cac5bc17245e/release_by_badge/latest/entry_by_path/content/?path=[BuildTarget]
       - m_Id: 95dd9a9654b75984cb933bffd48f9024
         m_Value: '{UnityEngine.AddressableAssets.Addressables.RuntimePath}/[BuildTarget]'
       - m_Id: f1f75230de5781b49a378eac25a84de0
