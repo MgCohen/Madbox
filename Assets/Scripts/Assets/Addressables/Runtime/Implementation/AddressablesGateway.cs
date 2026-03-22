@@ -15,7 +15,7 @@ namespace Madbox.Addressables
         private readonly IAssetReferenceHandler assetReferenceHandler;
         private readonly object initSync = new object();
 
-        private Task initializationTask;
+        private bool initialized;
 
         public AddressablesGateway(IAddressablesAssetClient client, IAssetReferenceHandler assetReferenceHandler)
         {
@@ -83,35 +83,37 @@ namespace Madbox.Addressables
             return group;
         }
 
-        private Task InitializeCoreAsync(CancellationToken cancellationToken)
+        private async Task InitializeCoreAsync(CancellationToken cancellationToken)
         {
-            lock (initSync)
-            {
-                if (initializationTask != null)
-                {
-                    return initializationTask;
-                }
-
-                initializationTask = RunInitializationPipelineAsync(cancellationToken);
-                return initializationTask;
-            }
-        }
-
-        private async Task RunInitializationPipelineAsync(CancellationToken cancellationToken)
-        {
-            UnityEngine.Debug.Log("[AddressablesGateway] Initializing Addressables Gateway...");
+            UnityEngine.Debug.Log($"[AddressablesGateway] InitializeCoreAsync called. Current instance: {this.GetHashCode()}, initialized={initialized}");
             cancellationToken.ThrowIfCancellationRequested();
 
+            lock (initSync)
+            {
+                if (initialized)
+                {
+                    UnityEngine.Debug.Log($"[AddressablesGateway] Instance {this.GetHashCode()} is already initialized, skipping sync.");
+                    return;
+                }
+            }
+
+            UnityEngine.Debug.Log($"[AddressablesGateway] Instance {this.GetHashCode()} is triggering Catalog Sync...");
             await RunCatalogSyncAsync(cancellationToken);
+
+            lock (initSync)
+            {
+                initialized = true;
+                UnityEngine.Debug.Log($"[AddressablesGateway] Instance {this.GetHashCode()} set initialized=true.");
+            }
         }
 
         private async Task RunCatalogSyncAsync(CancellationToken cancellationToken)
         {
             try
             {
-                UnityEngine.Debug.Log("[AddressablesGateway] Running Catalog Sync...");
+                UnityEngine.Debug.Log($"[AddressablesGateway] [{this.GetHashCode()}] SyncCatalogAndContentAsync starting...");
                 await client.SyncCatalogAndContentAsync(cancellationToken);
-                UnityEngine.Debug.Log("[AddressablesGateway] Catalog and Content Sync completed successfully.");
+                UnityEngine.Debug.Log($"[AddressablesGateway] [{this.GetHashCode()}] SyncCatalogAndContentAsync COMPLETED successfully!");
             }
             catch (Exception exception) when (exception is not OperationCanceledException)
             {
