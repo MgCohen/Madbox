@@ -43,7 +43,6 @@ public partial class ModuleConfig : ICloudCodeSetup
 
         RegisterModuleScoped<AdsService>(config);
         RegisterModuleScoped<GoldModule>(config);
-        RegisterModuleScoped<GoldConfigModule>(config);
         RegisterModuleScoped<LevelService>(config);
         RegisterModuleScoped<TutorialService>(config);
         RegisterModuleScoped<GlobalConfigModule>(config);

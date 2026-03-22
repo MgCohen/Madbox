@@ -48,6 +48,10 @@ ExportedObj/
 !Analyzers/Scaffold/Scaffold.Analyzers/Scaffold.Analyzers.csproj
 !Analyzers/Scaffold/Scaffold.Analyzers.Tests/Scaffold.Analyzers.Tests.csproj
 
+# LiveOps shared DTO class library (builds Madbox.LiveOps.DTO.dll for Unity)
+!LiveOps/LiveOps.sln
+!LiveOps/LiveOps.DTO/Madbox.LiveOps.DTO.csproj
+
 # /!\ DO NOT TOUCH THIS FILE UNLESS YOUR TOOL ASKED YOU TO /!\
 
 # Unity3D generated meta files

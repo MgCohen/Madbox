@@ -4,21 +4,21 @@ using Newtonsoft.Json;
 namespace GameModuleDTO.Modules.Gold
 {
     /// <summary>
-    /// Data model for the Gold Reward module.
+    /// Remote-config default gold reward amount when a caller does not specify an amount.
     /// </summary>
-    public class GoldRewardModuleData : IGameModuleData
+    public sealed class GoldRewardModuleData : IGameModuleData
     {
-        /// <summary>Gets the resolved classification name for the component.</summary>
+        /// <inheritdoc />
         public string Key => typeof(GoldRewardModuleData).Name;
 
         [JsonProperty]
-        private int _reward = 100;
+        private long _reward = 100;
 
-        /// <summary>Gets the gold reward amount.</summary>
+        /// <summary>Default gold amount to add when no explicit amount is provided.</summary>
         [JsonIgnore]
-        public int Reward { get { return _reward; } }
+        public long Reward => _reward;
 
-        public void SetReward(int value)
+        public void SetReward(long value)
         {
             _reward = value;
         }

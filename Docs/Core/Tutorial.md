@@ -2,7 +2,7 @@
 
 ## TL;DR
 
-- Purpose: client holder for `TutorialGameData` from aggregated `GameData` after `LiveOpsService.InitializeAsync`.
+- Purpose: client holder for `TutorialGameData` from aggregated `GameData` after `LiveOpsService.InitializeAsync` (per-step `TutorialStepEntry` states, same idea as `LevelStateEntry` on levels).
 - Location: `Assets/Scripts/Core/Tutorial/Runtime/` (`Madbox.Tutorial`), installer `Madbox.Tutorial.Container`.
 - Depends on: `Madbox.LiveOps`, DTO plugin.
 

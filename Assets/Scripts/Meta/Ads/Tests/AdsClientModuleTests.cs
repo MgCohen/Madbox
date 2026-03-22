@@ -12,7 +12,7 @@ namespace Madbox.Ads.Tests
         [Test]
         public void WatchAdAsync_CallsLiveOpsAndAppliesData()
         {
-            AdsGameData returned = AdsGameData.From(new AdsPersistence(), new AdsConfig());
+            AdData returned = new AdData(new AdsPersistence(), new AdsConfig());
             StubLiveOps liveOps = new StubLiveOps(returned);
             AdsClientModule sut = new AdsClientModule();
 
@@ -24,9 +24,9 @@ namespace Madbox.Ads.Tests
 
         private sealed class StubLiveOps : ILiveOpsService
         {
-            private readonly AdsGameData data;
+            private readonly AdData data;
 
-            public StubLiveOps(AdsGameData data)
+            public StubLiveOps(AdData data)
             {
                 this.data = data;
             }
