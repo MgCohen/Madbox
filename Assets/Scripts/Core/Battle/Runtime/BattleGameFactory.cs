@@ -32,6 +32,23 @@ namespace Madbox.Battle
             await RunAllEnemyEntriesAsync(game, entries, origin, spacingPerIndex);
         }
 
+        /// <summary>
+        /// Builds domain state, spawns enemies from the level definition, and starts the session. Does not load scenes;
+        /// load the level additively first (for example via Addressables or the app scene-flow service).
+        /// </summary>
+        public async Task<BattleGame> CreatePrepareStartAsync(
+            LevelDefinition level,
+            EnemyService enemyService,
+            RuleHandlerRegistry ruleRegistry,
+            Vector3 enemySpawnOrigin,
+            float enemySpacingPerIndex)
+        {
+            BattleGame game = CreateGame(level, enemyService, ruleRegistry);
+            await PrepareAndSpawnEnemiesFromLevelAsync(game, enemySpawnOrigin, enemySpacingPerIndex);
+            game.Start();
+            return game;
+        }
+
         private async Task RunAllEnemyEntriesAsync(BattleGame game, IReadOnlyList<LevelEnemySpawnEntry> entries, Vector3 origin, float spacingPerIndex)
         {
             for (int i = 0; i < entries.Count; i++)
