@@ -1,0 +1,6 @@
+key,value
+AdsConfig,"{""_cooldown"":0.0}"
+GlobalConfigData,"{""_values"":{}}"
+GoldConfigData,"{""_min"":0,""_max"":0}"
+LevelConfig,"{""_levels"":[]}"
+TutorialConfig,"{""_reward"":300,""_tutorials"":[]}"
