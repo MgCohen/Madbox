@@ -296,6 +296,10 @@ public int GetCount()
 
 Method and constructor signatures must fit on a single line. Method signatures include trailing generic constraints (`where T : ...`) and those constraints must stay on the same line as the signature.
 
+For constructors, the initializer (`: base(...)` or `: this(...)`) is part of the signature:
+- the initializer must start on the same line as the closing `)` of the parameter list
+- the initializer itself must remain on a single line (no line breaks inside initializer arguments)
+
 Multiline initializers are allowed (for example object/collection initializers in local declarations or assignments).
 
 **Exception:** Fluent/builder chains using member access (`.Method().Method()`) are permitted to span lines.
@@ -310,6 +314,19 @@ public void Register(
 
 // COMPLIANT
 public void Register(string name, int priority) { }
+
+// VIOLATION - constructor initializer starts on next line
+public Sample(string value)
+    : base(value)
+{ }
+
+// VIOLATION - constructor initializer arguments span lines
+public Sample(string value) : base(
+    value)
+{ }
+
+// COMPLIANT - constructor initializer stays on one line with signature
+public Sample(string value) : base(value) { }
 
 // VIOLATION - statement spans multiple lines
 var result =
