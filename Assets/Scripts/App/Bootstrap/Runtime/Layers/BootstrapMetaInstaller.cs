@@ -20,8 +20,8 @@ namespace Madbox.App.Bootstrap
             GoldInstaller goldInstaller = new GoldInstaller();
             goldInstaller.Install(builder);
 
-            LevelInstaller levelInstaller = new LevelInstaller();
-            levelInstaller.Install(builder);
+            LevelInstaller levelCatalogInstaller = new LevelInstaller();
+            levelCatalogInstaller.Install(builder);
 
             AdsInstaller adsInstaller = new AdsInstaller();
             adsInstaller.Install(builder);

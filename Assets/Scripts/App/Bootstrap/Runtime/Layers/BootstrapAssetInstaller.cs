@@ -23,6 +23,7 @@ namespace Madbox.App.Bootstrap
             installer.Install(builder);
 
             RegisterProvider<NavigationAssetProvider>(builder);
+            RegisterProvider<LevelAssetProvider>(builder);
         }
 
         private void RegisterProvider<T>(IContainerBuilder builder) where T: IAssetPreloader

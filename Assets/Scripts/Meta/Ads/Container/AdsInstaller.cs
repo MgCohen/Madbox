@@ -10,7 +10,7 @@ namespace Madbox.Ads.Container
     {
         public void Install(IContainerBuilder builder)
         {
-            builder.Register<AdsClientModule>(Lifetime.Scoped).AsSelf().As<IGameClientModule>().As<IAsyncLayerInitializable>();
+            builder.Register<AdsClientModule>(Lifetime.Scoped).AsSelf().AsImplementedInterfaces();
         }
     }
 }

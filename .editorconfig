@@ -60,6 +60,11 @@ dotnet_diagnostic.SCA0007.severity = none
 # MVVM split modules keep legacy public namespaces under Scaffold.MVVM.
 dotnet_diagnostic.SCA0007.severity = none
 
+[Assets/Scripts/Meta/Levels/LiveOps/**/*.cs]
+# LiveOps level module keeps assembly identity Madbox.Level (distinct from Madbox.Levels); lives under Meta/Levels for discoverability.
+dotnet_diagnostic.SCA0007.severity = none
+dotnet_diagnostic.SCA0024.severity = none
+
 [Assets/Scripts/App/Bootstrap/Tests/LayerInitializationOrchestratorTests.cs]
 dotnet_diagnostic.SCA0003.severity = none
 dotnet_diagnostic.SCA0005.severity = none

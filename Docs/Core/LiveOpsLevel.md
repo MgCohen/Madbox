@@ -2,20 +2,23 @@
 
 ## TL;DR
 
-- Purpose: client holder for `LevelGameData` from aggregated `GameData` (distinct from gameplay `Madbox.Levels`).
-- Location: `Assets/Scripts/Core/LiveOpsLevel/Runtime/` (`Madbox.Level`), installer `Madbox.Level.Container`.
-- Depends on: `Madbox.LiveOps`, DTO plugin.
+- Purpose: client holder for `LevelGameData` from aggregated `GameData`, merged with Addressables `LevelDefinition` assets (distinct namespace from gameplay authoring `Madbox.Levels`).
+- Location: `Assets/Scripts/Meta/Levels/LiveOps/Runtime/` (`Madbox.Level`), installer `Madbox.Level.Container` under `LiveOps/Container/`.
+- Depends on: `Madbox.LiveOps`, `Madbox.Addressables` (group provider), `Madbox.Levels`, DTO plugin.
 
 ## Responsibilities
 
-- `LevelService` extends `GameClientModuleBase<LevelGameData>`; `InitializeAsync` assigns `protected data` from `ILiveOpsService.GetModuleData<LevelGameData>()`.
-- `LevelGameData` (DTO) exposes **`States`** only: a list of **`LevelStateEntry`** (`LevelId` + **`LevelAvailabilityState`**). Built on the server via **`new LevelGameData(LevelPersistence, LevelConfig)`** (config order defines progression).
+- `LevelService` extends `GameClientModuleBase<LevelGameData>`; `InitializeAsync` assigns `protected data` from `ILiveOpsService.GetModuleData<LevelGameData>()`, then **`OnInitializedAsync`** joins:
+  - preloaded **`IAssetGroupProvider<LevelDefinition>`** (bootstrap **`LevelAssetProvider`**, label `MadboxLevels`), and
+  - **`LevelGameData.States`** (config order, `LevelId` + **`LevelAvailabilityState`**),
+  into **`IReadOnlyList<AvailableLevel>`** exposed via **`GetAvailableLevels()`** and **`ILevelMenuService`**.
+- `LevelGameData` (DTO) exposes **`States`**: **`LevelStateEntry`** per configured id. Built via **`new LevelGameData(LevelPersistence, LevelConfig)`** (config order defines progression).
 - **`CompleteLevelAsync(int levelId)`** calls the backend; **`CompleteLevelResponse`** has **`Succeeded`** and **`CompletedLevelId`** when successful.
 
 ## Registration
 
-`LevelInstaller` registers `LevelService` with **`AsImplementedInterfaces()`** and **`AsSelf()`**. Invoked from **`BootstrapMetaInstaller`** after LiveOps.
+`LevelCatalogInstaller` registers `LevelService` as **`AsSelf()`**, **`ILevelMenuService`**, **`IGameClientModule`**, and **`IAsyncLayerInitializable`**. Invoked from **`BootstrapMetaInstaller`** after LiveOps. Asset preload registers **`LevelAssetProvider`** in **`BootstrapAssetInstaller`**.
 
 ## Tests
 
-EditMode: `Assets/Scripts/Core/LiveOpsLevel/Tests` (`LevelServiceTests`, `LevelGameDataTests`).
+EditMode: `Assets/Scripts/Meta/Levels/LiveOps/Tests` (`LevelServiceTests`, `LevelGameDataTests`).
