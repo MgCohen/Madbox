@@ -15,6 +15,27 @@ Separately, attack (or other) animations can play faster or slower based on stat
 ## Progress
 
 - [x] (2026-03-22) Authored ExecPlan: animation event bridge, ScriptableObject identity, registry routing, service/battle integration shape, and per-animation speed strategy.
+- [x] (2026-03-22) Added explicit milestones and Progress checklist items (PLANS.md compliance).
+- [ ] Execute Milestone 1: ScriptableObject event identity, sample assets, module documentation stub for the owning assembly.
+- [ ] Execute Milestone 2: `MonoBehaviour` animation event router, register and unregister API, EditMode tests for dispatch and unknown-id behavior.
+- [ ] Execute Milestone 3: Player prefab wiring, clip events calling the router, one gameplay-facing handler (for example projectile spawn or intent) through a narrow facade.
+- [ ] Execute Milestone 4: Enemy (or second character) reuses the same router and registration pattern; document shared vs per-enemy event assets.
+- [ ] Execute Milestone 5: Attack-speed multiplier on animator attack states only; view sets float from stats; verify locomotion unchanged in Play Mode.
+- [ ] Execute Milestone 6: Complete `Docs/` for the module, run `.agents/scripts/validate-changes.cmd` until clean, update `Outcomes & Retrospective`.
+
+## Milestones
+
+Milestone 1 establishes **authoring identity**. Implement the ScriptableObject type with a stable serialized key (integer recommended for clip `intParameter`), create at least one real asset under a clear folder such as `Assets/Data/AnimationEvents/`, and add or extend the module doc under `Docs/` so designers know how to pick an asset and which numeric value must appear on clips. At the end of this milestone, the project compiles and the new types are discoverable in the editor; no runtime routing is required yet.
+
+Milestone 2 delivers the **router core**. Add the single public animation callback method on a component colocated with the character `Animator`, implement lookup keyed by stable id, support multiple handlers per id if that is the chosen contract, and add EditMode tests that simulate `AnimationEvent` payloads and assert handler invocation and safe behavior for unknown or zero ids. Validation is automated tests plus a quick manual Play Mode smoke test with a temporary `Debug.Log` handler if desired.
+
+Milestone 3 is the **player vertical slice**. Wire the hero (or main test character) so an attack clip fires an event at a chosen frame, the router dispatches, and a behavior or facade performs one observable effect aligned with the current battle or view pipeline (spawn, intent, or authoritative request through existing APIs). Acceptance is reproducible in the main gameplay scene or a dedicated test scene documented in this plan’s Concrete Steps.
+
+Milestone 4 is **enemy parity** where applicable. Reuse the router and SO ids for shared semantics; add enemy-specific assets only when behavior diverges. Enemies whose `Animator` lives on a child object must host or forward callbacks per Unity’s rules (router on the object Unity targets). Milestone 4 is complete when at least one enemy path is documented and either implemented or explicitly deferred with rationale in the Decision Log.
+
+Milestone 5 is **per-animation speed**. Animator controllers gain a float (or equivalent) applied only inside attack-related states or layers; view code sets it from attack speed stat. Acceptance requires a before and after observation in Play Mode: attack motion scales, idle or walk does not. Add a regression test if the project can assert animator parameter values without brittle animation-controller coupling; otherwise document manual acceptance and keep a minimal parameter-set test.
+
+Milestone 6 is **closure**. Finish module documentation, run the repository quality gate until analyzers and tests are clean, record outcomes and gaps in `Outcomes & Retrospective`, and capture any Unity version-specific animation event quirks in `Surprises & Discoveries`.
 
 ## Surprises & Discoveries
 
@@ -182,3 +203,5 @@ By the end of implementation, the following should exist (exact names flexible b
 - `.asmdef` references updated so core assemblies do not reference Unity animation types; bridge interfaces live on the correct side of the boundary.
 
 Revision note (2026-03-22): Initial plan authored from architecture docs and existing registry/event patterns; implementation should fill exact file paths after repository search.
+
+Revision note (2026-03-22): Added Milestones section and six Progress checklist items; `PLANS.md` was always available at repository root—milestones were omitted in the first draft by oversight, not missing inputs.
