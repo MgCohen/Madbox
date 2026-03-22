@@ -1,102 +1,67 @@
-﻿using Madbox.Enemies.Behaviors;
-using Madbox.Enemies.Services;
-using Madbox.Levels;
-using Madbox.Levels.Behaviors;
 using NUnit.Framework;
+using UnityEngine;
 
 namespace Madbox.Enemies.Tests
 {
     public class EnemyServiceTests
     {
-        private const int contactDamage = 5;
-        private const float contactRange = 1f;
-        private const float contactCooldown = 2f;
+        [Test]
+        public void Spawn_CreatesInitializedEnemy_AndRegistersIt()
+        {
+            EnemyFactory factory = new EnemyFactory();
+            EnemyService service = new EnemyService(factory);
+            EnemyActor prefab = CreateEnemyPrefab();
+            Vector3 position = new Vector3(1f, 0f, 3f);
+            Quaternion rotation = Quaternion.Euler(0f, 90f, 0f);
+
+            EnemyActor enemy = service.Spawn(prefab, position, rotation);
+
+            Assert.IsNotNull(enemy);
+            Assert.IsTrue(enemy.IsInitialized);
+            Assert.AreEqual(1, service.AliveEnemies);
+            AssertContainsEnemy(service, enemy);
+            Object.DestroyImmediate(enemy.gameObject);
+            Object.DestroyImmediate(prefab.gameObject);
+        }
 
         [Test]
-        public void Constructor_WhenLevelHasEnemies_SetsAliveEnemiesCount()
+        public void Unregister_RemovesEnemyFromTracking()
         {
-            LevelDefinition level = CreateLevel(enemyCount: 2);
+            EnemyFactory factory = new EnemyFactory();
+            EnemyService service = new EnemyService(factory);
+            EnemyActor prefab = CreateEnemyPrefab();
+            EnemyActor enemy = service.Spawn(prefab, Vector3.zero, Quaternion.identity);
 
-            EnemyService service = new EnemyService(level);
+            bool removed = service.Unregister(enemy);
 
-            Assert.AreEqual(2, service.AliveEnemies);
-            Assert.AreEqual(0, service.DeadEnemies);
+            Assert.IsTrue(removed);
+            Assert.AreEqual(0, service.AliveEnemies);
+            AssertContainsEnemy(service, enemy, expectPresent: false);
+            Object.DestroyImmediate(enemy.gameObject);
+            Object.DestroyImmediate(prefab.gameObject);
         }
 
-        [Test]
-        public void ContactAttackBehaviorRuntime_WhenConsumed_StartsCooldown()
+        private static void AssertContainsEnemy(EnemyService service, EnemyActor enemy, bool expectPresent = true)
         {
-            ContactAttackBehaviorRuntime runtime = CreateContactAttackRuntime();
-            ConsumeSequenceResult sequence = BuildExecuteConsumeSequence(runtime);
-            BuildAssertConsumeSequence(sequence);
+            bool found = false;
+            foreach (EnemyActor alive in service.GetAllAlive())
+            {
+                if (alive == enemy)
+                {
+                    found = true;
+                    break;
+                }
+            }
+
+            Assert.AreEqual(expectPresent, found);
         }
 
-        private static LevelDefinition CreateLevel(int enemyCount)
+        private static EnemyActor CreateEnemyPrefab()
         {
-            EnemyDefinition enemy = CreateEnemyDefinition();
-            LevelEnemyDefinition levelEnemy = new LevelEnemyDefinition(enemy, enemyCount);
-            LevelId levelId = new LevelId("level-enemy-tests");
-            return new LevelDefinition(levelId, 0, new[] { levelEnemy });
-        }
-
-        private static EnemyDefinition CreateEnemyDefinition()
-        {
-            EntityId enemyTypeId = new EntityId("enemy-type");
-            EnemyBehaviorDefinition[] behaviors = CreateEnemyBehaviors();
-            return new EnemyDefinition(enemyTypeId, 20, behaviors);
-        }
-
-        private static EnemyBehaviorDefinition[] CreateEnemyBehaviors()
-        {
-            MovementBehaviorDefinition movement = new MovementBehaviorDefinition(1f, 3f);
-            ContactAttackBehaviorDefinition contactAttack = new ContactAttackBehaviorDefinition(contactDamage, 0.5f, contactCooldown);
-            return new EnemyBehaviorDefinition[] { movement, contactAttack };
-        }
-
-        private static ContactAttackBehaviorRuntime CreateContactAttackRuntime()
-        {
-            ContactAttackBehaviorDefinition definition = new ContactAttackBehaviorDefinition(contactDamage, contactRange, contactCooldown);
-            return new ContactAttackBehaviorRuntime(definition);
-        }
-
-        private static ConsumeSequenceResult BuildExecuteConsumeSequence(ContactAttackBehaviorRuntime runtime)
-        {
-            ConsumeSequenceResult result = new ConsumeSequenceResult();
-            BuildConsumeThreeTimes(runtime, result);
-            return result;
-        }
-
-        private static void BuildConsumeThreeTimes(ContactAttackBehaviorRuntime runtime, ConsumeSequenceResult result)
-        {
-            result.FirstConsume = runtime.TryConsume(contactDamage, out int firstDamage);
-            result.SecondConsume = runtime.TryConsume(contactDamage, out int secondDamage);
-            runtime.Tick(contactCooldown);
-            result.ThirdConsume = runtime.TryConsume(contactDamage, out int thirdDamage);
-            result.FirstDamage = firstDamage;
-            result.SecondDamage = secondDamage;
-            result.ThirdDamage = thirdDamage;
-        }
-
-        private static void BuildAssertConsumeSequence(ConsumeSequenceResult sequence)
-        {
-            Assert.IsTrue(sequence.FirstConsume);
-            Assert.AreEqual(contactDamage, sequence.FirstDamage);
-            Assert.IsFalse(sequence.SecondConsume);
-            Assert.AreEqual(0, sequence.SecondDamage);
-            Assert.IsTrue(sequence.ThirdConsume);
-            Assert.AreEqual(contactDamage, sequence.ThirdDamage);
-        }
-
-        private sealed class ConsumeSequenceResult
-        {
-            public bool FirstConsume { get; set; }
-            public bool SecondConsume { get; set; }
-            public bool ThirdConsume { get; set; }
-            public int FirstDamage { get; set; }
-            public int SecondDamage { get; set; }
-            public int ThirdDamage { get; set; }
+            GameObject go = new GameObject("EnemyPrefab");
+            go.AddComponent<EnemyMoveForwardBehaviour>();
+            EnemyActor actor = go.AddComponent<EnemyActor>();
+            return actor;
         }
     }
 }
-
-

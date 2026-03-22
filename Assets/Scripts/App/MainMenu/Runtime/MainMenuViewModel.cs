@@ -1,8 +1,6 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
-using Madbox.Battle.Services;
+using CommunityToolkit.Mvvm.ComponentModel;
 using Madbox.Gold;
 using Madbox.Gold.Contracts;
-using Madbox.Levels;
 using Scaffold.MVVM;
 using VContainer;
 
@@ -11,17 +9,18 @@ namespace Madbox.App.MainMenu
     public partial class MainMenuViewModel : ViewModel
     {
         [ObservableProperty] private int gold;
-        [ObservableProperty] private string selectedLevelId = "whitebox-level-1";
         [ObservableProperty] private GoldWallet wallet = new GoldWallet();
 
         private IGoldService goldService;
 
-        [Inject] public void Construct(IGoldService goldService)
+        [Inject]
+        public void Construct(IGoldService goldService)
         {
             if (goldService == null)
             {
                 return;
             }
+
             this.goldService = goldService;
             Wallet = goldService.GetWallet();
         }
@@ -38,20 +37,8 @@ namespace Madbox.App.MainMenu
             {
                 return;
             }
+
             goldService.Add(1);
         }
-
-        public void StartGame()
-        {
-            if (navigation == null)
-            {
-                return;
-            }
-            LevelId levelId = new LevelId(SelectedLevelId);
-            GameViewModel controller = new GameViewModel(levelId);
-            navigation.Open(controller);
-        }
-
     }
 }
-

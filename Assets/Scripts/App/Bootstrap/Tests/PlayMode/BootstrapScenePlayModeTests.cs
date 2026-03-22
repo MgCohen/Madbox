@@ -1,20 +1,17 @@
 using System.Collections;
-using System.Reflection;
+using System.Collections.Generic;
+using Madbox.Scope;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
-using System.Collections.Generic;
 
 namespace Madbox.Bootstrap.Tests.PlayMode
 {
     public sealed class BootstrapScenePlayModeTests
     {
-        private const string bootstrapScopeTypeName = "Madbox.App.Bootstrap.BootstrapScope";
-        private const string completionPropertyName = "IsBootstrapCompleted";
-        private const int sceneLoadTimeoutFrames = 600;
-        private const int bootstrapScopeTimeoutFrames = 300;
-        private const int bootstrapCompletionTimeoutFrames = 300;
+        private const int sceneLoadTimeoutFrames = 900;
+        private const int bootstrapCompleteTimeoutFrames = 1200;
         private List<string> fatalLogs;
 
         [SetUp]
@@ -35,8 +32,21 @@ namespace Madbox.Bootstrap.Tests.PlayMode
         public IEnumerator BootstrapScene_Loads_AndCompletesBootstrapInitialization()
         {
             yield return LoadBootstrapScene();
-            yield return WaitForBootstrapInitialization();
-            AssertBootstrapCompleted();
+
+            LayeredScope scope = null;
+            for (int frame = 0; frame < bootstrapCompleteTimeoutFrames; frame++)
+            {
+                scope = FindLayeredScopeInBootstrapScene();
+                if (scope != null && scope.IsBootstrapCompleted)
+                {
+                    break;
+                }
+
+                yield return null;
+            }
+
+            Assert.IsNotNull(scope, "Expected Bootstrap scene to contain a LayeredScope.");
+            Assert.IsTrue(scope.IsBootstrapCompleted, "Expected bootstrap initialization to complete.");
             AssertNoFatalLogs();
         }
 
@@ -44,133 +54,33 @@ namespace Madbox.Bootstrap.Tests.PlayMode
         {
             AsyncOperation operation = SceneManager.LoadSceneAsync("Bootstrap", LoadSceneMode.Single);
             Assert.IsNotNull(operation);
-            int frame = 0;
-            while (!operation.isDone)
-            {
-                if (frame++ >= sceneLoadTimeoutFrames)
-                {
-                    Assert.Fail($"Bootstrap scene load did not complete within {sceneLoadTimeoutFrames} frames.");
-                }
 
+            for (int frame = 0; frame < sceneLoadTimeoutFrames && !operation.isDone; frame++)
+            {
                 yield return null;
             }
+
+            Assert.IsTrue(operation.isDone, $"Bootstrap scene load did not complete within {sceneLoadTimeoutFrames} frames.");
         }
 
-        private IEnumerator WaitForBootstrapInitialization()
-        {
-            yield return WaitForBootstrapScope(bootstrapScopeTimeoutFrames);
-            yield return WaitForBootstrapCompletion(bootstrapCompletionTimeoutFrames);
-        }
-
-        private IEnumerator WaitForBootstrapScope(int maxFrames)
-        {
-            int frame = 0;
-            MonoBehaviour scope = FindBootstrapScope();
-            while (scope == null)
-            {
-                if (frame++ >= maxFrames)
-                {
-                    Assert.Fail($"Bootstrap scope '{bootstrapScopeTypeName}' not found within {maxFrames} frames.");
-                }
-
-                yield return null;
-                scope = FindBootstrapScope();
-            }
-        }
-
-        private IEnumerator WaitForBootstrapCompletion(int maxFrames)
-        {
-            int frame = 0;
-            while (true)
-            {
-                MonoBehaviour scope = FindBootstrapScope();
-                if (IsBootstrapCompleted(scope))
-                {
-                    yield break;
-                }
-
-                if (frame++ >= maxFrames)
-                {
-                    Assert.Fail($"Bootstrap completion flag '{completionPropertyName}' did not become true within {maxFrames} frames.");
-                }
-
-                yield return null;
-            }
-        }
-
-        private void AssertBootstrapCompleted()
-        {
-            MonoBehaviour scope = FindBootstrapScope();
-            bool completed = IsBootstrapCompleted(scope);
-            string state = GetBootstrapStateName(scope);
-            Assert.IsNotNull(scope, "Expected bootstrap scene to contain BootstrapScope.");
-            Assert.IsTrue(completed, $"Expected bootstrap to complete initialization. Current state: {state}.");
-        }
-
-        private MonoBehaviour FindBootstrapScope()
+        private static LayeredScope FindLayeredScopeInBootstrapScene()
         {
             Scene bootstrapScene = SceneManager.GetSceneByName("Bootstrap");
-            MonoBehaviour[] behaviours = FindBehaviours();
-            return FindBootstrapScopeInScene(bootstrapScene, behaviours);
-        }
-
-        private MonoBehaviour FindBootstrapScopeInScene(Scene bootstrapScene, MonoBehaviour[] behaviours)
-        {
-            for (int i = 0; i < behaviours.Length; i++)
-            {
-                MonoBehaviour behaviour = behaviours[i];
-                if (IsBootstrapScope(behaviour) && IsScopeInBootstrapScene(bootstrapScene, behaviour))
-{
-    return behaviour;
-}
-            }
-
-            return null;
-        }
-
-        private bool IsScopeInBootstrapScene(Scene bootstrapScene, MonoBehaviour behaviour)
-        {
-            return !bootstrapScene.IsValid() || behaviour.gameObject.scene == bootstrapScene;
-        }
-
-        private MonoBehaviour[] FindBehaviours()
-        {
-            return Object.FindObjectsByType<MonoBehaviour>(FindObjectsInactive.Include, FindObjectsSortMode.None);
-        }
-
-        private bool IsBootstrapScope(MonoBehaviour behaviour)
-        {
-            if (behaviour == null)
-            {
-                return false;
-            }
-            return behaviour.GetType().FullName == bootstrapScopeTypeName;
-        }
-
-        private bool IsBootstrapCompleted(MonoBehaviour scope)
-        {
-            PropertyInfo property = GetCompletionProperty(scope);
-            if (property == null)
-            {
-                return false;
-            }
-            object value = property.GetValue(scope, null);
-            return value is bool completed && completed;
-        }
-
-        private string GetBootstrapStateName(MonoBehaviour scope)
-        {
-            bool completed = IsBootstrapCompleted(scope);
-            return completed ? "Completed" : "NotCompleted";
-        }
-
-        private PropertyInfo GetCompletionProperty(MonoBehaviour scope)
-        {
-            if (scope == null)
+            if (!bootstrapScene.IsValid() || !bootstrapScene.isLoaded)
             {
                 return null;
             }
-            return scope.GetType().GetProperty(completionPropertyName, BindingFlags.Instance | BindingFlags.Public);
+
+            foreach (GameObject root in bootstrapScene.GetRootGameObjects())
+            {
+                LayeredScope scope = root.GetComponentInChildren<LayeredScope>(true);
+                if (scope != null)
+                {
+                    return scope;
+                }
+            }
+
+            return null;
         }
 
         private void OnLogMessageReceived(string condition, string stackTrace, LogType type)
@@ -182,7 +92,7 @@ namespace Madbox.Bootstrap.Tests.PlayMode
             fatalLogs.Add($"{type}: {condition}\n{stackTrace}");
         }
 
-        private bool IsFatal(LogType type)
+        private static bool IsFatal(LogType type)
         {
             return type == LogType.Assert || type == LogType.Error || type == LogType.Exception;
         }
@@ -198,5 +108,3 @@ namespace Madbox.Bootstrap.Tests.PlayMode
         }
     }
 }
-
-

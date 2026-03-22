@@ -1,0 +1,20 @@
+{
+    "name": "Madbox.Ads.Container",
+    "rootNamespace": "Madbox.Ads.Container",
+    "references": [
+        "Madbox.Ads",
+        "Madbox.LiveOps",
+        "Madbox.Scope",
+        "VContainer",
+        "VContainer.Unity"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

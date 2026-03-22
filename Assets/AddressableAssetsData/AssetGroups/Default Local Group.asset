@@ -48,7 +48,7 @@ MonoBehaviour:
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: e4260a643264a84479eee8911d7bd336
-    m_Address: Assets/Prefabs/Enemies/Bee V2.prefab
+    m_Address: Assets/Prefabs/Enemies/BeeEnemy.prefab
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0

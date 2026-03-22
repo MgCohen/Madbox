@@ -1,5 +1,8 @@
-namespace Madbox.LiveOps.DTO.Modules.Common
+namespace GameModuleDTO.Modules.Common
 {
+    /// <summary>
+    /// Holds general progress data for a module.
+    /// </summary>
     public class ModuleProgress
     {
         public string Id { get; set; } = string.Empty;

@@ -1,0 +1,26 @@
+{
+    "name": "Madbox.Tutorial.Tests",
+    "rootNamespace": "Madbox.Tutorial.Tests",
+    "references": [
+        "Madbox.Tutorial",
+        "Madbox.LiveOps",
+        "Madbox.Scope",
+        "VContainer"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [
+        "Madbox.LiveOps.DTO.dll"
+    ],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false,
+    "optionalUnityReferences": [
+        "TestAssemblies"
+    ]
+}

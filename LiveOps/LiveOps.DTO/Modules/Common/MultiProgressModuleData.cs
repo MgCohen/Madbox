@@ -1,30 +1,24 @@
 using System.Collections.Generic;
 using System.Linq;
-using Madbox.LiveOps.DTO.GameModule;
+using GameModuleDTO.GameModule;
 using Newtonsoft.Json;
 
-namespace Madbox.LiveOps.DTO.Modules.Common
+namespace GameModuleDTO.Modules.Common
 {
-    public abstract class MultiProgressModuleData : IGameModuleData, IIsActive
+    /// <summary>
+    /// Base class for modules that hold multiple Progress items.
+    /// </summary>
+    public abstract class MultiProgressModuleData : IGameModuleData
     {
+        /// <summary>Gets the resolved classification name for the component.</summary>
         public abstract string Key { get; }
-
-        [JsonProperty]
-        private bool _isActive;
 
         [JsonProperty]
         private List<ModuleProgress> _progress = new List<ModuleProgress>();
 
-        [JsonIgnore]
-        public bool IsActive => _isActive;
-
+        /// <summary>Gets the progress information for the module.</summary>
         [JsonIgnore]
         public List<ModuleProgress> Progress => _progress;
-
-        public void SetActive(bool value)
-        {
-            _isActive = value;
-        }
 
         public ModuleProgress GetProgress(string id)
         {

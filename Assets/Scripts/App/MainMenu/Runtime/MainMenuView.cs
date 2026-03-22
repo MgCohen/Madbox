@@ -9,12 +9,11 @@ namespace Madbox.App.MainMenu
     {
         [SerializeField] private Component goldText;
         [SerializeField] private Button addGoldButton;
-        [SerializeField] private Button startGameButton;
 
         protected override void OnBind()
         {
             EnsureUi();
-            BindButtons();
+            BindAddGoldButton();
             Bind<int, int>(() => viewModel.Gold, UpdateGoldText);
             UpdateGoldText(viewModel.Gold);
         }
@@ -30,17 +29,11 @@ namespace Madbox.App.MainMenu
             {
                 addGoldButton = CreateAddGoldButton();
             }
-
-            if (startGameButton == null)
-            {
-                startGameButton = CreateStartGameButton();
-            }
         }
 
-        private void BindButtons()
+        private void BindAddGoldButton()
         {
             addGoldButton?.onClick.AddListener(OnAddGoldClicked);
-            startGameButton?.onClick.AddListener(OnStartGameClicked);
         }
 
         private void UpdateGoldText(int value)
@@ -84,12 +77,6 @@ namespace Madbox.App.MainMenu
         {
             Vector2 addGoldPosition = new Vector2(0f, -80f);
             return CreateActionButton("AddGoldButton", "Add Gold", addGoldPosition);
-        }
-
-        private Button CreateStartGameButton()
-        {
-            Vector2 startGamePosition = new Vector2(0f, -260f);
-            return CreateActionButton("StartGameButton", "Start Game", startGamePosition);
         }
 
         private Button CreateActionButton(string name, string label, Vector2 position)
@@ -145,23 +132,12 @@ namespace Madbox.App.MainMenu
 
         protected override void OnUnbind()
         {
-            UnbindButtons();
-        }
-
-        private void UnbindButtons()
-        {
             addGoldButton?.onClick.RemoveListener(OnAddGoldClicked);
-            startGameButton?.onClick.RemoveListener(OnStartGameClicked);
         }
 
         public void OnAddGoldClicked()
         {
             viewModel?.AddOneGold();
-        }
-
-        public void OnStartGameClicked()
-        {
-            viewModel?.StartGame();
         }
 
         private void SetTmpAlignment(Component text, int enumValue)

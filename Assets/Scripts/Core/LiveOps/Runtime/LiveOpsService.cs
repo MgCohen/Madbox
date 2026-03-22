@@ -1,16 +1,17 @@
-using Madbox.CloudCode;
-using Madbox.LiveOps.DTO;
 using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using GameModuleDTO.GameModule;
+using GameModuleDTO.ModuleRequests;
+using Madbox.CloudCode;
+using Madbox.Scope.Contracts;
+using VContainer;
 
 namespace Madbox.LiveOps
 {
-    public sealed class LiveOpsService : ILiveOpsService
+    internal sealed class LiveOpsService : ILiveOpsService, IAsyncLayerInitializable
     {
-        private const string moduleName = "LiveOps";
-
         public LiveOpsService(ICloudCodeModuleService cloudCodeModuleService)
         {
             if (cloudCodeModuleService == null)
@@ -18,27 +19,46 @@ namespace Madbox.LiveOps
                 throw new ArgumentNullException(nameof(cloudCodeModuleService));
             }
 
-            CloudCode = cloudCodeModuleService;
+            this.cloudCodeModuleService = cloudCodeModuleService;
         }
 
-        private ICloudCodeModuleService CloudCode { get; }
+        private readonly ICloudCodeModuleService cloudCodeModuleService;
+        private GameData gameData;
 
-        public async Task<PongResponse> PingAsync(PingRequest request, CancellationToken cancellationToken = default)
+        public T GetModuleData<T>() where T : class, IGameModuleData
         {
-            if (cancellationToken.IsCancellationRequested)
+            return gameData == null ? null : gameData.GetModuleData<T>();
+        }
+
+        public Task InitializeAsync(IObjectResolver resolver, CancellationToken cancellationToken)
+        {
+            if (resolver == null)
             {
-                throw new OperationCanceledException();
+                throw new ArgumentNullException(nameof(resolver));
             }
 
-            return await PingCoreAsync(request, cancellationToken);
+            return LoadInitialGameDataAsync(cancellationToken);
         }
 
-        private async Task<PongResponse> PingCoreAsync(PingRequest request, CancellationToken cancellationToken)
+        public async Task<TResponse> CallAsync<TResponse>(ModuleRequest<TResponse> request, CancellationToken cancellationToken = default) where TResponse : ModuleResponse
         {
-            PingRequest safeRequest = request ?? new PingRequest();
-            Dictionary<string, object> payload = new Dictionary<string, object> { { "request", safeRequest } };
-            PongResponse response = await CloudCode.CallEndpointAsync<PongResponse>(moduleName, nameof(PingRequest), 2, 2, payload);
-            return response;
+            if (request == null)
+            {
+                throw new ArgumentNullException(nameof(request));
+            }
+
+            cancellationToken.ThrowIfCancellationRequested();
+            Dictionary<string, object> payload = new Dictionary<string, object> { { "request", request } };
+            Task<TResponse> endpointCall = cloudCodeModuleService.CallEndpointAsync<TResponse>(request.ModuleName, request.FunctionName, payload: payload, cancellationToken: cancellationToken);
+            return await endpointCall.ConfigureAwait(false);
+        }
+
+        private async Task LoadInitialGameDataAsync(CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            GameDataRequest request = new GameDataRequest();
+            GameDataResponse response = await CallAsync(request, cancellationToken).ConfigureAwait(false);
+            gameData = response?.GameData;
         }
     }
 }

@@ -1,5 +1,8 @@
-namespace Madbox.LiveOps.DTO.Modules.Common
+namespace GameModuleDTO.Modules.Common
 {
+    /// <summary>
+    /// Represents the status of a module or feature.
+    /// </summary>
     public enum ModuleStatus
     {
         Available = 0,

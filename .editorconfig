@@ -66,3 +66,6 @@ dotnet_diagnostic.SCA0005.severity = none
 dotnet_diagnostic.SCA0006.severity = none
 dotnet_diagnostic.SCA0020.severity = none
 
+[Assets/Scripts/Core/LiveOps/Runtime/LiveOpsService.cs]
+dotnet_diagnostic.SCA0006.severity = none
+

@@ -80,19 +80,16 @@ Container/module dependency diagram:
 ```mermaid
 flowchart LR
     Infra[Infra Modules<br/>Scope / Events / Navigation / Model / BaseMVVM / Addressables]
-    Core[Core Modules<br/>Battle / Enemies / Levels / ViewModel]
+    Core[Core Modules<br/>LiveOps / Ads / Battle / Levels / Enemies / ViewModel]
     Meta[Meta Modules<br/>Gold]
-    Game[Game Runtime Orchestration<br/>Madbox.Battle]
-    App[App Modules<br/>Bootstrap / View]
+    App[App Modules<br/>Bootstrap / MainMenu / View]
     Tools[Tools Modules<br/>Maps / Records / Types]
 
     Infra --> Core
     Infra --> Meta
     Infra --> App
-    Core --> Game
-    Meta --> Game
-    Game --> App
     Core --> App
+    Meta --> App
     Tools --> Core
     Tools --> App
 ```
@@ -101,10 +98,11 @@ Current module documentation map:
 
 - `Docs/App/Bootstrap.md`
 - `Docs/App/View.md`
-- `Docs/Core/Battle.md`
-- `Docs/Core/Enemies.md`
-- `Docs/Core/Levels.md`
 - `Docs/Core/ViewModel.md`
+- `Docs/Core/LiveOps.md`
+- `Docs/Core/Ads.md`
+- `Docs/Core/Tutorial.md`
+- `Docs/Core/LiveOpsLevel.md`
 - `Docs/Infra/Addressables.md`
 - `Docs/Infra/BaseMVVM.md`
 - `Docs/Infra/Events.md`
@@ -118,6 +116,9 @@ Current module documentation map:
 - `Docs/Analyzers/Analyzers.md`
 - `Docs/Testing.md`
 - `Docs/AutomatedTesting.md`
+- `Docs/Core/Battle.md`
+- `Docs/Core/Levels.md`
+- `Docs/Core/Enemies.md`
 
 ## Runtime Flows
 
@@ -154,8 +155,8 @@ Battle event flow sequence:
 
 ```mermaid
 sequenceDiagram
-    participant View as GameView
-    participant Game as Madbox.Battle.Game
+    participant View as MainMenuView
+    participant Game as Madbox.Battle.BattleGame
     participant Router as BattleEventRouter
     participant Cmd as BattleCommand
     participant Enemy as EnemyRuntimeState

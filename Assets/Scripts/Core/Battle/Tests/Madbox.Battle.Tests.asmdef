@@ -4,11 +4,8 @@
     "references": [
         "Madbox.Battle",
         "Madbox.Levels",
-        "Madbox.Gold",
-        "Scaffold.MVVM.Model",
-        "Scaffold.Records",
-        "Scaffold.MVVM.ViewModel",
-        "Scaffold.Navigation"
+        "Madbox.Enemies",
+        "Unity.Addressables"
     ],
     "includePlatforms": [
         "Editor"
@@ -16,9 +13,7 @@
     "excludePlatforms": [],
     "allowUnsafeCode": false,
     "overrideReferences": false,
-    "precompiledReferences": [
-        "CommunityToolkit.Mvvm.dll"
-    ],
+    "precompiledReferences": [],
     "autoReferenced": false,
     "defineConstraints": [],
     "versionDefines": [],

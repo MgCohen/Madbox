@@ -2,6 +2,7 @@
     "name": "Madbox.Ugs.Container",
     "rootNamespace": "Madbox.Ugs.Container",
     "references": [
+        "Madbox.Scope",
         "Madbox.Ugs",
         "VContainer"
     ],

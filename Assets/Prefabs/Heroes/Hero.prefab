@@ -474,11 +474,15 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 3206923099687242365}
+  - component: {fileID: 3206923099687242368}
+  - component: {fileID: 3206923099687242369}
+  - component: {fileID: 3206923099687242370}
   - component: {fileID: 3206923099687242366}
   - component: {fileID: 3206923099687242367}
+  - component: {fileID: 3206923099687242371}
   m_Layer: 0
   m_Name: Hero
-  m_TagString: Untagged
+  m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -513,8 +517,53 @@ MonoBehaviour:
   animator: {fileID: 0}
   attackStateName: Weak
   attackLockSeconds: 0.35
-  enableDebugAttackInput: 1
+  enableDebugAttackInput: 0
   debugAttackKey: 32
+--- !u!114 &3206923099687242368
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3206923099687242354}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e2d3c4b5a69788796a5b4c3d2e1f0a1b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  isAlive: 1
+  canMove: 1
+  moveSpeed: 3.5
+--- !u!114 &3206923099687242369
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3206923099687242354}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d3c4b5a69788796a5b4c3d2e1f0a1b2c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  viewData: {fileID: 3206923099687242368}
+--- !u!114 &3206923099687242370
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3206923099687242354}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b5a69788796a5b4c3d2e1f0a1b2c3d4e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  playerCore: {fileID: 3206923099687242369}
+  inputProviderComponent: {fileID: 0}
+  behaviorComponents:
+  - {fileID: 3206923099687242367}
+  - {fileID: 3206923099687242371}
 --- !u!114 &3206923099687242367
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -528,18 +577,30 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   joystick: {fileID: 0}
-  animator: {fileID: 0}
-  attackBehavior: {fileID: 3206923099687242366}
+  inputProviderOverride: {fileID: 0}
+  animationController: {fileID: 3206923099687242366}
   movementSpeed: 3.5
   inputThreshold: 0.05
   invertHorizontalAxis: 1
   invertVerticalAxis: 1
   rotateToDirection: 1
+  invertFacingDirection: 1
   rotateLerpSpeed: 12
-  runStateName: Run
-  runFallbackStateName: HeroMove
-  idleStateName: pc_fight_idle
-  idleFallbackStateName: HeroIdle
+--- !u!114 &3206923099687242371
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3206923099687242354}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a69788796a5b4c3d2e1f0a1b2c3d4e5f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  attackAnimation: {fileID: 3206923099687242366}
+  enableDebugAttackInput: 1
+  debugAttackKey: 32
 --- !u!1 &3512741108777884559
 GameObject:
   m_ObjectHideFlags: 0

@@ -1,16 +1,20 @@
 using System;
 using System.Threading.Tasks;
-using Madbox.LiveOps.CloudCode.FetchData;
-using Madbox.LiveOps.CloudCode.GameModules;
-using Madbox.LiveOps.CloudCode.Response;
-using Madbox.LiveOps.DTO.GameModule;
-using Madbox.LiveOps.DTO.Modules.Gold;
+using GameModule.GameModule;
+using GameModule.ModuleFetchData;
+using GameModule.Response;
+using GameModuleDTO.GameModule;
+using GameModuleDTO.Modules.Gold;
+using GameModuleDTO.ModuleRequests;
 using Microsoft.Extensions.Logging;
 using Unity.Services.CloudCode.Core;
 
-namespace Madbox.LiveOps.CloudCode.Modules.Gold
+namespace GameModule.Modules.Gold
 {
-    public sealed class GoldModule : GameModule<GoldModuleData>
+    /// <summary>
+    /// Module handling client-side Gold (player-specific data).
+    /// </summary>
+    public class GoldModule : GameModule<GoldModuleData>
     {
         private readonly ILogger<GoldModule> _logger;
         private readonly ModuleRequestHandler _handler;
@@ -20,9 +24,6 @@ namespace Madbox.LiveOps.CloudCode.Modules.Gold
             _logger = logger;
             _handler = handler;
         }
-
-        public override bool Client => true;
-        public override bool Server => false;
 
         public override async Task<IGameModuleData> Initialize(IExecutionContext context, IPlayerData playerData, IGameState gameState, IRemoteConfig remoteConfig)
         {

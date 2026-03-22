@@ -1,36 +1,66 @@
 # LiveOps
 
-Minimal UGS **Cloud Code** backend under `LiveOps/`. Unity loads wire types from **`Assets/Plugins/Madbox.LiveOps.DTO/Madbox.LiveOps.DTO.dll`**.
 
-## What is included
 
-| Area | Role |
-|------|------|
-| **PingPong** | `PingPongService` — endpoint `PingRequest` → `PongResponse` |
-| **Gold / Level / Tutorial / Global** | `IGameModule` types + `*ConfigModule` for local JSON config |
-| **GameData** | `GameData`, `IGameModuleData`, `GameDataExtensions.GetKey<T>()` |
-| **Requests / responses** | `InitializeGameModulesRequest`, `GameDataRequest`, `GameDataResponse`, `ModuleRequest` / `ModuleResponse`, level & tutorial complete types |
-| **GameModulesController** | `InitializeGameModulesRequest`, `GameDataRequest` batch init |
-| **ModuleConfig** | `ICloudCodeSetup` — registers DI (global namespace) |
-| **SignalModule** | Used by `ModuleRequestHandler` when resolving module requests |
-| **ModuleRequestHandler** | Saves player cache after responses; used by level/tutorial completes |
-| **FetchData** | `UnityPlayerData`, `UnityGameState`, `LocalOnlyRemoteConfig` (reads `Project/Configs/*.json` only) |
+Cloud Code backend under `LiveOps/` (Unity repo root): **DTO** (`LiveOps.DTO/`) and **main** module (`Project/`). Unity consumes precompiled **`Madbox.LiveOps.DTO.dll`** only (Newtonsoft.Json types and `GameModuleDTO.*` contracts).
 
-Auth for batch init: if `request.AuthKey` matches `GameState` value at `ModuleKeys.Auth` / `ModuleKeys.UnityToken`, **server** modules run; otherwise **client** modules run.
 
-## Build DTO (Unity plugin)
+
+## Layout
+
+
+
+| Part | Path | Role |
+
+|------|------|------|
+
+| **DTO** | `LiveOps/LiveOps.DTO/` | Contracts (`GameModuleDTO.*` namespaces in source; assembly name `Madbox.LiveOps.DTO`) |
+
+| **Main** | `LiveOps/Project/` | Cloud Code host (`GameModule.*`), `net6.0`, output assembly **`LiveOps.dll`** |
+
+
+
+Build everything with **`LiveOps/LiveOps.sln`** (two projects: DTO + main).
+
+
+
+## Unity plugins
+
+
+
+After a Release build, copy:
+
+
+
+- `LiveOps\LiveOps.DTO\bin\Release\netstandard2.1\Madbox.LiveOps.DTO.dll` → `Assets\Plugins\Madbox.LiveOps.DTO\`
+
+
+
+## Build commands
+
+
 
 ```powershell
-dotnet build "LiveOps\LiveOps.DTO\Madbox.LiveOps.DTO.csproj" -c Release
-Copy-Item "LiveOps\LiveOps.DTO\bin\Release\netstandard2.0\Madbox.LiveOps.DTO.dll" "Assets\Plugins\Madbox.LiveOps.DTO\Madbox.LiveOps.DTO.dll" -Force
+
+dotnet build "LiveOps\LiveOps.sln" -c Release
+
+Copy-Item "LiveOps\LiveOps.DTO\bin\Release\netstandard2.1\Madbox.LiveOps.DTO.dll" "Assets\Plugins\Madbox.LiveOps.DTO\Madbox.LiveOps.DTO.dll" -Force
+
 ```
 
-## Build Cloud Code module
 
-```powershell
-dotnet build "LiveOps\Project\LiveOps.csproj" -c Release
-```
 
-Deploy with `Configs` next to the module if you rely on local JSON. Top-level keys in each JSON file must match DTO type names (e.g. `TutorialConfigData`).
+Deploy the **LiveOps** Cloud Code module (dashboard name should match what the client uses, e.g. `"LiveOps"`). Remote config is loaded from the configured HTTP or UGS Remote Config source only; there is no on-disk JSON fallback in the module.
 
-`LiveOps/Directory.Build.props` disables repo Roslyn analyzers for these projects.
+
+
+`LiveOps/Directory.Build.props` disables repository Roslyn analyzers for these projects.
+
+
+
+## Unity client
+
+
+
+Use **`ILiveOpsService`** / **`LiveOpsService`** (`Madbox.LiveOps`, see `Docs/Core/LiveOps.md`) for typed **`ModuleRequest` / `ModuleResponse`** calls, or call **`ICloudCodeModuleService`** directly. Shared contracts live in **`Madbox.LiveOps.DTO.dll`** (`GameModuleDTO.*` namespaces).
+

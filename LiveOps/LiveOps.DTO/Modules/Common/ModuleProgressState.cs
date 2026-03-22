@@ -1,5 +1,9 @@
-namespace Madbox.LiveOps.DTO.Modules.Common
+namespace GameModuleDTO.Modules.Common
 {
+    /// <summary>
+    /// Represents granular progress steps or states within a module instance.
+    /// This complements the higher-level status available in the module's lifecycle.
+    /// </summary>
     public enum ModuleProgressState
     {
         Default = 0,

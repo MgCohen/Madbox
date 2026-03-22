@@ -2,22 +2,21 @@
 
 ## TL;DR
 
-- Purpose: minimal Main Menu white-box slice to validate bootstrap startup, DI, navigation + addressables view loading, and MVVM bind propagation.
+- Purpose: minimal Main Menu slice to validate bootstrap startup, DI, navigation + addressables view loading, and MVVM bind propagation for gold display.
 - Location: `Assets/Scripts/App/MainMenu/`.
-- Depends on: `Scaffold.MVVM.View`, `Scaffold.MVVM.ViewModel`, `Madbox.Gold`, `VContainer`.
+- Depends on: `Scaffold.MVVM.View`, `Scaffold.MVVM.ViewModel`, `Madbox.Gold`, `VContainer`, `Scaffold.Navigation` (ViewModel base).
 
 ## Responsibilities
 
 - Owns menu-local viewmodel/view flow for displaying current gold backed by `GoldWallet`.
 - Owns button-to-viewmodel command routing for `+1` gold.
-- Owns Start Game command routing to `GameView`.
 - Does not own economy rules beyond invoking `IGoldService`.
+- Does not start battles; the legacy game view module was removed from the project.
 
 ## Public API
 
 - `MainMenuViewModel.AddOneGold()`: increments gold through injected `IGoldService`.
-- `MainMenuViewModel.StartGame()`: opens `GameViewModel` through `INavigation`.
-- `MainMenuView`: binds `viewModel.Gold` to TextMeshPro text and button clicks to `AddOneGold` and `StartGame`.
+- `MainMenuView`: binds `viewModel.Gold` to TextMeshPro text and the Add Gold button to `AddOneGold`.
 
 ## Testing
 

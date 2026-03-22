@@ -16,16 +16,16 @@ You can see this working by running the scene, touching near all screen edges, a
 - [x] (2026-03-21 20:42Z) Implement joystick simplification in `Assets/Scripts/App/GameView/Runtime/VirtualJoystickInput.cs` (root follows pointer position using straightforward coordinate conversion).
 - [x] (2026-03-21 20:42Z) Add joystick boundary clamping so the stick root cannot move off the visible parent rect.
 - [x] (2026-03-21 20:42Z) Add regression test covering out-of-bounds pointer placement and asserting clamped anchored position within parent bounds.
-- [ ] Add `TouchInputRouter` in `Assets/Scripts/App/GameView/Runtime/` to own pointer down/drag/up routing and pointer ownership.
-- [ ] Define and wire minimal `InputContext` (`JoystickDrag` + `PointerEventData`) through an `IInputContextProvider` implementation.
-- [ ] Implement swipe detection in router (distance and duration thresholds) with detect/log behavior only.
-- [ ] Wire `TouchInputRouter` and joystick references in `Assets/Scenes/MainScene.unity`.
-- [ ] Introduce explicit player view data component in `Assets/Scripts/App/GameView/Runtime/` with hand-defined fields for movement and attack-relevant status used by behaviors.
-- [ ] Add a main player behavior runner component with an ordered list of behaviors and first-accept-wins control flow.
-- [ ] Refactor movement into a dedicated behavior component that consumes joystick direction and writes Animator movement parameters.
-- [ ] Refactor attack into a dedicated behavior component prepared to consume routed input and write Animator attack parameters (no swipe gameplay action yet).
-- [ ] Update Animator-driving scripts to use parameter/flag setting where needed rather than centralized state orchestration.
-- [ ] Run targeted test commands and `.agents/scripts/validate-changes.cmd` until clean.
+- [x] (2026-03-21) Add `TouchInputRouter` in `Assets/Scripts/App/GameView/Runtime/` to own pointer down/drag/up routing and pointer ownership.
+- [x] (2026-03-21) Define and wire minimal `InputContext` (`JoystickDrag` + `PointerEventData`) through an `IInputContextProvider` implementation (`PlayerInputProvider`).
+- [x] (2026-03-21) Implement swipe detection in router (distance and duration thresholds) with detect/log behavior only.
+- [x] (2026-03-21) Wire `TouchInputRouter` and joystick references in `Assets/Scenes/MainScene.unity` (joystick logic on `Joystick` child; full-screen `Touch Area` receives raycasts; joystick graphic `RaycastTarget` off).
+- [x] (2026-03-21) Introduce explicit player view data component (`PlayerViewData`) and `PlayerCore` snapshot used by behaviors.
+- [x] (2026-03-21) Add `PlayerBehaviorRunner` with ordered behaviors and first-accept-wins control flow.
+- [x] (2026-03-21) Refactor movement into `IPlayerBehavior` (`PlayerMovementViewBehavior`) consuming `InputContext` when a `PlayerInputProvider` exists in the scene; legacy joystick `Update` path retained for tests without a provider.
+- [x] (2026-03-21) Wire attack as `PlayerAttackViewBehavior` (`IPlayerBehavior`) ahead of centralized animation; debug Space handled there; `Hero` prefab disables duplicate debug attack on `PlayerAttackAnimationBehavior`.
+- [x] (2026-03-21) Animator controller has no parameters; movement/attack remain crossfade-driven with behavior-owned calls (`SetMoving` / `TriggerAttack`). Parameter migration deferred until controller exposes bools/triggers.
+- [ ] Run targeted test commands and `.agents/scripts/validate-changes.cmd` until clean (blocked here: Unity project already open in another Editor instance; rerun locally after closing the other instance).
 - [ ] Commit milestone changes.
 
 ## Surprises & Discoveries
@@ -68,7 +68,9 @@ You can see this working by running the scene, touching near all screen edges, a
 
 Milestone 1 is implemented at code level: joystick root positioning is now clamped to parent bounds, and a regression test for out-of-bounds pointer placement has been added in `CharacterVisualBehaviorsTests`.
 
-Remaining gap before milestone sign-off: repository gate is not fully clean due pre-existing failures outside this milestone scope. Next step is to proceed with Milestone 2 (touch router and minimal input context) while tracking these baseline failures explicitly.
+Milestone 2 is implemented: `TouchInputRouter` + `PlayerInputProvider` are wired in `MainScene`; `VirtualJoystickInput` lives on the `Joystick` root; `Hero` prefab includes `PlayerViewData`, `PlayerCore`, `PlayerBehaviorRunner`, movement + attack behaviors; `PlayerBehaviorRunnerTests` covers runner-driven movement with cleared vs non-cleared drag.
+
+Remaining gap before milestone sign-off: run `.agents/scripts/validate-changes.cmd` (and fix any new regressions) when no other Unity instance holds the project lock, then commit.
 
 ## Context and Orientation
 

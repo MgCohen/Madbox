@@ -28,7 +28,6 @@
         "Madbox.MainMenu.Runtime",
         "Scaffold.Types",
         "Unity.Addressables",
-        "Madbox.LiveOps",
         "UnityEngine.UI"
     ],
     "includePlatforms": [],

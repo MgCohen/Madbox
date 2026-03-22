@@ -1,11 +1,15 @@
-using Madbox.LiveOps.DTO.GameModule;
+using GameModuleDTO.GameModule;
 using Newtonsoft.Json;
 
-namespace Madbox.LiveOps.DTO.Modules.Gold
+namespace GameModuleDTO.Modules.Gold
 {
+    /// <summary>
+    /// Configuration data for Gold settings, intended for Remote Config.
+    /// </summary>
     public class GoldConfigData : IGameModuleData
     {
-        public string Key => GameDataExtensions.GetKey<GoldConfigData>();
+        /// <summary>Gets the resolved classification name for the component.</summary>
+        public string Key => typeof(GoldConfigData).Name;
 
         [JsonProperty]
         private long _min;
@@ -13,11 +17,13 @@ namespace Madbox.LiveOps.DTO.Modules.Gold
         [JsonProperty]
         private long _max;
 
+        /// <summary>Gets the minimum gold limit.</summary>
         [JsonIgnore]
-        public long Min => _min;
+        public long Min { get { return _min; } }
 
+        /// <summary>Gets the maximum gold limit.</summary>
         [JsonIgnore]
-        public long Max => _max;
+        public long Max { get { return _max; } }
 
         public void SetLimits(long min, long max)
         {

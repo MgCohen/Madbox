@@ -161,7 +161,7 @@ namespace Scaffold.App.GameView
 
         var diagnostics = await AnalyzerTestHarness.GetDiagnosticsByIdAsync(
             source,
-            @"C:\Repo\Assets\Scripts\App\GameView\Runtime\VirtualJoystickInput.cs",
+            @"C:\Repo\Assets\Scripts\App\MainMenu\Runtime\MainMenuView.cs",
             new InvariantEntryPointAnalyzer(),
             InvariantEntryPointAnalyzer.DiagnosticId);
 

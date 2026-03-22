@@ -1,7 +1,10 @@
-using Madbox.LiveOps.DTO.ModuleRequests;
+using GameModuleDTO.ModuleRequests;
 
-namespace Madbox.LiveOps.DTO.Modules.Gold
+namespace GameModuleDTO.Modules.Gold
 {
+    /// <summary>
+    /// Response sent back when gold is added to a player.
+    /// </summary>
     public class GoldResponse : ModuleResponse
     {
         public GoldResponse()
@@ -14,10 +17,5 @@ namespace Madbox.LiveOps.DTO.Modules.Gold
         }
 
         public long GoldDelta { get; set; }
-
-        public override bool IsValid()
-        {
-            return true;
-        }
     }
 }

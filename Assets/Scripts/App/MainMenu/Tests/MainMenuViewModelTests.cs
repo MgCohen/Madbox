@@ -1,5 +1,4 @@
-﻿using System;
-using Madbox.Battle.Services;
+using System;
 using Madbox.Gold;
 using Madbox.Gold.Contracts;
 using NUnit.Framework;
@@ -40,40 +39,12 @@ namespace Madbox.App.MainMenu.Tests
             Assert.AreEqual("Gold: 2", text);
         }
 
-        [Test]
-        public void StartGame_WhenCalled_OpensGameView()
-        {
-            FakeNavigation navigation = new FakeNavigation();
-            MainMenuViewModel viewModel = CreateStartGameViewModel(navigation, "level-from-menu");
-            viewModel.StartGame();
-            BuildAssertOpenedGameView(navigation, "level-from-menu");
-        }
-
         private static MainMenuViewModel CreateBoundViewModel(FakeGoldService service)
         {
             MainMenuViewModel viewModel = new MainMenuViewModel();
             viewModel.Construct(service);
             viewModel.Bind(new FakeNavigation());
             return viewModel;
-        }
-
-        private static MainMenuViewModel CreateStartGameViewModel(FakeNavigation navigation, string levelId)
-        {
-            FakeGoldService service = new FakeGoldService(0);
-            MainMenuViewModel viewModel = new MainMenuViewModel();
-            viewModel.Construct(service);
-            viewModel.SelectedLevelId = levelId;
-            viewModel.Bind(navigation);
-            return viewModel;
-        }
-
-        private static void BuildAssertOpenedGameView(FakeNavigation navigation, string expectedLevelId)
-        {
-            Assert.IsNotNull(navigation.OpenedController);
-            Assert.AreEqual("Madbox.Battle.Services.GameViewModel", navigation.OpenedController.GetType().FullName);
-            GameViewModel gameViewModel = navigation.OpenedController as GameViewModel;
-            Assert.IsNotNull(gameViewModel);
-            Assert.AreEqual(expectedLevelId, gameViewModel.SelectedLevelId.Value);
         }
 
         private static ViewFixture CreateViewFixture(MainMenuViewModel viewModel)
@@ -95,19 +66,21 @@ namespace Madbox.App.MainMenu.Tests
             for (int i = 0; i < components.Length; i++)
             {
                 if (BuildIsGoldLabel(components[i]))
-{
-    return components[i];
-}
+                {
+                    return components[i];
+                }
             }
+
             return null;
         }
 
         private static bool BuildIsGoldLabel(Component component)
         {
             if (!BuildIsTmpLabel(component))
-{
-    return false;
-}
+            {
+                return false;
+            }
+
             string value = BuildReadTextValue(component);
             return value.StartsWith("Gold:");
         }
@@ -120,14 +93,16 @@ namespace Madbox.App.MainMenu.Tests
         private static string BuildReadTextValue(Component component)
         {
             if (component == null)
-{
-    return string.Empty;
-}
+            {
+                return string.Empty;
+            }
+
             var property = component.GetType().GetProperty("text");
             if (property == null)
-{
-    return string.Empty;
-}
+            {
+                return string.Empty;
+            }
+
             object value = property.GetValue(component);
             return value as string ?? string.Empty;
         }
@@ -144,9 +119,10 @@ namespace Madbox.App.MainMenu.Tests
             public void Dispose()
             {
                 if (Root == null)
-{
-    return;
-}
+                {
+                    return;
+                }
+
                 UnityEngine.Object.DestroyImmediate(Root);
             }
         }
@@ -175,11 +151,9 @@ namespace Madbox.App.MainMenu.Tests
         {
             public IViewController CurrentController => null;
 
-            public IViewController OpenedController { get; private set; }
-
-            public void Open<TViewController>(TViewController controller, bool closeCurrent = false, NavigationOptions options = null) where TViewController : IViewController
+            public void Open<TViewController>(TViewController controller, bool closeCurrent = false, NavigationOptions options = null)
+                where TViewController : IViewController
             {
-                OpenedController = controller;
             }
 
             public void Close<TViewController>(TViewController controller) where TViewController : IViewController
@@ -193,6 +167,3 @@ namespace Madbox.App.MainMenu.Tests
         }
     }
 }
-
-
-

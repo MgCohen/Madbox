@@ -1,17 +1,22 @@
-using Madbox.LiveOps.DTO.GameModule;
+using GameModuleDTO.GameModule;
 using Newtonsoft.Json;
 
-namespace Madbox.LiveOps.DTO.Modules.Gold
+namespace GameModuleDTO.Modules.Gold
 {
+    /// <summary>
+    /// Data model for the Gold Client module (player-specific).
+    /// </summary>
     public class GoldModuleData : IGameModuleData
     {
-        public string Key => GameDataExtensions.GetKey<GoldModuleData>();
+        /// <summary>Gets the resolved classification name for the component.</summary>
+        public string Key => typeof(GoldModuleData).Name;
 
         [JsonProperty]
         private long _current;
 
+        /// <summary>Gets the current gold amount.</summary>
         [JsonIgnore]
-        public long Current => _current;
+        public long Current { get { return _current; } }
 
         public void SetCurrent(long value)
         {

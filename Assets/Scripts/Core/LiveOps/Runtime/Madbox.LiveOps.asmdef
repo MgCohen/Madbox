@@ -2,17 +2,16 @@
     "name": "Madbox.LiveOps",
     "rootNamespace": "Madbox.LiveOps",
     "references": [
-        "Unity.Services.Core",
-        "Unity.Services.Authentication",
-        "Unity.Services.CloudCode",
-        "VContainer",
-        "Madbox.CloudCode"
+        "Madbox.CloudCode",
+        "Madbox.Scope",
+        "VContainer"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
     "overrideReferences": false,
     "precompiledReferences": [
+        "Newtonsoft.Json.dll",
         "Madbox.LiveOps.DTO.dll"
     ],
     "autoReferenced": true,

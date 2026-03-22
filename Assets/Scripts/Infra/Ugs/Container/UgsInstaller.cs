@@ -1,3 +1,4 @@
+using Madbox.Scope.Contracts;
 using Madbox.Ugs;
 using VContainer;
 using VContainer.Unity;
@@ -8,7 +9,7 @@ namespace Madbox.Ugs.Container
     {
         public void Install(IContainerBuilder builder)
         {
-            builder.Register<Ugs>(Lifetime.Scoped).AsImplementedInterfaces();
+            builder.Register<Ugs>(Lifetime.Scoped).AsSelf().As<IAsyncLayerInitializable>();
         }
     }
 }

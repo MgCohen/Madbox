@@ -1,11 +1,15 @@
 using System.Threading;
 using System.Threading.Tasks;
-using Madbox.LiveOps.DTO;
+using GameModuleDTO.GameModule;
+using GameModuleDTO.ModuleRequests;
 
 namespace Madbox.LiveOps
 {
     public interface ILiveOpsService
     {
-        Task<PongResponse> PingAsync(PingRequest request, CancellationToken cancellationToken = default);
+        /// <summary>Sample: read one module payload from the aggregated bootstrap <c>GameData</c>.</summary>
+        T GetModuleData<T>() where T : class, IGameModuleData;
+
+        Task<TResponse> CallAsync<TResponse>(ModuleRequest<TResponse> request, CancellationToken cancellationToken = default) where TResponse : ModuleResponse;
     }
 }

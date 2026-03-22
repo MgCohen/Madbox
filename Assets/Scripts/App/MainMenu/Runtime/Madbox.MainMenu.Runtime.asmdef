@@ -6,8 +6,6 @@
         "Scaffold.MVVM.ViewModel",
         "Scaffold.MVVM.Base",
         "Scaffold.Navigation",
-        "Madbox.Battle",
-        "Madbox.Levels",
         "Madbox.Gold",
         "VContainer"
     ],

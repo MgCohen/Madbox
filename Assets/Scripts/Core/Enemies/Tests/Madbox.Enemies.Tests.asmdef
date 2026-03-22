@@ -2,10 +2,7 @@
     "name": "Madbox.Enemies.Tests",
     "rootNamespace": "Madbox.Enemies.Tests",
     "references": [
-        "Madbox.Enemies",
-        "Madbox.Levels",
-        "Scaffold.MVVM.Model",
-        "Scaffold.Records"
+        "Madbox.Enemies"
     ],
     "includePlatforms": [
         "Editor"
@@ -17,7 +14,7 @@
     "autoReferenced": false,
     "defineConstraints": [],
     "versionDefines": [],
-    "noEngineReferences": true,
+    "noEngineReferences": false,
     "optionalUnityReferences": [
         "TestAssemblies"
     ]

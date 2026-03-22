@@ -1,17 +1,22 @@
-using Madbox.LiveOps.DTO.GameModule;
+using GameModuleDTO.GameModule;
 using Newtonsoft.Json;
 
-namespace Madbox.LiveOps.DTO.Modules.Gold
+namespace GameModuleDTO.Modules.Gold
 {
+    /// <summary>
+    /// Data model for the Gold Reward module.
+    /// </summary>
     public class GoldRewardModuleData : IGameModuleData
     {
-        public string Key => GameDataExtensions.GetKey<GoldRewardModuleData>();
+        /// <summary>Gets the resolved classification name for the component.</summary>
+        public string Key => typeof(GoldRewardModuleData).Name;
 
         [JsonProperty]
         private int _reward = 100;
 
+        /// <summary>Gets the gold reward amount.</summary>
         [JsonIgnore]
-        public int Reward => _reward;
+        public int Reward { get { return _reward; } }
 
         public void SetReward(int value)
         {

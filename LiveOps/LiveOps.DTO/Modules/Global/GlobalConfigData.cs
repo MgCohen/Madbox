@@ -1,24 +1,15 @@
+using GameModuleDTO.GameModule;
 using System.Collections.Generic;
-using Madbox.LiveOps.DTO.GameModule;
-using Madbox.LiveOps.DTO.Modules.Common;
 using Newtonsoft.Json;
 
-namespace Madbox.LiveOps.DTO.Modules.Global
+namespace GameModuleDTO.Modules.Global
 {
-    public class GlobalConfigData : IGameModuleData, IIsActive
+    /// <summary>
+    /// Configuration data for global game settings.
+    /// </summary>
+    public class GlobalConfigData : IGameModuleData
     {
-        public string Key => GameDataExtensions.GetKey<GlobalConfigData>();
-
-        [JsonProperty]
-        private bool _isActive = true;
-
-        [JsonIgnore]
-        public bool IsActive => _isActive;
-
-        public void SetActive(bool value)
-        {
-            _isActive = value;
-        }
+        public string Key => typeof(GlobalConfigData).Name;
 
         [JsonProperty]
         private Dictionary<string, object> _values = new Dictionary<string, object>();
@@ -32,6 +23,7 @@ namespace Madbox.LiveOps.DTO.Modules.Global
             {
                 try
                 {
+                    // Handle numeric types which might be deserialized as long or double by Newtonsoft.Json
                     if (typeof(T) == typeof(int))
                     {
                         return (T)(object)System.Convert.ToInt32(value);
@@ -58,6 +50,7 @@ namespace Madbox.LiveOps.DTO.Modules.Global
             return defaultValue;
         }
 
+        #region Specific Properties
         [JsonIgnore]
         public string SampleKey => GetValue("key", "value");
 
@@ -78,6 +71,7 @@ namespace Madbox.LiveOps.DTO.Modules.Global
 
         [JsonIgnore]
         public int BeeEasyAttack => GetValue("bee_easy_attack", 10);
+        #endregion
 
         public void SetValue(string key, object value)
         {

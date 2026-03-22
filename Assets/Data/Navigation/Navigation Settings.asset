@@ -14,4 +14,3 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   screens:
   - {fileID: 11400000, guid: 608cda73e3eb20d44be650026efdb708, type: 2}
-  - {fileID: 11400000, guid: f1d8d7d8e4f24e6aa0aa0c1c4c5d9e23, type: 2}

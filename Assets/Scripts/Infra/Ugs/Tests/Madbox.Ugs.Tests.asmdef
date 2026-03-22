@@ -1,0 +1,21 @@
+{
+    "name": "Madbox.Ugs.Tests",
+    "rootNamespace": "Madbox.Ugs.Tests",
+    "references": [
+        "Madbox.Ugs"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false,
+    "optionalUnityReferences": [
+        "TestAssemblies"
+    ]
+}

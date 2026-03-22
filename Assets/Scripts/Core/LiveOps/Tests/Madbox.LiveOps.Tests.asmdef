@@ -3,7 +3,10 @@
     "rootNamespace": "Madbox.LiveOps.Tests",
     "references": [
         "Madbox.LiveOps",
-        "Madbox.CloudCode"
+        "Madbox.CloudCode",
+        "Madbox.Scope",
+        "Madbox.Ugs",
+        "VContainer"
     ],
     "includePlatforms": [
         "Editor"
@@ -17,7 +20,7 @@
     "autoReferenced": false,
     "defineConstraints": [],
     "versionDefines": [],
-    "noEngineReferences": true,
+    "noEngineReferences": false,
     "optionalUnityReferences": [
         "TestAssemblies"
     ]

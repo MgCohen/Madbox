@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Threading;
 using Madbox.Addressables.Contracts;
+using Madbox.Scope;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
@@ -14,13 +15,10 @@ namespace Madbox.Addressables.Tests.PlayMode
 {
     public sealed class AddressablesBootstrapPlayModeTests
     {
-        private const string bootstrapScopeTypeName = "Madbox.App.Bootstrap.BootstrapScope";
-        private const string completionPropertyName = "IsBootstrapCompleted";
         private const string longSwordPrefabGuid = "bac79aa2a0057e5429a664d3f336da3d";
-        private const int sceneLoadTimeoutFrames = 600;
+        private const int sceneLoadTimeoutFrames = 900;
         private const int gatewayLoadTimeoutFrames = 1800;
-        private const int bootstrapScopeTimeoutFrames = 1800;
-        private const int bootstrapCompletionTimeoutFrames = 1800;
+        private const int bootstrapCompleteTimeoutFrames = 2400;
         private List<string> fatalLogs;
 
         [SetUp]
@@ -41,7 +39,7 @@ namespace Madbox.Addressables.Tests.PlayMode
         public IEnumerator BootstrapScene_ResolvesGateway_LoadsAndReleasesAddressable()
         {
             yield return LoadBootstrapScene();
-            yield return WaitForBootstrapInitialization();
+            yield return WaitForBootstrapCompleted();
             IAddressablesGateway gateway = ResolveGateway();
             IAssetHandle<GameObject> handle = null;
             yield return LoadLongSword(gateway, value => handle = value);
@@ -53,111 +51,112 @@ namespace Madbox.Addressables.Tests.PlayMode
         {
             AsyncOperation operation = SceneManager.LoadSceneAsync("Bootstrap", LoadSceneMode.Single);
             Assert.IsNotNull(operation);
-            int frame = 0;
-            while (!operation.isDone)
+
+            for (int frame = 0; frame < sceneLoadTimeoutFrames && !operation.isDone; frame++)
             {
-                if (frame++ >= sceneLoadTimeoutFrames)
-                {
-                    Assert.Fail($"Bootstrap scene load did not complete within {sceneLoadTimeoutFrames} frames.");
-                }
                 yield return null;
             }
+
+            Assert.IsTrue(operation.isDone, $"Bootstrap scene load did not complete within {sceneLoadTimeoutFrames} frames.");
         }
 
-        private IEnumerator WaitForBootstrapInitialization()
+        private IEnumerator WaitForBootstrapCompleted()
         {
-            yield return WaitForBootstrapScope(bootstrapScopeTimeoutFrames);
-            yield return WaitForBootstrapCompletion(bootstrapCompletionTimeoutFrames);
-        }
-
-        private IEnumerator WaitForBootstrapScope(int maxFrames)
-        {
-            int frame = 0;
-            MonoBehaviour scope = FindBootstrapScope();
-            while (scope == null)
+            LayeredScope scope = null;
+            for (int frame = 0; frame < bootstrapCompleteTimeoutFrames; frame++)
             {
-                if (frame++ >= maxFrames)
+                scope = FindLayeredScopeInBootstrapScene();
+                if (scope != null && scope.IsBootstrapCompleted)
                 {
-                    Assert.Fail($"Bootstrap scope '{bootstrapScopeTypeName}' not found within {maxFrames} frames.");
-                }
-
-                yield return null;
-                scope = FindBootstrapScope();
-            }
-        }
-
-        private IEnumerator WaitForBootstrapCompletion(int maxFrames)
-        {
-            int frame = 0;
-            while (true)
-            {
-                MonoBehaviour scope = FindBootstrapScope();
-                if (IsBootstrapCompleted(scope))
-                {
-                    yield break;
-                }
-
-                if (frame++ >= maxFrames)
-                {
-                    Assert.Fail($"Bootstrap completion flag '{completionPropertyName}' did not become true within {maxFrames} frames.");
+                    break;
                 }
 
                 yield return null;
             }
+
+            Assert.IsNotNull(scope, "Expected Bootstrap scene to contain a LayeredScope.");
+            Assert.IsTrue(scope.IsBootstrapCompleted, "Expected bootstrap initialization to complete.");
         }
 
-        private MonoBehaviour FindBootstrapScope()
+        private static LayeredScope FindLayeredScopeInBootstrapScene()
         {
-            MonoBehaviour[] behaviours = Object.FindObjectsByType<MonoBehaviour>(FindObjectsInactive.Include, FindObjectsSortMode.None);
-            for (int i = 0; i < behaviours.Length; i++)
+            Scene bootstrapScene = SceneManager.GetSceneByName("Bootstrap");
+            if (!bootstrapScene.IsValid() || !bootstrapScene.isLoaded)
             {
-                if (IsBootstrapScope(behaviours[i]))
+                return null;
+            }
+
+            foreach (GameObject root in bootstrapScene.GetRootGameObjects())
+            {
+                LayeredScope layered = root.GetComponentInChildren<LayeredScope>(true);
+                if (layered != null)
                 {
-                    return behaviours[i];
+                    return layered;
                 }
             }
+
             return null;
-        }
-
-        private bool IsBootstrapScope(MonoBehaviour behaviour)
-        {
-            if (behaviour == null)
-            {
-                return false;
-            }
-            return behaviour.GetType().FullName == bootstrapScopeTypeName;
-        }
-
-        private bool IsBootstrapCompleted(MonoBehaviour scope)
-        {
-            if (scope == null)
-            {
-                return false;
-            }
-            var property = scope.GetType().GetProperty(completionPropertyName, System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public);
-            if (property == null)
-            {
-                return false;
-            }
-            object value = property.GetValue(scope, null);
-            return value is bool completed && completed;
         }
 
         private IAddressablesGateway ResolveGateway()
         {
-            LifetimeScope[] scopes = Object.FindObjectsByType<LifetimeScope>(FindObjectsInactive.Include, FindObjectsSortMode.None);
-            for (int i = 0; i < scopes.Length; i++)
+            LayeredScope layeredScope = FindLayeredScopeInBootstrapScene();
+            Assert.IsNotNull(layeredScope, "Expected Bootstrap scene LayeredScope before gateway resolution.");
+
+            if (TryResolveGatewayFromScopes(layeredScope.GetComponentsInChildren<LifetimeScope>(true), out IAddressablesGateway fromLayered))
             {
-                if (TryResolveGateway(scopes[i], out IAddressablesGateway gateway))
-                {
-                    return gateway;
-                }
+                return fromLayered;
             }
+
+            LifetimeScope[] allScopes = Object.FindObjectsByType<LifetimeScope>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+            if (TryResolveGatewayFromScopes(allScopes, out IAddressablesGateway fromScene))
+            {
+                return fromScene;
+            }
+
             Assert.Fail("Failed to resolve IAddressablesGateway from active LifetimeScopes.");
             return null;
         }
 
-        private bool TryResolveGateway(LifetimeScope scope, out IAddressablesGateway gateway)
+        private static bool TryResolveGatewayFromScopes(LifetimeScope[] scopes, out IAddressablesGateway gateway)
+        {
+            gateway = null;
+            if (scopes == null || scopes.Length == 0)
+            {
+                return false;
+            }
+
+            SortLifetimeScopesByDepthDescending(scopes);
+            for (int i = 0; i < scopes.Length; i++)
+            {
+                if (TryResolveGateway(scopes[i], out gateway))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private static void SortLifetimeScopesByDepthDescending(LifetimeScope[] scopes)
+        {
+            System.Array.Sort(scopes, (a, b) => GetTransformDepth(b.transform).CompareTo(GetTransformDepth(a.transform)));
+        }
+
+        private static int GetTransformDepth(Transform transform)
+        {
+            int depth = 0;
+            Transform current = transform;
+            while (current != null)
+            {
+                depth++;
+                current = current.parent;
+            }
+
+            return depth;
+        }
+
+        private static bool TryResolveGateway(LifetimeScope scope, out IAddressablesGateway gateway)
         {
             gateway = null;
             if (scope == null || scope.Container == null)

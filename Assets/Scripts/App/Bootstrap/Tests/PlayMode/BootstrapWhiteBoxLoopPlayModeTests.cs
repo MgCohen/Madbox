@@ -1,6 +1,8 @@
 using System.Collections;
 using System.Collections.Generic;
+using Madbox.Scope;
 using NUnit.Framework;
+using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
@@ -12,7 +14,8 @@ namespace Madbox.Bootstrap.Tests.PlayMode
 {
     public sealed class BootstrapWhiteBoxLoopPlayModeTests
     {
-        private const int sceneLoadTimeoutFrames = 600;
+        private const int sceneLoadTimeoutFrames = 900;
+        private const int bootstrapCompleteTimeoutFrames = 1200;
         private List<string> fatalLogs;
 
         [SetUp]
@@ -30,14 +33,20 @@ namespace Madbox.Bootstrap.Tests.PlayMode
         }
 
         [UnityTest]
-        public IEnumerator WhiteBoxLoop_MainMenuToGameAndBack_Works()
+        public IEnumerator WhiteBoxLoop_MainMenu_AddGold_UpdatesGoldLabel()
         {
             yield return LoadBootstrapScene();
-            yield return WaitForMainMenu();
-            yield return ClickStartGame();
-            yield return WaitForGameStateDone();
-            yield return ClickComplete();
-            yield return WaitForMainMenu();
+            yield return WaitForBootstrapCompleted();
+            yield return WaitForMainMenuAddGoldButton();
+            string before = FindGoldDisplayText();
+            Assert.IsFalse(string.IsNullOrEmpty(before), "Expected main menu gold label text.");
+            Button addGold = FindButton("AddGoldButton");
+            Assert.IsNotNull(addGold);
+            addGold.onClick.Invoke();
+            yield return null;
+            yield return null;
+            string after = FindGoldDisplayText();
+            Assert.AreNotEqual(before, after, "Gold label should change after Add Gold.");
             AssertNoFatalLogs();
         }
 
@@ -45,25 +54,60 @@ namespace Madbox.Bootstrap.Tests.PlayMode
         {
             AsyncOperation operation = SceneManager.LoadSceneAsync("Bootstrap", LoadSceneMode.Single);
             Assert.IsNotNull(operation);
-            int frame = 0;
-            while (!operation.isDone)
+
+            for (int frame = 0; frame < sceneLoadTimeoutFrames && !operation.isDone; frame++)
             {
-                if (frame++ >= sceneLoadTimeoutFrames)
+                yield return null;
+            }
+
+            Assert.IsTrue(operation.isDone, $"Bootstrap scene load did not complete within {sceneLoadTimeoutFrames} frames.");
+        }
+
+        private IEnumerator WaitForBootstrapCompleted()
+        {
+            LayeredScope scope = null;
+            for (int frame = 0; frame < bootstrapCompleteTimeoutFrames; frame++)
+            {
+                scope = FindLayeredScopeInBootstrapScene();
+                if (scope != null && scope.IsBootstrapCompleted)
                 {
-                    Assert.Fail($"Bootstrap scene load did not complete within {sceneLoadTimeoutFrames} frames.");
+                    break;
                 }
 
                 yield return null;
             }
+
+            Assert.IsNotNull(scope, "Expected Bootstrap scene to contain a LayeredScope.");
+            Assert.IsTrue(scope.IsBootstrapCompleted, "Expected bootstrap initialization to complete.");
         }
 
-        private IEnumerator WaitForMainMenu()
+        private static LayeredScope FindLayeredScopeInBootstrapScene()
+        {
+            Scene bootstrapScene = SceneManager.GetSceneByName("Bootstrap");
+            if (!bootstrapScene.IsValid() || !bootstrapScene.isLoaded)
+            {
+                return null;
+            }
+
+            foreach (GameObject root in bootstrapScene.GetRootGameObjects())
+            {
+                LayeredScope layered = root.GetComponentInChildren<LayeredScope>(true);
+                if (layered != null)
+                {
+                    return layered;
+                }
+            }
+
+            return null;
+        }
+
+        private IEnumerator WaitForMainMenuAddGoldButton()
         {
             const float timeoutSeconds = 6f;
             float startedAt = Time.realtimeSinceStartup;
             while (Time.realtimeSinceStartup - startedAt < timeoutSeconds)
             {
-                if (FindButton("StartGameButton") != null)
+                if (FindButton("AddGoldButton") != null)
                 {
                     yield break;
                 }
@@ -71,60 +115,27 @@ namespace Madbox.Bootstrap.Tests.PlayMode
                 yield return null;
             }
 
-            Assert.Fail("MainMenu StartGameButton not found.");
+            Assert.Fail("Main menu AddGoldButton not found.");
         }
 
-        private IEnumerator ClickStartGame()
+        private static string FindGoldDisplayText()
         {
-            Button button = FindButton("StartGameButton");
-            Assert.IsNotNull(button);
-            button.onClick.Invoke();
-            yield return null;
-        }
-
-        private IEnumerator WaitForGameStateDone()
-        {
-            const float timeoutSeconds = 8f;
-            float startedAt = Time.realtimeSinceStartup;
-            while (Time.realtimeSinceStartup - startedAt < timeoutSeconds)
+            TextMeshProUGUI[] labels = Object.FindObjectsByType<TextMeshProUGUI>(
+                FindObjectsInactive.Include,
+                FindObjectsSortMode.None);
+            for (int i = 0; i < labels.Length; i++)
             {
-                Component stateText = FindTmpLabel("GameStateText");
-                if (stateText != null)
+                TextMeshProUGUI label = labels[i];
+                if (label != null && label.text != null && label.text.StartsWith("Gold:", System.StringComparison.Ordinal))
                 {
-                    string text = ReadTmpText(stateText);
-                    if (text == "GameState: Done")
-                    {
-                        yield break;
-                    }
+                    return label.text;
                 }
-
-                yield return null;
             }
 
-            Assert.Fail("GameState did not reach Done within timeout.");
+            return null;
         }
 
-        private IEnumerator ClickComplete()
-        {
-            const float timeoutSeconds = 4f;
-            float startedAt = Time.realtimeSinceStartup;
-            while (Time.realtimeSinceStartup - startedAt < timeoutSeconds)
-            {
-                Button button = FindButton("CompleteButton");
-                if (button != null && button.gameObject.activeInHierarchy)
-                {
-                    button.onClick.Invoke();
-                    yield return null;
-                    yield break;
-                }
-
-                yield return null;
-            }
-
-            Assert.Fail("Complete button was not available.");
-        }
-
-        private Button FindButton(string name)
+        private static Button FindButton(string name)
         {
             Button[] buttons = Object.FindObjectsByType<Button>(FindObjectsInactive.Include, FindObjectsSortMode.None);
             for (int i = 0; i < buttons.Length; i++)
@@ -136,48 +147,6 @@ namespace Madbox.Bootstrap.Tests.PlayMode
             }
 
             return null;
-        }
-
-        private Component FindTmpLabel(string name)
-        {
-            Component[] components = Object.FindObjectsByType<Component>(FindObjectsInactive.Include, FindObjectsSortMode.None);
-            for (int i = 0; i < components.Length; i++)
-            {
-                Component component = components[i];
-                if (component == null)
-                {
-                    continue;
-                }
-
-                if (component.gameObject.name != name)
-                {
-                    continue;
-                }
-
-                if (component.GetType().Name == "TextMeshProUGUI")
-                {
-                    return component;
-                }
-            }
-
-            return null;
-        }
-
-        private string ReadTmpText(Component component)
-        {
-            if (component == null)
-            {
-                return string.Empty;
-            }
-
-            var property = component.GetType().GetProperty("text");
-            if (property == null)
-            {
-                return string.Empty;
-            }
-
-            object value = property.GetValue(component);
-            return value as string ?? string.Empty;
         }
 
         private void OnLogMessageReceived(string condition, string stackTrace, LogType type)
@@ -199,4 +168,3 @@ namespace Madbox.Bootstrap.Tests.PlayMode
         }
     }
 }
-

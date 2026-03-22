@@ -3,7 +3,9 @@
     "rootNamespace": "Madbox.LiveOps.Container",
     "references": [
         "Madbox.LiveOps",
-        "VContainer"
+        "Madbox.Scope",
+        "VContainer",
+        "VContainer.Unity"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

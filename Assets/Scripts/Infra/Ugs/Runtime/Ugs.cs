@@ -1,3 +1,4 @@
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Madbox.Scope.Contracts;
@@ -7,37 +8,32 @@ using VContainer;
 
 namespace Madbox.Ugs
 {
-    public sealed class Ugs : IUgs, IAsyncLayerInitializable
+    public sealed class Ugs : IAsyncLayerInitializable
     {
-        private readonly object gate = new object();
-        private bool initialized;
-
         public async Task InitializeAsync(IObjectResolver resolver, CancellationToken cancellationToken)
         {
-            cancellationToken.ThrowIfCancellationRequested();
-            if (IsInitialized())
+            if (resolver == null)
             {
-                return;
+                throw new ArgumentNullException(nameof(resolver));
             }
 
-            await UnityServices.InitializeAsync();
+            await EnsureInitializedAsync(cancellationToken);
+        }
+
+        internal async Task EnsureInitializedAsync(CancellationToken cancellationToken = default)
+        {
             cancellationToken.ThrowIfCancellationRequested();
+
+            if (UnityServices.State is ServicesInitializationState.Uninitialized)
+            {
+                await UnityServices.InitializeAsync();
+            }
+
+            cancellationToken.ThrowIfCancellationRequested();
+
             if (!AuthenticationService.Instance.IsSignedIn)
             {
                 await AuthenticationService.Instance.SignInAnonymouslyAsync();
-            }
-
-            lock (gate)
-            {
-                initialized = true;
-            }
-        }
-
-        private bool IsInitialized()
-        {
-            lock (gate)
-            {
-                return initialized;
             }
         }
     }
