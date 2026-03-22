@@ -15,7 +15,7 @@ MonoBehaviour:
   m_DefaultGroup: 258c332eb00663641841ccb2eaaf820e
   m_currentHash:
     serializedVersion: 2
-    Hash: 00000000000000000000000000000000
+    Hash: 8e61e1d57eba5cc2d21bc26d086cc69f
   m_OptimizeCatalogSize: 0
   m_BuildRemoteCatalog: 1
   m_BundleLocalCatalog: 0
@@ -76,16 +76,16 @@ MonoBehaviour:
         m_Value: '[UnityEditor.EditorUserBuildSettings.activeBuildTarget]'
     m_ProfileEntryNames:
     - m_Id: 0730e12ce48a02244a730dc22db0aee7
-      m_Name: RemoteBuildPath
+      m_Name: Remote.BuildPath
       m_InlineUsage: 0
     - m_Id: 1c75832286464fb49a0c199f933e520a
-      m_Name: LocalBuildPath
+      m_Name: Local.BuildPath
       m_InlineUsage: 0
     - m_Id: 2cc5e8760dd088d4cbef12da501c8f63
-      m_Name: RemoteLoadPath
+      m_Name: Remote.LoadPath
       m_InlineUsage: 0
     - m_Id: 95dd9a9654b75984cb933bffd48f9024
-      m_Name: LocalLoadPath
+      m_Name: Local.LoadPath
       m_InlineUsage: 0
     - m_Id: f1f75230de5781b49a378eac25a84de0
       m_Name: BuildTarget
