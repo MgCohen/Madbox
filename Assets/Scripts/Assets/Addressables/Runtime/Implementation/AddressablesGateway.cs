@@ -15,7 +15,7 @@ namespace Madbox.Addressables
         private readonly IAssetReferenceHandler assetReferenceHandler;
         private readonly object initSync = new object();
 
-        private bool initialized;
+        private Task initializationTask;
 
         public AddressablesGateway(IAddressablesAssetClient client, IAssetReferenceHandler assetReferenceHandler)
         {
@@ -83,31 +83,35 @@ namespace Madbox.Addressables
             return group;
         }
 
-        private async Task InitializeCoreAsync(CancellationToken cancellationToken)
+        private Task InitializeCoreAsync(CancellationToken cancellationToken)
         {
+            lock (initSync)
+            {
+                if (initializationTask != null)
+                {
+                    return initializationTask;
+                }
+
+                initializationTask = RunInitializationPipelineAsync(cancellationToken);
+                return initializationTask;
+            }
+        }
+
+        private async Task RunInitializationPipelineAsync(CancellationToken cancellationToken)
+        {
+            UnityEngine.Debug.Log("[AddressablesGateway] Initializing Addressables Gateway...");
             cancellationToken.ThrowIfCancellationRequested();
 
-            lock (initSync)
-            {
-                if (initialized)
-                {
-                    return;
-                }
-            }
-
             await RunCatalogSyncAsync(cancellationToken);
-
-            lock (initSync)
-            {
-                initialized = true;
-            }
         }
 
         private async Task RunCatalogSyncAsync(CancellationToken cancellationToken)
         {
             try
             {
+                UnityEngine.Debug.Log("[AddressablesGateway] Running Catalog Sync...");
                 await client.SyncCatalogAndContentAsync(cancellationToken);
+                UnityEngine.Debug.Log("[AddressablesGateway] Catalog and Content Sync completed successfully.");
             }
             catch (Exception exception) when (exception is not OperationCanceledException)
             {

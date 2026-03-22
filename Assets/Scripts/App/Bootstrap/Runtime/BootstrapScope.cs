@@ -20,6 +20,7 @@ namespace Madbox.App.Bootstrap
 
         protected override LayerInstallerBase BuildLayerTree()
         {
+            Debug.Log("[BootstrapScope] Building Layer Tree");
             BootstrapAssetInstaller asset = new BootstrapAssetInstaller();
             BootstrapInfraInstaller infra = new BootstrapInfraInstaller(viewHolder, sceneFlowBootstrapShell);
             BootstrapMetaInstaller meta = new BootstrapMetaInstaller();
@@ -39,6 +40,7 @@ namespace Madbox.App.Bootstrap
 
         private void OpenMainMenu(LifetimeScope finalScope)
         {
+            Debug.Log("[BootstrapScope] Opening Main Menu");
             if (finalScope == null || finalScope.Container == null)
             {
                 return;
