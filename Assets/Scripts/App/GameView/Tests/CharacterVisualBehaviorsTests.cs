@@ -86,7 +86,19 @@ namespace Madbox.App.GameView.Tests
 
             joystick.OnPointerDown(eventData);
 
-            RectTransformUtility.ScreenPointToLocalPointInRectangle(canvasRect, eventData.position, null, out Vector2 expectedPosition);
+            RectTransformUtility.ScreenPointToLocalPointInRectangle(
+                canvasRect,
+                eventData.position,
+                eventData.pressEventCamera,
+                out Vector2 rawLocalInParent);
+            float minX = canvasRect.rect.xMin - stickRoot.rect.xMin;
+            float maxX = canvasRect.rect.xMax - stickRoot.rect.xMax;
+            float minY = canvasRect.rect.yMin - stickRoot.rect.yMin;
+            float maxY = canvasRect.rect.yMax - stickRoot.rect.yMax;
+            Vector2 expectedPosition = new Vector2(
+                Mathf.Clamp(rawLocalInParent.x, minX, maxX),
+                Mathf.Clamp(rawLocalInParent.y, minY, maxY));
+
             Assert.That(stickRoot.anchoredPosition.x, Is.EqualTo(expectedPosition.x).Within(0.01f));
             Assert.That(stickRoot.anchoredPosition.y, Is.EqualTo(expectedPosition.y).Within(0.01f));
 

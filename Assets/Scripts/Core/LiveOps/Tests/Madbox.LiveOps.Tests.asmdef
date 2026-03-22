@@ -1,0 +1,24 @@
+{
+    "name": "Madbox.LiveOps.Tests",
+    "rootNamespace": "Madbox.LiveOps.Tests",
+    "references": [
+        "Madbox.LiveOps",
+        "Madbox.CloudCode"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [
+        "Madbox.LiveOps.DTO.dll"
+    ],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": true,
+    "optionalUnityReferences": [
+        "TestAssemblies"
+    ]
+}

@@ -1,4 +1,6 @@
 using Madbox.App.MainMenu;
+using Madbox.LiveOps;
+using Madbox.LiveOps.DTO;
 using Madbox.Scope;
 using Scaffold.Navigation;
 using Scaffold.Navigation.Contracts;
@@ -16,13 +18,17 @@ namespace Madbox.App.Bootstrap
         {
             BootstrapAssetInstaller asset = new BootstrapAssetInstaller();
             BootstrapInfraInstaller infra = new BootstrapInfraInstaller(viewHolder);
+            BootstrapCoreInstaller core = new BootstrapCoreInstaller();
             asset.AddChild(infra);
+            infra.AddChild(core);
             return asset;
         }
 
         protected override void OnBootstrapCompleted(LifetimeScope finalScope)
         {
             Debug.Log("Bootstrap completed");
+            var service = finalScope.Container.Resolve<ILiveOpsService>();
+            service.PingAsync(new PingRequest { Value = 1 });
             OpenMainMenu(finalScope);
         }
 

@@ -28,7 +28,10 @@ namespace Madbox.App.Bootstrap.Tests
             LayerInstallerBase root = InvokeBuildLayerTree(harness.Scope);
             Assert.IsNotNull(root);
             Assert.AreEqual(1, root.Children.Count);
-            Assert.AreEqual("BootstrapInfraInstaller", root.Children[0].GetType().Name);
+            LayerInstallerBase infra = root.Children[0];
+            Assert.AreEqual("BootstrapInfraInstaller", infra.GetType().Name);
+            Assert.AreEqual(1, infra.Children.Count);
+            Assert.AreEqual("BootstrapCoreInstaller", infra.Children[0].GetType().Name);
         }
 
         private static ScopeHarness CreateScopeHarness()

@@ -6,6 +6,6 @@ namespace Madbox.CloudCode
 {
     public interface ICloudCodeModuleService
     {
-        Task<string> CallModuleEndpointJsonAsync(string moduleName, string functionName, Dictionary<string, object> payload, CancellationToken cancellationToken = default);
+        Task<T> CallEndpointAsync<T>(string module, string endpoint, int maxRetries = 2, int retryCall = 2, Dictionary<string, object> payload = null);
     }
 }

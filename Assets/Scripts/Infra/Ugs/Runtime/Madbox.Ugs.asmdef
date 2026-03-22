@@ -2,8 +2,10 @@
     "name": "Madbox.Ugs",
     "rootNamespace": "Madbox.Ugs",
     "references": [
+        "Madbox.Scope",
         "Unity.Services.Core",
-        "Unity.Services.Authentication"
+        "Unity.Services.Authentication",
+        "VContainer"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

@@ -12,8 +12,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 474954aea6b02bd40a1b09571e59e93c, type: 3}
   m_Name: New Level Definition V2
   m_EditorClassIdentifier: 
-  levelId: level-v2-1
-  sceneKey: GameView
+  sceneAssetReference:
+    m_AssetGUID: 
+    m_SubObjectName: 
+    m_SubObjectType: 
+    m_EditorAssetChanged: 0
   enemyEntries:
-  - enemyPrefab: {fileID: 1985765257376077445, guid: e4260a643264a84479eee8911d7bd336, type: 3}
-    count: 1
+  - enemyAssetReference:
+      m_AssetGUID: 
+      m_SubObjectName: 
+      m_SubObjectType: 
+      m_EditorAssetChanged: 0
+    count: 0
+  gameRules: []

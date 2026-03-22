@@ -1,45 +1,39 @@
 {
-    "name":  "Madbox.Bootstrap.Runtime",
-    "rootNamespace":  "Madbox.Bootstrap",
-    "references":  [
-                       "Scaffold.Navigation",
-                       "Scaffold.Schemas",
-                       "Madbox.Scope",
-                       "Scaffold.MVVM.Base",
-                       "Scaffold.MVVM.View",
-                       "Scaffold.MVVM.Model",
-                       "Scaffold.MVVM.ViewModel",
-                       "VContainer",
-                       "Scaffold.Events.Container",
-                       "Scaffold.Navigation.Container",
-                       "Madbox.Addressables.Container",
-                       "Madbox.Addressables",
-                       "Madbox.Gold.Container",
-                       "Madbox.LiveOps.Container",
-                       "Madbox.GameView.Container",
-                       "Madbox.GameView.Runtime",
-                       "Madbox.MainMenu.Runtime",
-                       "Scaffold.Types",
-                       "Unity.Addressables"
-                   ],
-    "includePlatforms":  [
-
-                         ],
-    "excludePlatforms":  [
-
-                         ],
-    "allowUnsafeCode":  false,
-    "overrideReferences":  false,
-    "precompiledReferences":  [
-
-                              ],
-    "autoReferenced":  true,
-    "defineConstraints":  [
-
-                          ],
-    "versionDefines":  [
-
-                       ],
-    "noEngineReferences":  false
+    "name": "Madbox.Bootstrap.Runtime",
+    "rootNamespace": "Madbox.Bootstrap",
+    "references": [
+        "Scaffold.Navigation",
+        "Scaffold.Schemas",
+        "Madbox.Scope",
+        "Scaffold.MVVM.Base",
+        "Scaffold.MVVM.View",
+        "Scaffold.MVVM.Model",
+        "Scaffold.MVVM.ViewModel",
+        "VContainer",
+        "Scaffold.Events.Container",
+        "Scaffold.Navigation.Container",
+        "Madbox.Addressables.Container",
+        "Madbox.Addressables",
+        "Madbox.Gold.Container",
+        "Madbox.Ugs.Container",
+        "Madbox.CloudCode.Container",
+        "Madbox.LiveOps.Container",
+        "Madbox.GameView.Container",
+        "Madbox.GameView.Runtime",
+        "Madbox.MainMenu.Runtime",
+        "Scaffold.Types",
+        "Unity.Addressables",
+        "Madbox.LiveOps"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [
+        "Madbox.LiveOps.DTO.dll"
+    ],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
 }
-
