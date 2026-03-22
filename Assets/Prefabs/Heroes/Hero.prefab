@@ -423,6 +423,9 @@ GameObject:
   m_Component:
   - component: {fileID: 2148928661061455951}
   - component: {fileID: 4278100186079492270}
+  - component: {fileID: 4278100186079492272}
+  - component: {fileID: 4278100186079492273}
+  - component: {fileID: 4278100186079492274}
   m_Layer: 6
   m_Name: Alice
   m_TagString: Untagged
@@ -465,6 +468,52 @@ Animator:
   m_HasTransformHierarchy: 1
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorControllerStateOnDisable: 0
+--- !u!114 &4278100186079492272
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3137283685161607772}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7342eb427ccd41db89eaf56356078623, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  animator: {fileID: 4278100186079492270}
+  statSource: {fileID: 3206923099687242368}
+  idleStateName: pc_fight_idle
+  runStateName: Run
+  attackStateName: Weak
+  attackLockSeconds: 0.35
+--- !u!114 &4278100186079492273
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3137283685161607772}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8c7d6e5f4a3b2c1d0e9f8a7b6c5d4e3f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &4278100186079492274
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3137283685161607772}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9d8e7f6a5b4c3d2e1f0a9b8c7d6e5f4a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  animator: {fileID: 4278100186079492270}
+  releaseEvent: {fileID: 11400000, guid: f1e2d3c4b5a69788796a5b4c3d2e1f0a, type: 2}
+  projectilePrefab: {fileID: 100000, guid: a1b2c3d4e5f60718293a4b5c6d7e8f90, type: 3}
+  spawnOrigin: {fileID: 1993995369825730728}
 --- !u!1 &3206923099687242354
 GameObject:
   m_ObjectHideFlags: 0
@@ -477,7 +526,6 @@ GameObject:
   - component: {fileID: 3206923099687242368}
   - component: {fileID: 3206923099687242369}
   - component: {fileID: 3206923099687242370}
-  - component: {fileID: 3206923099687242366}
   - component: {fileID: 3206923099687242367}
   - component: {fileID: 3206923099687242371}
   m_Layer: 0
@@ -502,23 +550,6 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &3206923099687242366
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3206923099687242354}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7342eb427ccd41db89eaf56356078623, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  animator: {fileID: 0}
-  attackStateName: Weak
-  attackLockSeconds: 0.35
-  enableDebugAttackInput: 0
-  debugAttackKey: 32
 --- !u!114 &3206923099687242368
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -560,7 +591,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   playerCore: {fileID: 3206923099687242369}
-  inputProviderComponent: {fileID: 0}
+  locomotionAnimation: {fileID: 4278100186079492272}
   behaviorComponents:
   - {fileID: 3206923099687242367}
   - {fileID: 3206923099687242371}
@@ -578,7 +609,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   joystick: {fileID: 0}
   inputProviderOverride: {fileID: 0}
-  animationController: {fileID: 3206923099687242366}
+  animationController: {fileID: 4278100186079492272}
   movementSpeed: 3.5
   inputThreshold: 0.05
   invertHorizontalAxis: 1
@@ -598,7 +629,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a69788796a5b4c3d2e1f0a1b2c3d4e5f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  attackAnimation: {fileID: 3206923099687242366}
+  attackAnimation: {fileID: 4278100186079492272}
   enableDebugAttackInput: 1
   debugAttackKey: 32
 --- !u!1 &3512741108777884559

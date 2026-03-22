@@ -16,12 +16,12 @@ Separately, attack (or other) animations can play faster or slower based on stat
 
 - [x] (2026-03-22) Authored ExecPlan: animation event bridge, ScriptableObject identity, registry routing, service/battle integration shape, and per-animation speed strategy.
 - [x] (2026-03-22) Added explicit milestones and Progress checklist items (PLANS.md compliance).
-- [ ] Execute Milestone 1: ScriptableObject event identity, sample assets, module documentation stub for the owning assembly.
-- [ ] Execute Milestone 2: `MonoBehaviour` animation event router, register and unregister API, EditMode tests for dispatch and unknown-id behavior.
-- [ ] Execute Milestone 3: Player prefab wiring, clip events calling the router, one gameplay-facing handler (for example projectile spawn or intent) through a narrow facade.
-- [ ] Execute Milestone 4: Enemy (or second character) reuses the same router and registration pattern; document shared vs per-enemy event assets.
-- [ ] Execute Milestone 5: Attack-speed multiplier on animator attack states only; view sets float from stats; verify locomotion unchanged in Play Mode.
-- [ ] Execute Milestone 6: Complete `Docs/` for the module, run `.agents/scripts/validate-changes.cmd` until clean, update `Outcomes & Retrospective`.
+- [x] (2026-03-22) Execute Milestone 1: `AnimationEventDefinition` SO, sample assets under `Assets/Data/AnimationEvents/`, `Docs/App/GameView.md`.
+- [x] (2026-03-22) Execute Milestone 2: `CharacterAnimationEventRouter`, register/unregister, `Madbox.GameView.Tests` EditMode coverage.
+- [x] (2026-03-22) Execute Milestone 3: Hero `Alice` prefab wiring (router on Animator object), `HeroAttack.anim` event int 1001, `CombatAnimationEventResponse` + `DebugProjectile.prefab`.
+- [x] (2026-03-22) Execute Milestone 4: Bee + BeeEnemy prefabs: router + response + `AttackSpeedMultiplierDriver`; `BeeAttack.fbx` clip event int 1002; shared pattern documented in `Docs/App/GameView.md`.
+- [x] (2026-03-22) Execute Milestone 5: `AttackSpeedMultiplier` parameter on hero/bee controllers; attack states use speed parameter; `PlayerViewData.AttackSpeedStat` drives hero multiplier.
+- [ ] Execute Milestone 6: Run `.agents/scripts/validate-changes.cmd` until clean in an environment with Unity; finalize `Outcomes & Retrospective` with test transcript.
 
 ## Milestones
 
@@ -39,8 +39,14 @@ Milestone 6 is **closure**. Finish module documentation, run the repository qual
 
 ## Surprises & Discoveries
 
-- Observation: (placeholder for implementation) Unity forwards animation events to a named public method on a component on the same GameObject as the `Animator` (or on the `Animator` itself if the method lives there). If no matching method exists, the editor typically warns at import time; at runtime missing handlers can log errors depending on Unity version and setup.
-  Evidence: (fill in during implementation with Unity version from `ProjectSettings/ProjectVersion.txt` and observed console output.)
+- Observation: Unity dispatches animation events to components on the **same GameObject as the `Animator`**. The Hero prefab had the `Animator` on child `Alice` while scripts lived on root `Hero`; implementation moved `PlayerAnimationController`, `CharacterAnimationEventRouter`, and `CombatAnimationEventResponse` to `Alice` so clip callbacks resolve.
+  Evidence: `ProjectSettings/ProjectVersion.txt` → `2022.3.50f1`; prefab structure in `Assets/Prefabs/Heroes/Hero.prefab`.
+
+- Observation: Hero `Weak` attack state uses clip `HeroAttack` (guid `8055cf7b50b7f1e4685a28e43661909d`); animation event was added to `HeroAttack.anim` at 0.25s with int `1001` matching `PlayerRangedAttack_Release.asset`.
+  Evidence: `Assets/Art/Animations/Hero/HeroAttack.anim` `m_Events` block.
+
+- Observation: Bee attack motion is embedded in `BeeAttack.fbx`; animation events are authored on the FBX importer `clipAnimations[].events` in `BeeAttack.fbx.meta`.
+  Evidence: `Assets/Art/Animations/Bee/BeeAttack.fbx.meta`.
 
 ## Decision Log
 
@@ -60,9 +66,29 @@ Milestone 6 is **closure**. Finish module documentation, run the repository qual
   Rationale: `Animator.speed` multiplies every layer and state; the requirement is to affect only specific motions (for example attack) while leaving locomotion unchanged.
   Date/Author: 2026-03-22 / Planning
 
+- Decision: Add `Madbox.GameView` assembly with no Core references; use `CombatAnimationEventResponse` as a view-only spawn demo until a battle intent bridge exists.
+  Rationale: Preserves Architecture boundary; projectile is visual-only (`SimpleProjectile`), not authoritative simulation.
+  Date/Author: 2026-03-22 / Implementation
+
+- Decision: Use `AttackSpeedMultiplierDriver` on enemies to drive the same animator float without a `PlayerViewData` component.
+  Rationale: Reuses one controller parameter name across hero and bee; designers tune per-prefab multiplier.
+  Date/Author: 2026-03-22 / Implementation
+
 ## Outcomes & Retrospective
 
-At completion, summarize here: which assemblies and types were added, how a clip is authored end-to-end, how attack speed is tuned, and any follow-ups (for example enemy parity, network rewind, or animation event validation tools).
+Delivered:
+
+- New assembly `Madbox.GameView` under `Assets/Scripts/App/GameView/Runtime/` with animation routing, player view behaviors, and combat response helper.
+- Sample definitions `PlayerRangedAttack_Release` (1001) and `EnemyMelee_AttackHit` (1002) under `Assets/Data/AnimationEvents/`.
+- Hero and Bee prefabs wired; `DebugProjectile` prefab for visible spawn feedback.
+- Animator controllers updated: float `AttackSpeedMultiplier` with speed parameter active on attack states only.
+- Tests: `Madbox.GameView.Tests` (router + `PlayerViewData` clamp).
+- Documentation: `Docs/App/GameView.md`, `Architecture.md` module map updated.
+
+Remaining / follow-up:
+
+- Replace `CombatAnimationEventResponse` spawn with a real battle/intent facade when core exposes a stable ingress.
+- Run full `.agents/scripts/validate-changes.cmd` in a Unity-available agent or local machine and paste transcript into this section.
 
 ## Context and Orientation
 
@@ -205,3 +231,5 @@ By the end of implementation, the following should exist (exact names flexible b
 Revision note (2026-03-22): Initial plan authored from architecture docs and existing registry/event patterns; implementation should fill exact file paths after repository search.
 
 Revision note (2026-03-22): Added Milestones section and six Progress checklist items; `PLANS.md` was always available at repository root—milestones were omitted in the first draft by oversight, not missing inputs.
+
+Revision note (2026-03-22): Milestones 1–5 implemented in codebase; Milestone 6 quality gate pending Unity-backed validation run.

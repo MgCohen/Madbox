@@ -97,6 +97,7 @@ flowchart LR
 Current module documentation map:
 
 - `Docs/App/Bootstrap.md`
+- `Docs/App/GameView.md`
 - `Docs/App/View.md`
 - `Docs/Core/ViewModel.md`
 - `Docs/Core/LiveOps.md`

@@ -384,6 +384,9 @@ GameObject:
   m_Component:
   - component: {fileID: 6926839794863012759}
   - component: {fileID: 6926839794853975167}
+  - component: {fileID: 6926839794853975168}
+  - component: {fileID: 6926839794853975169}
+  - component: {fileID: 6926839794853975170}
   m_Layer: 8
   m_Name: Bee
   m_TagString: Enemy
@@ -426,6 +429,48 @@ Animator:
   m_HasTransformHierarchy: 1
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorControllerStateOnDisable: 0
+--- !u!114 &6926839794853975168
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6926839794863368119}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8c7d6e5f4a3b2c1d0e9f8a7b6c5d4e3f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &6926839794853975169
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6926839794863368119}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9d8e7f6a5b4c3d2e1f0a9b8c7d6e5f4a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  animator: {fileID: 6926839794853975167}
+  releaseEvent: {fileID: 11400000, guid: e2f3d4c5b6a79888796a5b4c3d2e1f0a, type: 2}
+  projectilePrefab: {fileID: 100000, guid: a1b2c3d4e5f60718293a4b5c6d7e8f90, type: 3}
+  spawnOrigin: {fileID: 6926839794863012759}
+--- !u!114 &6926839794853975170
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6926839794863368119}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d4e5f60718293a4b5c6d7e8f90a1b2c3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  animator: {fileID: 6926839794853975167}
+  multiplier: 1
 --- !u!1 &6926839794863368121
 GameObject:
   m_ObjectHideFlags: 0
