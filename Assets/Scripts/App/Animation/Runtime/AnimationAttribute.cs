@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Madbox.App.GameView.Animation
+namespace Madbox.App.Animation
 {
     /// <summary>
     /// Identifies an animator parameter; behaviors and <see cref="AnimationController"/> reference this asset instead of string literals.

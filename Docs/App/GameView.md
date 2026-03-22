@@ -2,16 +2,16 @@
 
 ## TL;DR
 
-- Purpose: Unity-facing player and combat presentation helpers (animation event routing, simple player behaviors, debug projectile spawn, weapon socket and visibility via `WeaponVisualController`).
+- Purpose: Unity-facing player and combat presentation helpers (simple player behaviors, debug projectile spawn, weapon socket and visibility via `WeaponVisualController`). Animator helpers and clip event routing live in **`Madbox.Animation`**; shared entity attribute/runner patterns live in **`Madbox.Entity`**.
 - Location: `Assets/Scripts/App/GameView/Runtime/` (`Madbox.GameView` assembly), tests in `Assets/Scripts/App/GameView/Tests/`.
-- Depends on: Unity engine only. Loadout authoring asset `PlayerLoadoutDefinition` lives in **`Madbox.Levels`**; **`PlayerService`** and **`PlayerFactory`** live in **`Madbox.Bootstrap.Runtime`** and reference this assembly for `WeaponVisualController`. Preload is via **`PlayerLoadoutAssetProvider`** on the asset layer (see `BootstrapAssetInstaller`).
+- Depends on: **`Madbox.Animation`**, **`Madbox.Entity`**, **`Madbox.Enemies`**. Loadout authoring asset `PlayerLoadoutDefinition` lives in **`Madbox.Levels`**; **`PlayerService`** and **`PlayerFactory`** live in **`Madbox.Bootstrap.Runtime`** and reference this assembly for `WeaponVisualController`. Preload is via **`PlayerLoadoutAssetProvider`** on the asset layer (see `BootstrapAssetInstaller`).
 - Used by: Hero and enemy prefabs; optional scene wiring for joystick via `VirtualJoystickInput` / `PlayerInputProvider`; bootstrap registers `PlayerService` and `PlayerFactory` (see `BootstrapCoreInstaller`). `PlayerLoadoutDefinition` is registered into the layer scope after asset preload so `PlayerService` receives it by constructor injection.
 - Keywords: animation events, animator speed multiplier, player behavior runner, weapon loadout, `WeaponVisualController`, `PlayerAttribute` (see **`Docs/App/PlayerAttributes.md`**).
 
 ## Responsibilities
 
-- Owns `CharacterAnimationEventRouter` and `AnimationEventDefinition` ScriptableObjects for clip event ids (string `EventId`).
-- Owns lightweight player view data, behavior runner, movement/attack view behaviors, and generic `AnimationController` (cross-fade by state name, bool/float parameters).
+- Consumes **`CharacterAnimationEventRouter`** / **`AnimationEventDefinition`** from **`Madbox.Animation`** for clip event ids (string `EventId`).
+- Owns lightweight player view data (subclassing **`EntityData`**), behavior runner (thin subclass of **`EntityBehaviorRunner`**), movement/attack view behaviors, and references **`AnimationController`** from **`Madbox.Animation`**.
 - Owns `WeaponVisualController` (serialized list of socket transforms, spawned weapon instances, visible slot via `GameObject.SetActive`). Authoring asset `PlayerLoadoutDefinition` is in **`Madbox.Levels`**; `PlayerService` and `PlayerFactory` are in **`Madbox.Bootstrap.Runtime`**.
 - Owns `PlayerAttackViewBehavior` for range-based attack targeting and animator bools (not authoritative battle logic).
 - Does not own domain simulation, damage resolution, or networking.
@@ -21,22 +21,22 @@
 
 | Symbol | Purpose | Inputs | Outputs | Failure / edge behavior |
 |--------|---------|--------|---------|-------------------------|
-| `AnimationEventDefinition` | SO marker with string `EventId` for clip payloads | Asset authoring | `EventId` | Empty `EventId` is invalid for registration |
-| `CharacterAnimationEventRouter` | Single Unity animation callback → multicast handlers | Clip calls `OnCharacterAnimationEvent(string)` | Invokes registered delegates | Unknown id logs in dev/editor builds; no throw |
-| `AnimationController` | `Play` / `GetBool` / `SetBool` / `SetFloat` on an `Animator` (string or `AnimationAttribute`) | View behaviours | Cross-fade, parameters | `Play` uses state hash internally |
-| `PlayerData` | `IsAlive` / `CanMove` via `PlayerAttribute` plus `attributeEntries` | Inspector | `GetFloatAttribute` / `SetFloatAttribute`, `IsAlive` / `CanMove` | Missing attribute entry logs in dev/editor |
-| `PlayerAttribute` | ScriptableObject id for a stat | Asset | `AttributeName` | n/a |
-| `AnimationAttribute` | ScriptableObject id for an animator parameter name | Asset | `ParameterName` | n/a |
-| `PlayerAttributeAnimatorDriver` | Maps `PlayerAttribute` → `AnimationAttribute` | `PlayerData.AttributeValueChanged` | `AnimationController` parameters | No-op if link or controller missing |
-| `PlayerBehaviorRunner` | Ordered `IPlayerBehavior` first-accept-wins | `Update` | Runs one behavior per frame | No-op if `PlayerData` missing |
-| `Projectile` | Optional forward motion, `ScheduleDestroyAfterSeconds`, trigger impact self-destruct; `GetComponent<Enemy>` + damage TODO | Start/Update/trigger | Moves along forward when enabled | Trigger collider + Rigidbody; targets expose `Enemy`; use **Projectile** layer |
+| `PlayerData` | Extends **`EntityData`**: `IsAlive` / `CanMove` via `PlayerAttribute` plus inherited `attributeEntries` | Inspector | Typed accessors + inherited `Get/SetFloatAttribute` | Missing attribute entry logs in dev/editor |
+| `EnemyData` | Extends **`EntityData`** for enemy view stats (add accessors as needed) | Inspector | Same as `EntityData` | Same as `EntityData` |
+| `ProjectileData` | Extends **`EntityData`**: `Damage` / `Speed` via `ProjectileAttribute` entries | Inspector | `Damage`, `Speed` | Assign matching `attributeEntries` |
+| `PlayerAttribute` | **`EntityAttribute`** subclass for player stats | Asset | `AttributeName` | n/a |
+| `EnemyAttribute` | **`EntityAttribute`** subclass for enemy stats | Asset | `AttributeName` | n/a |
+| `ProjectileAttribute` | **`EntityAttribute`** subclass (e.g. damage, speed) | Asset | `AttributeName` | n/a |
+| `PlayerAttributeAnimatorDriver` | Thin subclass of **`EntityAttributeAnimatorDriver{PlayerData}`** | `AttributeValueChanged` | `AnimationController` parameters | No-op if link or controller missing |
+| `PlayerBehaviorRunner` | Thin subclass of **`EntityBehaviorRunner{PlayerData,PlayerInputContext}`** | `Update` | Runs one `IPlayerBehavior` per frame | No-op if `PlayerData` missing |
+| `Projectile` | Optional forward motion; optional **`ProjectileData`** for speed (and future damage); `ScheduleDestroyAfterSeconds`, trigger impact self-destruct | Start/Update/trigger | Moves along forward when enabled | Falls back to serialized `speed` when `projectileData` is null |
 | `WeaponVisualController` | List of socket `Transform`s and matching weapon roots; selection by index | `SetWeaponInstances`, `SetSelectedWeaponIndex` | `SelectedWeaponIndex` | Throws if socket/instance counts mismatch or instances not set |
 
 ## Setup / Integration
 
-1. Add `Madbox.GameView` reference to consuming assemblies if needed (prefabs only do not require code references).
+1. Add `Madbox.GameView` (and transitively `Madbox.Animation`, `Madbox.Entity`) reference to consuming assemblies if needed (prefabs only do not require code references).
 2. **Weapon loadout**: Create a **`PlayerLoadoutDefinition`** (see **`Docs/Core/Levels.md`**, menu **Create > Madbox > Levels > Player Loadout**). Assign Addressables for the player prefab (must include `WeaponVisualController` with the same number of sockets as weapon entries) and a list of weapon prefabs. Register the definition asset under the address **`Player Loadout`** (see `PlayerLoadoutAssetProvider`) so bootstrap preload registers it and **`PlayerService`** receives it in its constructor. Call `PlayerFactory.CreateReadyPlayerAsync` from **`Madbox.App.Bootstrap.Player`** (scoped in bootstrap). Switch visible weapon with `WeaponVisualController.SetSelectedWeaponIndex` (weapons stay instantiated; inactive slots are disabled).
-3. On the **same GameObject as the `Animator`**, add `CharacterAnimationEventRouter`.
+3. On the **same GameObject as the `Animator`**, add `CharacterAnimationEventRouter` (from **`Madbox.Animation`**).
 4. Create `AnimationEventDefinition` assets under `Assets/Data/AnimationEvents/`; set `EventId` (or rely on asset name) and use that same string as the clip event **String** parameter.
 5. In each clip (Animation window), add an event: **Function** = `OnCharacterAnimationEvent`, **String** = definition `EventId`.
 6. For attack speed scaling: add float parameter `AttackSpeedMultiplier` (default 1) on the Animator Controller; enable **Speed Parameter** on attack states only, set to `AttackSpeedMultiplier`. Create an `AnimationAttribute` asset with that parameter name. On the player, add a `PlayerAttribute` for attack speed, list it on `PlayerData`, and add `PlayerAttributeAnimatorDriver` with a link from that attribute to the `AttackSpeedMultiplier` `AnimationAttribute`. For non-player animators, set the float on `AnimationController` manually or via a small view script.
@@ -99,14 +99,14 @@ void OnRelease(AnimationEventDefinition definition)
 
 ## Testing
 
-- Assembly: `Madbox.GameView.Tests` (EditMode).
+- Assemblies: `Madbox.GameView.Tests`, `Madbox.Animation.Tests`, `Madbox.Entity.Tests` (EditMode).
 - From repository root (PowerShell):
 
 ```powershell
 & ".\.agents\scripts\run-editmode-tests.ps1" -AssemblyNames "Madbox.GameView.Tests"
 ```
 
-- Expect: all tests pass; router tests cover invoke, unknown id, empty string, and multicast.
+- Expect: all tests pass; animation router tests cover invoke, unknown id, empty string, and multicast.
 
 ## AI Agent Context
 
@@ -123,5 +123,6 @@ void OnRelease(AnimationEventDefinition definition)
 
 ## Changelog
 
-- 2026-03-23: Documented `WeaponVisualController` and pointed loadout authoring (`PlayerLoadoutDefinition` in `Madbox.Levels`) + `PlayerService` / `PlayerFactory` in bootstrap to keep `Madbox.GameView` free of Addressables references.
+- 2026-03-22: Split animator types into **`Madbox.Animation`** and shared entity patterns into **`Madbox.Entity`**; `PlayerData` / runners / drivers now build on those modules.
 - 2026-03-22: Initial module doc for animation event routing, player view behaviors, and attack speed multiplier.
+- 2026-03-23: Documented `WeaponVisualController` and pointed loadout authoring (`PlayerLoadoutDefinition` in `Madbox.Levels`) + `PlayerService` / `PlayerFactory` in bootstrap to keep `Madbox.GameView` free of Addressables references.

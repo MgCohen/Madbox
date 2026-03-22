@@ -1,3 +1,4 @@
+using Madbox.App.GameView.Projectile;
 using Madbox.Enemies;
 using UnityEngine;
 
@@ -14,6 +15,9 @@ namespace Madbox.App.GameView.Combat
 
         [SerializeField]
         private float speed = 12f;
+
+        [SerializeField]
+        private ProjectileData projectileData;
 
         [SerializeField]
         [Min(0f)]
@@ -49,7 +53,8 @@ namespace Madbox.App.GameView.Combat
                 return;
             }
 
-            transform.position += transform.forward * (speed * Time.deltaTime);
+            float moveSpeed = projectileData != null ? projectileData.Speed : speed;
+            transform.position += transform.forward * (moveSpeed * Time.deltaTime);
         }
 
         private void OnTriggerEnter(Collider other)
@@ -67,7 +72,7 @@ namespace Madbox.App.GameView.Combat
             Enemy enemy = other.GetComponent<Enemy>();
             if (enemy != null)
             {
-                // TODO: Apply damage to the enemy actor when the battle damage pipeline exists.
+                // TODO: Apply damage (use ProjectileData.Damage when projectileData is assigned) when the battle damage pipeline exists.
             }
 
             DestroySelf();

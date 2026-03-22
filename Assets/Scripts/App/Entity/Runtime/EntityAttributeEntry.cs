@@ -2,20 +2,23 @@ using System;
 using UnityEngine;
 using UnityEngine.Events;
 
-namespace Madbox.App.GameView.Player
+namespace Madbox.App.Entity
 {
-
     /// <summary>
-    /// One named attribute value on <see cref="PlayerData"/>; optional inspector callback when the value changes.
+    /// One named attribute value on <see cref="EntityData"/>; optional inspector callback when the value changes.
     /// </summary>
     [Serializable]
-    public sealed class PlayerAttributeEntry
+    public class EntityAttributeEntry
     {
-        public PlayerAttribute Attribute => attribute;
-        [SerializeField] private PlayerAttribute attribute;
+        public EntityAttribute Attribute => attribute;
+
+        [SerializeField]
+        private EntityAttribute attribute;
 
         public float Value => value;
-        [SerializeField] private float value;
+
+        [SerializeField]
+        private float value;
 
         [SerializeField]
         private UnityEvent<float> onValueChanged;

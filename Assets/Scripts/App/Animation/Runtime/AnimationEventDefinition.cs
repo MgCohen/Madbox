@@ -1,11 +1,11 @@
 using UnityEngine;
 
-namespace Madbox.App.GameView.Animation
+namespace Madbox.App.Animation
 {
     /// <summary>
     /// Asset marker for a clip animation event id. Match <see cref="EventId"/> to the clip event string parameter.
     /// </summary>
-    [CreateAssetMenu(fileName = "AnimationEventDefinition", menuName = "Madbox/Game View/Animation Event Definition", order = 0)]
+    [CreateAssetMenu(fileName = "AnimationEventDefinition", menuName = "Madbox/Animation/Animation Event Definition", order = 0)]
     public sealed class AnimationEventDefinition : ScriptableObject
     {
         [SerializeField]

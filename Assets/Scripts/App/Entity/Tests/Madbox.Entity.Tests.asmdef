@@ -1,9 +1,8 @@
 {
-    "name": "Madbox.GameView.Tests",
-    "rootNamespace": "Madbox.App.GameView.Tests",
+    "name": "Madbox.Entity.Tests",
+    "rootNamespace": "Madbox.App.Entity.Tests",
     "references": [
-        "Madbox.Animation",
-        "Madbox.GameView"
+        "Madbox.Entity"
     ],
     "includePlatforms": [
         "Editor"
