@@ -10,19 +10,22 @@ After this work, a person running the game in the Editor (or a built player) can
 
 ## Progress
 
-- [ ] (pending) Fix level list button wiring so each instantiated row registers `onClick` (today `WireLevelClick` is never invoked from `Add`).
-- [ ] (pending) Introduce a gameplay screen controller (`GameViewModel`) and matching `UIView` (`GameView`) with Navigation mapping (ViewConfig + prefab) and assembly boundaries updated per `Architecture.md`.
-- [ ] (pending) Extend `MainMenuViewModel` to open the gameplay controller via `INavigation`, passing the selected `LevelDefinition` (from `AvailableLevel.Definition`), typically with `closeCurrent: true` so the main menu is not stacked under the game screen.
-- [ ] (pending) Register battle and enemy services in the bootstrap layer (`EnemyFactory`, `EnemyService`, `RuleHandlerRegistry`, `BattleGameFactory`, `BattleBootstrap`) with lifetimes that allow a clean session (prefer transient or an explicit session scope so a second run does not reuse stale enemy instances).
-- [ ] (pending) Implement `GameViewModel` session start: additive level scene load (do **not** use default `LoadSceneMode.Single` from `BattleBootstrap` against the bootstrap scene), run `PrepareAndSpawnEnemiesFromLevelAsync` + `BattleGame.Start()`, spawn the player via existing `PlayerFactory.CreateReadyPlayerAsync`, and retain handles/results for teardown.
-- [ ] (pending) Integrate `ISceneFlowService` / `SceneFlowBootstrapShell` where required so the bootstrap camera and audio listener hand off to additive gameplay content (see `Docs/Infra/SceneFlow.md`).
-- [ ] (pending) Add automated tests: at minimum EditMode tests for `MainMenuViewModel` level-select navigation contract; add or extend tests for additive battle start if fakes exist; run `.agents/scripts/validate-changes.cmd` until clean.
-- [ ] (pending) Update module docs under `Docs/` for any new or materially changed module (per `AGENTS.md`).
+- [x] (2026-03-22) Fix level list button wiring: `Add` calls `WireLevelClick`; `Main Menu View` prefab references correct level button prefab GUID and `LevelButtonCollectionHandlerBehaviour` on the list root.
+- [x] (2026-03-22) Added `Madbox.Gameplay` with `GameViewModel`, `GameView`, `GameSessionCoordinator`, `IGameFlowService`; Navigation `Game.asset` + `Game View.prefab`; Preload Addressables entry `GameView`.
+- [x] (2026-03-22) `MainMenuViewModel` injects `IGameFlowService` and exposes `PlayLevel`; `MainMenuView` registers handler on `LevelButtonCollectionHandlerBehaviour`.
+- [x] (2026-03-22) `BattleGameplayInstaller` registers transient `EnemyService`/`EnemyFactory`, singleton rule registry + `BattleGameFactory`, `GameSessionCoordinator`, bridges (`PlayerSpawnBridge`, `BootstrapMainMenuLauncher`).
+- [x] (2026-03-22) Session uses `ISceneFlowService.LoadAdditiveAsync` + `Arena.TryFindInScene`; `BattleGameFactory.CreatePrepareStartAsync` prepares/spawns/starts without scene load.
+- [x] (2026-03-22) `SceneFlowLoadOptions.Default` used (bootstrap shell managed during additive load).
+- [x] (2026-03-22) Tests: `MainMenuViewModelTests` (`PlayLevel`, level button click); `BattleGameFactorySessionTests`; validate gate pending in this environment.
+- [x] (2026-03-22) Docs: `Docs/App/Gameplay.md`, `Docs/App/MainMenu.md`, `Architecture.md` module map.
 
 ## Surprises & Discoveries
 
-- Observation: (none yet)
-  Evidence: (none yet)
+- Observation: `Main Menu View` prefab pointed `levelButtonPrefab` at a non-existent GUID; fixed to `Main Menu Level Button` (`8dad97f3e27aa5a4fad13045ed1d7502`) and assigned `LevelButtonCollectionHandlerBehaviour` on `Level List`.
+  Evidence: prefab YAML before change.
+
+- Observation: `Madbox.MainMenu` cannot reference `Madbox.Bootstrap` (cycle); `IGameFlowService` + `IMainMenuLauncher` + `IPlayerSpawnService` keep Gameplay free of Bootstrap while composition stays in bootstrap installers.
+  Evidence: assembly graph.
 
 ## Decision Log
 
@@ -40,7 +43,8 @@ After this work, a person running the game in the Editor (or a built player) can
 
 ## Outcomes & Retrospective
 
-- (To be filled when the plan is executed.)
+- End-to-end wiring: main menu level click → `IGameFlowService` → `GameViewModel` + additive scene → `BattleGame` + player spawn via `PlayerSpawnBridge`. Back button tears down additive scene and reopens main menu through `IMainMenuLauncher`.
+- `BattleBootstrap` remains available for tests or tools that still want single-call scene+battle; product flow uses SceneFlow + `CreatePrepareStartAsync` to avoid unloading bootstrap.
 
 ## Context and Orientation
 
@@ -124,3 +128,5 @@ At completion, the following should exist and compose:
 - `LevelButtonCollectionHandlerBehaviour` that wires `MainMenuLevelListItem.Button` clicks to `MainMenuViewModel` (via a view callback or direct view model reference—prefer routing through `MainMenuView` → `viewModel.PlayLevel` to keep Unity event wiring in the view).
 
 Plan revision note: 2026-03-22 — Initial ExecPlan authored for end-to-end main menu → gameplay wiring with additive scenes, DI registration, and test expectations.
+
+Plan revision note: 2026-03-22 — Execution pass: implemented `Madbox.Gameplay`, bootstrap `BattleGameplayInstaller`, prefab/navigation/addressables fixes, `BattleGameFactory.CreatePrepareStartAsync`, tests and docs.

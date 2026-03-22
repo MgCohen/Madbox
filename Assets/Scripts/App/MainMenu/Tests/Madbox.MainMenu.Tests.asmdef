@@ -3,6 +3,7 @@
     "rootNamespace": "Madbox.App.MainMenu.Tests",
     "references": [
         "Madbox.MainMenu.Runtime",
+        "Madbox.Gameplay",
         "Madbox.Gold",
         "Madbox.Levels",
         "Scaffold.MVVM.Base",

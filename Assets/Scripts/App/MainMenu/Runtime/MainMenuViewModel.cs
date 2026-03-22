@@ -1,5 +1,6 @@
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
+using Madbox.App.Gameplay;
 using Madbox.Gold;
 using Madbox.Gold.Contracts;
 using Madbox.Levels;
@@ -15,6 +16,7 @@ namespace Madbox.App.MainMenu
 
         [Inject] private IGoldService goldService;
         [Inject] private ILevelService levelService;
+        [Inject] private IGameFlowService gameFlowService;
 
         protected override void Initialize()
         {
@@ -37,6 +39,11 @@ namespace Madbox.App.MainMenu
                 return;
             }
             goldService.Add(1);
+        }
+
+        public void PlayLevel(AvailableLevel entry)
+        {
+            gameFlowService?.PlayLevel(entry);
         }
     }
 }

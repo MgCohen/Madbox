@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using Madbox.App.Gameplay;
 using Madbox.App.MainMenu;
 using Madbox.Gold;
 using Madbox.Gold.Contracts;
@@ -59,33 +60,75 @@ namespace Madbox.App.MainMenu.Tests
         }
 
         [Test]
+        public void LevelButton_WhenClicked_InvokesGameFlowWithDefinition()
+        {
+            FakeGoldService gold = new FakeGoldService(0);
+            LevelDefinition def = ScriptableObject.CreateInstance<LevelDefinition>();
+            AvailableLevel entry = new AvailableLevel(def, GameModuleDTO.Modules.Level.LevelAvailabilityState.Unlocked);
+            FakeLevelMenu menu = new FakeLevelMenu(entry);
+            FakeGameFlowService flow = new FakeGameFlowService();
+            MainMenuViewModel viewModel = CreateBoundViewModel(gold, menu, flow);
+            using ViewFixture fixture = CreateViewFixture(viewModel);
+            Transform levelList = fixture.Root.transform.Find("LevelList");
+            MainMenuLevelListItem item = levelList.GetComponentInChildren<MainMenuLevelListItem>(true);
+            Assert.IsNotNull(item);
+            item.Button.onClick.Invoke();
+            Assert.AreSame(def, flow.LastDefinition);
+            Object.DestroyImmediate(def);
+        }
+
+        [Test]
         public void Bind_WhenLevelServiceHasEntries_ExposesAvailableLevels()
         {
             FakeGoldService gold = new FakeGoldService(0);
             AvailableLevel entry = new AvailableLevel(ScriptableObject.CreateInstance<LevelDefinition>(), GameModuleDTO.Modules.Level.LevelAvailabilityState.Unlocked);
             FakeLevelMenu menu = new FakeLevelMenu(entry);
             MainMenuViewModel viewModel = new MainMenuViewModel();
-            InjectMainMenuServices(viewModel, gold, menu);
+            InjectMainMenuServices(viewModel, gold, menu, new FakeGameFlowService());
             viewModel.Bind(new FakeNavigation());
             Assert.AreEqual(1, viewModel.AvailableLevels.Count);
             Assert.AreSame(entry, viewModel.AvailableLevels[0]);
         }
 
-        private static MainMenuViewModel CreateBoundViewModel(FakeGoldService service, FakeLevelMenu levelMenu = null)
+        [Test]
+        public void PlayLevel_WhenInvoked_DelegatesToGameFlowService()
+        {
+            FakeGoldService gold = new FakeGoldService(0);
+            FakeLevelMenu menu = new FakeLevelMenu();
+            FakeGameFlowService flow = new FakeGameFlowService();
+            MainMenuViewModel viewModel = new MainMenuViewModel();
+            InjectMainMenuServices(viewModel, gold, menu, flow);
+            viewModel.Bind(new FakeNavigation());
+            LevelDefinition def = ScriptableObject.CreateInstance<LevelDefinition>();
+            AvailableLevel entry = new AvailableLevel(def, GameModuleDTO.Modules.Level.LevelAvailabilityState.Unlocked);
+            try
+            {
+                viewModel.PlayLevel(entry);
+                Assert.AreSame(def, flow.LastDefinition);
+            }
+            finally
+            {
+                Object.DestroyImmediate(def);
+            }
+        }
+
+        private static MainMenuViewModel CreateBoundViewModel(FakeGoldService service, FakeLevelMenu levelMenu = null, FakeGameFlowService gameFlow = null)
         {
             MainMenuViewModel viewModel = new MainMenuViewModel();
-            InjectMainMenuServices(viewModel, service, levelMenu ?? new FakeLevelMenu());
+            InjectMainMenuServices(viewModel, service, levelMenu ?? new FakeLevelMenu(), gameFlow ?? new FakeGameFlowService());
             viewModel.Bind(new FakeNavigation());
             return viewModel;
         }
 
-        private static void InjectMainMenuServices(MainMenuViewModel viewModel, IGoldService goldService, ILevelService levelService)
+        private static void InjectMainMenuServices(MainMenuViewModel viewModel, IGoldService goldService, ILevelService levelService, IGameFlowService gameFlowService)
         {
             Type type = typeof(MainMenuViewModel);
             FieldInfo goldField = type.GetField("goldService", BindingFlags.Instance | BindingFlags.NonPublic);
             FieldInfo levelField = type.GetField("levelService", BindingFlags.Instance | BindingFlags.NonPublic);
+            FieldInfo flowField = type.GetField("gameFlowService", BindingFlags.Instance | BindingFlags.NonPublic);
             goldField.SetValue(viewModel, goldService);
             levelField.SetValue(viewModel, levelService);
+            flowField.SetValue(viewModel, gameFlowService);
         }
 
         private static ViewFixture CreateViewFixture(MainMenuViewModel viewModel)
@@ -223,6 +266,16 @@ namespace Madbox.App.MainMenu.Tests
                 }
 
                 UnityEngine.Object.DestroyImmediate(Root);
+            }
+        }
+
+        private sealed class FakeGameFlowService : IGameFlowService
+        {
+            public LevelDefinition LastDefinition { get; private set; }
+
+            public void PlayLevel(AvailableLevel entry)
+            {
+                LastDefinition = entry?.Definition;
             }
         }
 

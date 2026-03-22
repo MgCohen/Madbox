@@ -15,10 +15,22 @@ namespace Madbox.App.MainMenu
         [SerializeField] private MainMenuLevelListItem levelButtonPrefab;
         [SerializeField] private Transform levelListContainer;
 
+        private Action<AvailableLevel> onLevelSelected;
+
+        public void SetLevelSelectHandler(Action<AvailableLevel> handler)
+        {
+            onLevelSelected = handler;
+        }
+
         public MainMenuLevelListItem Add(AvailableLevel source)
         {
             MainMenuLevelListItem instance = Instantiate(levelButtonPrefab, levelListContainer);
             instance?.SetLabel(source);
+            if (instance != null)
+            {
+                WireLevelClick(instance.Button, source);
+            }
+
             return instance;
         }
 
@@ -44,7 +56,7 @@ namespace Madbox.App.MainMenu
                 return;
             }
 
-            Debug.Log(entry.Definition.name);
+            onLevelSelected?.Invoke(entry);
         }
     }
 }

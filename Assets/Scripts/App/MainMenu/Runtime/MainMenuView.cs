@@ -25,8 +25,9 @@ namespace Madbox.App.MainMenu
                 BindAddGoldButton();
             }
 
-            if(levelButtonCollectionHandler != null)
+            if (levelButtonCollectionHandler != null)
             {
+                levelButtonCollectionHandler.SetLevelSelectHandler(viewModel.PlayLevel);
                 BindCollection(() => viewModel.AvailableLevels, levelButtonCollectionHandler);
             }
         }
