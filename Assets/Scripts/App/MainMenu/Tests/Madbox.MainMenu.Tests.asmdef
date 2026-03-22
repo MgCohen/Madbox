@@ -4,6 +4,7 @@
     "references": [
         "Madbox.MainMenu.Runtime",
         "Madbox.Gold",
+        "Madbox.Levels",
         "Scaffold.MVVM.Base",
         "Scaffold.MVVM.Model",
         "Scaffold.MVVM.View",
@@ -17,7 +18,8 @@
     "allowUnsafeCode": false,
     "overrideReferences": false,
     "precompiledReferences": [
-        "CommunityToolkit.Mvvm.dll"
+        "CommunityToolkit.Mvvm.dll",
+        "Madbox.LiveOps.DTO.dll"
     ],
     "autoReferenced": false,
     "defineConstraints": [],

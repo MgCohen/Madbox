@@ -13,9 +13,10 @@ Authoring-time level data: Addressables scene reference, enemy spawn entries (`A
 ## Usage
 
 1. Create a `Level Definition` asset via **Create > Madbox > Levels > Level Definition**.
-2. Set **`LevelId`** to match remote-config level IDs for the Level module.
+2. Set **`LevelId`** to match remote-config level IDs for the Level module (see LiveOps `LevelGameData` / `LevelConfig` ordering).
 3. Assign `SceneAssetReference` and populate `enemyEntries` with Addressable enemy prefabs.
 4. Add rule assets under **Create > Madbox > Levels > Rules** and reference them from the level’s `gameRules` list.
+5. For main-menu listing, add the Addressables label **`MadboxLevels`** to each `LevelDefinition` asset that should appear after bootstrap preload (see `MainMenuLevelsIntegration-ExecPlan.md`).
 
 ## Design notes
 

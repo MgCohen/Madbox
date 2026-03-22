@@ -3,13 +3,17 @@
     "rootNamespace": "Madbox.Levels",
     "references": [
         "Madbox.Enemies",
+        "Madbox.LiveOps",
+        "Madbox.Addressables",
         "Unity.Addressables"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
     "overrideReferences": false,
-    "precompiledReferences": [],
+    "precompiledReferences": [
+        "Madbox.LiveOps.DTO.dll"
+    ],
     "autoReferenced": true,
     "defineConstraints": [],
     "versionDefines": [],

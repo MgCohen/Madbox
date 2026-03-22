@@ -1,6 +1,8 @@
 using System;
+using System.Collections.Generic;
 using Madbox.Gold;
 using Madbox.Gold.Contracts;
+using Madbox.Levels;
 using NUnit.Framework;
 using Scaffold.Navigation.Contracts;
 using UnityEngine;
@@ -39,10 +41,22 @@ namespace Madbox.App.MainMenu.Tests
             Assert.AreEqual("Gold: 2", text);
         }
 
+        [Test]
+        public void Construct_WhenLevelMenuHasEntries_ExposesAvailableLevels()
+        {
+            FakeGoldService gold = new FakeGoldService(0);
+            AvailableLevel entry = new AvailableLevel(ScriptableObject.CreateInstance<LevelDefinition>(), GameModuleDTO.Modules.Level.LevelAvailabilityState.Unlocked);
+            FakeLevelMenu menu = new FakeLevelMenu(entry);
+            MainMenuViewModel viewModel = new MainMenuViewModel();
+            viewModel.Construct(gold, menu);
+            Assert.AreEqual(1, viewModel.AvailableLevels.Count);
+            Assert.AreSame(entry, viewModel.AvailableLevels[0]);
+        }
+
         private static MainMenuViewModel CreateBoundViewModel(FakeGoldService service)
         {
             MainMenuViewModel viewModel = new MainMenuViewModel();
-            viewModel.Construct(service);
+            viewModel.Construct(service, new FakeLevelMenu());
             viewModel.Bind(new FakeNavigation());
             return viewModel;
         }
@@ -105,6 +119,21 @@ namespace Madbox.App.MainMenu.Tests
 
             object value = property.GetValue(component);
             return value as string ?? string.Empty;
+        }
+
+        private sealed class FakeLevelMenu : ILevelService
+        {
+            public FakeLevelMenu(params AvailableLevel[] levels)
+            {
+                this.levels = levels ?? Array.Empty<AvailableLevel>();
+            }
+
+            private readonly AvailableLevel[] levels;
+
+            public IReadOnlyList<AvailableLevel> GetAvailableLevels()
+            {
+                return levels;
+            }
         }
 
         private sealed class ViewFixture : IDisposable

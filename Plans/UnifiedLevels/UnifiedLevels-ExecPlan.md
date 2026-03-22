@@ -51,7 +51,7 @@ A developer can verify success with **automated tests** for state derivation and
   Rationale: Main menu and other presenters need both **content** and **state** in one place; list preserves order; dictionary can be built by callers if needed.
   Date/Author: 2026-03-22 / Agent (planning)
 
-- Decision: **Naming** — Keep **`Madbox.Level.LevelService`** as the LiveOps **`GameClientModuleBase<LevelGameData>`** holder if the DTO name stays; introduce a **different** type name for the unified facade (e.g. **`UnifiedLevelSelectionService`** / **`IAvailableLevelsService`**) to avoid colliding with the existing `LevelService` type in `Assets/Scripts/Core/LiveOpsLevel/`.
+- Decision: **Naming** — Keep **`Madbox.Level.LevelService`** as the LiveOps **`GameClientModuleBase<LevelGameData>`** holder if the DTO name stays; introduce a **different** type name for the unified facade (e.g. **`UnifiedLevelSelectionService`** / **`IAvailableLevelsService`**) to avoid colliding with the existing `LevelService` type in `Assets/Scripts/Meta/Levels/LiveOps/`.
   Rationale: Existing `MainMenuLevelsIntegration` ExecPlan already reserved `LevelService` vs catalog naming; unified service is a third, composition role.
   Date/Author: 2026-03-22 / Agent (planning)
 
@@ -75,7 +75,7 @@ A developer can verify success with **automated tests** for state derivation and
 
 **LiveOps side (server + DTO).** Cloud Code `LiveOps/Project/Modules/Level/LevelService.cs` loads `LevelPersistence` and `LevelConfig`, merges via `LevelGameData.From`, and enforces sequential completion in `CompleteLevel`. DTOs live under `LiveOps/LiveOps.DTO/Modules/Level/`. **This plan** changes **Level** types to **not** use **`MultiProgressModuleData`**. **`Tutorial`** DTOs under `LiveOps/LiveOps.DTO/Modules/Tutorial/` **continue** to inherit **`MultiProgressModuleData`** until a later refactor.
 
-**Client LiveOps module.** `Assets/Scripts/Core/LiveOpsLevel/Runtime/LevelService.cs` (`Madbox.Level`) extends `GameClientModuleBase<LevelGameData>` and only pulls module data from `ILiveOpsService` during initialization.
+**Client LiveOps module.** `Assets/Scripts/Meta/Levels/LiveOps/Runtime/LevelService.cs` (`Madbox.Level`) extends `GameClientModuleBase<LevelGameData>` and only pulls module data from `ILiveOpsService` during initialization.
 
 **Gameplay / content side.** `Madbox.Levels.LevelDefinition` (`Assets/Scripts/Meta/Levels/Runtime/LevelDefinition.cs`) is a **ScriptableObject** with scene and rules; it does **not** currently expose a dedicated **numeric ID** field in the snippet reviewed for this plan. Unification **requires** a defined mapping from **LiveOps level ID** → **definition** (serialized int on the asset, or documented convention such as name parsing—prefer explicit int for analyzer clarity and stable builds).
 
@@ -205,7 +205,7 @@ Indicative paths (current tree):
 - `LiveOps/Project/Modules/Level/LevelService.cs`
 - `LiveOps/LiveOps.DTO/Modules/Level/LevelGameData.cs`, `LevelConfig.cs`, `LevelPersistence.cs` (**stop inheriting** `MultiProgressModuleData`)
 - `LiveOps/LiveOps.DTO/Modules/Common/MultiProgressModuleData.cs` (**unchanged** in this plan; still used by Tutorial)
-- `Assets/Scripts/Core/LiveOpsLevel/Runtime/LevelService.cs`
+- `Assets/Scripts/Meta/Levels/LiveOps/Runtime/LevelService.cs`
 - `Assets/Scripts/Meta/Levels/Runtime/LevelDefinition.cs`
 - `Plans/MainMenuLevelsIntegration/MainMenuLevelsIntegration-ExecPlan.md`
 
