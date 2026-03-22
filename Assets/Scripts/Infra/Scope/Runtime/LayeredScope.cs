@@ -1,6 +1,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Madbox.Scope.Contracts;
 using UnityEngine;
 using VContainer;
 using VContainer.Unity;
@@ -10,6 +11,8 @@ namespace Madbox.Scope
     public abstract class LayeredScope : LifetimeScope
     {
         public bool IsBootstrapCompleted { get; private set; }
+
+        [SerializeField] private MonoBehaviour layeredScopeProgressListener;
 
         private CancellationTokenSource startupCancellationSource;
 
@@ -45,6 +48,11 @@ namespace Madbox.Scope
 
         protected abstract void OnBootstrapCompleted(LifetimeScope finalScope);
 
+        protected virtual ILayeredScopeProgress GetLayerProgressListener()
+        {
+            return layeredScopeProgressListener as ILayeredScopeProgress;
+        }
+
         protected override void OnDestroy()
         {
             startupCancellationSource?.Cancel();
@@ -69,7 +77,7 @@ namespace Madbox.Scope
             }
 
             rootInstaller.Reset();
-            await rootInstaller.BuildAsRootAsync(this, cancellationToken);
+            await rootInstaller.BuildAsRootAsync(this, cancellationToken, GetLayerProgressListener());
             LifetimeScope finalScope = rootInstaller.GetFinalScope();
             OnBootstrapCompleted(finalScope ?? this);
         }

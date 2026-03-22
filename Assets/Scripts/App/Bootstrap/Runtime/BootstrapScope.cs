@@ -1,7 +1,9 @@
+using System.Threading.Tasks;
+using Madbox.Ads;
 using Madbox.App.MainMenu;
 using Madbox.LiveOps;
-using Madbox.LiveOps.DTO;
 using Madbox.Scope;
+using Madbox.Scope.Contracts;
 using Scaffold.Navigation;
 using Scaffold.Navigation.Contracts;
 using UnityEngine;
@@ -13,22 +15,29 @@ namespace Madbox.App.Bootstrap
     public sealed class BootstrapScope : LayeredScope
     {
         [SerializeField] private Transform viewHolder;
+        [SerializeField] private BootstrapLoadingView bootstrapLoadingView;
+
+        protected override ILayeredScopeProgress GetLayerProgressListener()
+        {
+            return bootstrapLoadingView != null ? bootstrapLoadingView : base.GetLayerProgressListener();
+        }
 
         protected override LayerInstallerBase BuildLayerTree()
         {
             BootstrapAssetInstaller asset = new BootstrapAssetInstaller();
             BootstrapInfraInstaller infra = new BootstrapInfraInstaller(viewHolder);
+            BootstrapMetaInstaller meta = new BootstrapMetaInstaller();
             BootstrapCoreInstaller core = new BootstrapCoreInstaller();
             asset.AddChild(infra);
-            infra.AddChild(core);
+            infra.AddChild(meta);
+            meta.AddChild(core);
             return asset;
         }
 
-        protected override void OnBootstrapCompleted(LifetimeScope finalScope)
+        protected override void OnBootstrapCompleted(LifetimeScope finalScope)  
         {
+            bootstrapLoadingView?.Hide();
             Debug.Log("Bootstrap completed");
-            var service = finalScope.Container.Resolve<ILiveOpsService>();
-            service.PingAsync(new PingRequest { Value = 1 });
             OpenMainMenu(finalScope);
         }
 

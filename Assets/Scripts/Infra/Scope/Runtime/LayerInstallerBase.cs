@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -16,6 +16,7 @@ namespace Madbox.Scope
         private LayerInstallerBase parent;
         private LifetimeScope currentScope;
         private LifetimeScope finalScope;
+        private LayerBuildProgressContext progressContext;
 
         public IReadOnlyList<LayerInstallerBase> Children => children;
 
@@ -51,7 +52,7 @@ namespace Madbox.Scope
             return this;
         }
 
-        public Task BuildAsRootAsync(LifetimeScope rootScope, CancellationToken cancellationToken)
+        public Task BuildAsRootAsync(LifetimeScope rootScope, CancellationToken cancellationToken, ILayeredScopeProgress progress = null)
         {
             if (rootScope == null)
             {
@@ -59,11 +60,14 @@ namespace Madbox.Scope
             }
 
             AssignRegistry(new HashSet<IAsyncLayerInitializable>(ReferenceComparer<IAsyncLayerInitializable>.Instance));
+            int totalLayers = CountLayerNodes();
+            AssignProgressContext(progress != null ? new LayerBuildProgressContext(progress, totalLayers) : null);
             return BuildAsRootInternalAsync(rootScope, cancellationToken);
         }
 
         public virtual void Reset()
         {
+            progressContext = null;
             currentScope = null;
             finalScope = null;
 
@@ -186,6 +190,11 @@ namespace Madbox.Scope
                 Install(builder);
             });
 
+            if (currentScope.Container == null)
+            {
+                currentScope.Build();
+            }
+
             await ExecuteBuildPipelineAsync(cancellationToken);
             return finalScope ?? currentScope;
         }
@@ -196,6 +205,7 @@ namespace Madbox.Scope
             IObjectResolver resolver = currentScope?.Container;
             await InitializeAsync(resolver, cancellationToken);
             await OnCompletedAsync(resolver, cancellationToken);
+            progressContext?.ReportCompletedStep();
             await BuildChildrenAsync(cancellationToken);
         }
 
@@ -244,6 +254,44 @@ namespace Madbox.Scope
             for (int i = 0; i < children.Count; i++)
             {
                 children[i].AssignRegistry(registry);
+            }
+        }
+
+        private int CountLayerNodes()
+        {
+            int count = 1;
+            for (int i = 0; i < children.Count; i++)
+            {
+                count += children[i].CountLayerNodes();
+            }
+
+            return count;
+        }
+
+        private void AssignProgressContext(LayerBuildProgressContext context)
+        {
+            progressContext = context;
+            for (int i = 0; i < children.Count; i++)
+            {
+                children[i].AssignProgressContext(context);
+            }
+        }
+
+        private sealed class LayerBuildProgressContext
+        {
+            private readonly ILayeredScopeProgress listener;
+            private readonly int totalLayers;
+            private int completedStep;
+
+            internal LayerBuildProgressContext(ILayeredScopeProgress listener, int totalLayers)
+            {
+                this.listener = listener;
+                this.totalLayers = totalLayers;
+            }
+
+            internal void ReportCompletedStep()
+            {
+                listener?.OnLayerPipelineStep(++completedStep, totalLayers);
             }
         }
 

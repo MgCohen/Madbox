@@ -3,7 +3,8 @@
     "rootNamespace":  "Madbox.Scope.Tests",
     "references":  [
                        "Madbox.Scope",
-                       "VContainer"
+                       "VContainer",
+                       "VContainer.Unity"
                    ],
     "includePlatforms":  [
                              "Editor"
@@ -23,7 +24,7 @@
     "versionDefines":  [
 
                        ],
-    "noEngineReferences":  true,
+    "noEngineReferences":  false,
     "optionalUnityReferences":  [
                                     "TestAssemblies"
                                 ]
