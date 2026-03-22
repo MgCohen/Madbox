@@ -15,6 +15,6 @@ namespace Madbox.Bootstrap
         {
         }
 
-        protected override AssetLabelReference LabelKey => new AssetLabelReference { labelString = "MadboxLevels" };
+        protected override AssetLabelReference LabelKey => new AssetLabelReference { labelString = "Levels" };
     }
 }

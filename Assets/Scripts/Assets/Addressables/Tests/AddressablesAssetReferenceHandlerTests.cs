@@ -21,12 +21,11 @@ namespace Madbox.Addressables.Tests
         }
 
         [Test]
-        public void AcquireByTypeAsync_NeverDie_WhenReleased_DoesNotReleaseUnderlyingAsset()
+        public void AcquireAsync_NeverDie_WhenReleased_DoesNotReleaseUnderlyingAsset()
         {
             TestAddressableAssetClient client = new TestAddressableAssetClient();
             IAssetReferenceHandler handler = new AddressablesAssetReferenceHandler(client);
-            Type assetType = typeof(TestAsset);
-            IAssetHandle preloaded = handler.AcquireByTypeAsync(assetType, "enemy/bee", PreloadMode.NeverDie, true, CancellationToken.None).GetAwaiter().GetResult();
+            IAssetHandle<TestAsset> preloaded = handler.AcquireAsync<TestAsset>("enemy/bee", PreloadMode.NeverDie, true, CancellationToken.None).GetAwaiter().GetResult();
             IAssetHandle<TestAsset> consumer = BuildAcquireBee(handler);
             consumer.Release();
             preloaded.Release();
@@ -65,26 +64,26 @@ namespace Madbox.Addressables.Tests
                 return Task.CompletedTask;
             }
 
-            public Task<UnityEngine.Object> LoadAssetAsync(string key, Type assetType, CancellationToken cancellationToken)
+            public Task<T> LoadAssetAsync<T>(string key, CancellationToken cancellationToken) where T : UnityEngine.Object
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                LoadCalls.Add($"{assetType.FullName}|{key}");
+                LoadCalls.Add($"{typeof(T).FullName}|{key}");
                 if (cache.TryGetValue(key, out TestAsset existing))
                 {
-                    return Task.FromResult((UnityEngine.Object)existing);
+                    return Task.FromResult((T)(UnityEngine.Object)existing);
                 }
                 TestAsset created = ScriptableObject.CreateInstance<TestAsset>();
                 created.AssetId = key;
                 cache[key] = created;
-                return Task.FromResult((UnityEngine.Object)created);
+                return Task.FromResult((T)(UnityEngine.Object)created);
             }
 
-            public Task<IReadOnlyList<UnityEngine.Object>> LoadAssetsByLabelAsync(Type assetType, UnityEngine.AddressableAssets.AssetLabelReference label, CancellationToken cancellationToken)
+            public Task<IReadOnlyList<T>> LoadAssetsByLabelAsync<T>(UnityEngine.AddressableAssets.AssetLabelReference label, CancellationToken cancellationToken) where T : UnityEngine.Object
             {
-                return Task.FromResult((IReadOnlyList<UnityEngine.Object>)Array.Empty<UnityEngine.Object>());
+                return Task.FromResult((IReadOnlyList<T>)Array.Empty<T>());
             }
 
-            public Task<IReadOnlyList<string>> ResolveLabelAsync(Type assetType, UnityEngine.AddressableAssets.AssetLabelReference label, CancellationToken cancellationToken)
+            public Task<IReadOnlyList<string>> ResolveLabelAsync<T>(UnityEngine.AddressableAssets.AssetLabelReference label, CancellationToken cancellationToken) where T : UnityEngine.Object
             {
                 return Task.FromResult((IReadOnlyList<string>)Array.Empty<string>());
             }

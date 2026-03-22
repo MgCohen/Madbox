@@ -8,12 +8,12 @@ namespace Madbox.SceneFlow
     /// </summary>
     public sealed class SceneFlowInstaller : IInstaller
     {
-        private readonly ISceneFlowBootstrapShell bootstrapShell;
-
         public SceneFlowInstaller(ISceneFlowBootstrapShell bootstrapShell = null)
         {
             this.bootstrapShell = bootstrapShell;
         }
+        
+        private readonly ISceneFlowBootstrapShell bootstrapShell;
 
         public void Install(IContainerBuilder builder)
         {
@@ -23,11 +23,7 @@ namespace Madbox.SceneFlow
             }
 
             builder.Register<IAddressablesSceneOperations, AddressablesSceneOperations>(Lifetime.Scoped);
-            builder.Register<ISceneFlowService>(resolver =>
-            {
-                IAddressablesSceneOperations operations = resolver.Resolve<IAddressablesSceneOperations>();
-                return new SceneFlowService(operations, bootstrapShell);
-            }, Lifetime.Scoped);
+            builder.Register<ISceneFlowService, SceneFlowService>(Lifetime.Scoped);
         }
     }
 }

@@ -7,9 +7,9 @@
         "Scaffold.MVVM.Base",
         "Scaffold.Navigation",
         "Madbox.Gold",
-        "Madbox.Level",
         "Madbox.Levels",
-        "VContainer"
+        "VContainer",
+        "Unity.TextMeshPro"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

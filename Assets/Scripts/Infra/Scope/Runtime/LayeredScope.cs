@@ -12,8 +12,6 @@ namespace Madbox.Scope
     {
         public bool IsBootstrapCompleted { get; private set; }
 
-        [SerializeField] private MonoBehaviour layeredScopeProgressListener;
-
         private CancellationTokenSource startupCancellationSource;
 
         protected override void Configure(IContainerBuilder builder)
@@ -50,7 +48,7 @@ namespace Madbox.Scope
 
         protected virtual ILayeredScopeProgress GetLayerProgressListener()
         {
-            return layeredScopeProgressListener as ILayeredScopeProgress;
+            return GetComponent<ILayeredScopeProgress>();
         }
 
         protected override void OnDestroy()

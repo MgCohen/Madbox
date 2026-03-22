@@ -9,13 +9,8 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 78f37ce2df44dec4db8f39cf73788650, type: 3}
-  m_Name: WhiteBoxEnemy
+  m_Script: {fileID: 11500000, guid: 5834b5087d578d24c926ce20cd31e6d6, type: 3}
+  m_Name: Main Battle Scene_ContentUpdateGroupSchema
   m_EditorClassIdentifier: 
-  enemyTypeId: whitebox-enemy
-  maxHealth: 10
-  behaviorRules: []
-  prefabReference:
-    m_AssetGUID: 
-    m_SubObjectName: 
-    m_SubObjectType: 
+  m_Group: {fileID: 11400000, guid: e60d1ac71e2978c4a9f5b53cae62232b, type: 2}
+  m_StaticContent: 0

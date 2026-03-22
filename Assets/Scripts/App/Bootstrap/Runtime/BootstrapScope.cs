@@ -16,16 +16,12 @@ namespace Madbox.App.Bootstrap
     {
         [SerializeField] private Transform viewHolder;
         [SerializeField] private BootstrapLoadingView bootstrapLoadingView;
-
-        protected override ILayeredScopeProgress GetLayerProgressListener()
-        {
-            return bootstrapLoadingView != null ? bootstrapLoadingView : base.GetLayerProgressListener();
-        }
+        [SerializeField] private SceneFlowBootstrapShell sceneFlowBootstrapShell;
 
         protected override LayerInstallerBase BuildLayerTree()
         {
             BootstrapAssetInstaller asset = new BootstrapAssetInstaller();
-            BootstrapInfraInstaller infra = new BootstrapInfraInstaller(viewHolder);
+            BootstrapInfraInstaller infra = new BootstrapInfraInstaller(viewHolder, sceneFlowBootstrapShell);
             BootstrapMetaInstaller meta = new BootstrapMetaInstaller();
             BootstrapCoreInstaller core = new BootstrapCoreInstaller();
             asset.AddChild(infra);

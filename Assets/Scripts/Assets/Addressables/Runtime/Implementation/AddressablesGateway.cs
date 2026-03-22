@@ -120,7 +120,7 @@ namespace Madbox.Addressables
             try
             {
                 GuardLabel(label);
-                IReadOnlyList<UnityEngine.Object> loadedAssets = await client.LoadAssetsByLabelAsync(typeof(T), label, cancellationToken);
+                IReadOnlyList<T> loadedAssets = await client.LoadAssetsByLabelAsync<T>(label, cancellationToken);
                 group.CompleteFromAssets(loadedAssets);
             }
             catch (Exception exception)

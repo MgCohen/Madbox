@@ -23,50 +23,102 @@ namespace Madbox.Addressables
         private readonly Map<Type, string, AddressablesLoadedEntry> loaded = new Map<Type, string, AddressablesLoadedEntry>();
         private readonly object sync = new object();
 
-        public async Task<IAssetHandle<T>> AcquireAsync<T>(string key, CancellationToken cancellationToken) where T : UnityEngine.Object
+        public Task<IAssetHandle<T>> AcquireAsync<T>(string key, CancellationToken cancellationToken) where T : UnityEngine.Object
         {
-            IAssetHandle untypedHandle = await AcquireByTypeAsync(typeof(T), key, PreloadMode.Normal, false, cancellationToken);
-            if (untypedHandle.UntypedAsset is not T typed) throw new InvalidOperationException($"Loaded asset type mismatch. Requested '{typeof(T).FullName}', actual '{untypedHandle.UntypedAsset?.GetType().FullName ?? "null"}'.");
-            return new AssetHandle<T>(typed, untypedHandle.Release);
+            return AcquireAsync<T>(key, PreloadMode.Normal, false, cancellationToken);
         }
 
-        public async Task<IAssetHandle> AcquireByTypeAsync(Type assetType, string key, PreloadMode preloadMode, bool isPreload, CancellationToken cancellationToken)
+        public async Task<IAssetHandle<T>> AcquireAsync<T>(string key, PreloadMode preloadMode, bool isPreload, CancellationToken cancellationToken) where T : UnityEngine.Object
         {
             if (cancellationToken.IsCancellationRequested) throw new OperationCanceledException(cancellationToken);
-            if (assetType == null) throw new ArgumentNullException(nameof(assetType));
-            if (!typeof(UnityEngine.Object).IsAssignableFrom(assetType)) throw new ArgumentException($"Asset type '{assetType.FullName}' must inherit UnityEngine.Object.", nameof(assetType));
             if (string.IsNullOrWhiteSpace(key)) throw new ArgumentException("Asset key cannot be empty.", nameof(key));
-            AddressablesLoadedEntry entry = await AcquireEntryAsync(assetType, key, preloadMode, isPreload, cancellationToken);
-            return new AssetHandle<UnityEngine.Object>(entry.Asset, () => { AddressablesLoadedEntry loadedEntry; lock (sync) { if (!loaded.TryGetValue(assetType, key, out loadedEntry)) return; if (loadedEntry.RefCount > 0) loadedEntry.RefCount--; if (loadedEntry.RefCount > 0 || loadedEntry.Policy == PreloadMode.NeverDie) return; loaded.Remove(assetType, key); } client.Release(loadedEntry.Asset); });
+            AddressablesLoadedEntry entry = await AcquireEntryAsync<T>(key, preloadMode, isPreload, cancellationToken);
+            if (entry.Asset is not T typedAsset)
+            {
+                throw new InvalidOperationException($"Loaded asset type mismatch. Requested '{typeof(T).FullName}', actual '{entry.Asset?.GetType().FullName ?? "null"}'.");
+            }
+
+            return new AssetHandle<T>(typedAsset, () => ReleaseEntry<T>(key));
         }
 
-        private async Task<AddressablesLoadedEntry> AcquireEntryAsync(Type assetType, string key, PreloadMode preloadMode, bool isPreload, CancellationToken cancellationToken)
+        private void ReleaseEntry<T>(string key) where T : UnityEngine.Object
         {
+            Type typeKey = typeof(T);
+            AddressablesLoadedEntry loadedEntry;
             lock (sync)
             {
-                if (loaded.TryGetValue(assetType, key, out AddressablesLoadedEntry existing))
+                if (!loaded.TryGetValue(typeKey, key, out loadedEntry))
                 {
-                    if (preloadMode == PreloadMode.NeverDie) existing.Policy = PreloadMode.NeverDie;
-                    if (!isPreload) existing.RefCount++;
+                    return;
+                }
+
+                if (loadedEntry.RefCount > 0)
+                {
+                    loadedEntry.RefCount--;
+                }
+
+                if (loadedEntry.RefCount > 0 || loadedEntry.Policy == PreloadMode.NeverDie)
+                {
+                    return;
+                }
+
+                loaded.Remove(typeKey, key);
+            }
+
+            client.Release(loadedEntry.Asset);
+        }
+
+        private async Task<AddressablesLoadedEntry> AcquireEntryAsync<T>(string key, PreloadMode preloadMode, bool isPreload, CancellationToken cancellationToken) where T : UnityEngine.Object
+        {
+            Type typeKey = typeof(T);
+            lock (sync)
+            {
+                if (loaded.TryGetValue(typeKey, key, out AddressablesLoadedEntry existing))
+                {
+                    if (preloadMode == PreloadMode.NeverDie)
+                    {
+                        existing.Policy = PreloadMode.NeverDie;
+                    }
+
+                    if (!isPreload)
+                    {
+                        existing.RefCount++;
+                    }
+
                     return existing;
                 }
             }
-            UnityEngine.Object asset = await client.LoadAssetAsync(key, assetType, cancellationToken);
-            return AddOrReuseEntry(assetType, key, preloadMode, isPreload, asset);
+
+            T asset = await client.LoadAssetAsync<T>(key, cancellationToken);
+            return AddOrReuseEntry(typeKey, key, preloadMode, isPreload, asset);
         }
 
-        private AddressablesLoadedEntry AddOrReuseEntry(Type assetType, string key, PreloadMode preloadMode, bool isPreload, UnityEngine.Object asset)
+        private AddressablesLoadedEntry AddOrReuseEntry(Type typeKey, string key, PreloadMode preloadMode, bool isPreload, UnityEngine.Object asset)
         {
             lock (sync)
             {
-                if (loaded.TryGetValue(assetType, key, out AddressablesLoadedEntry existing))
+                if (loaded.TryGetValue(typeKey, key, out AddressablesLoadedEntry existing))
                 {
-                    if (preloadMode == PreloadMode.NeverDie) existing.Policy = PreloadMode.NeverDie;
-                    if (!isPreload) existing.RefCount++; return existing;
+                    if (preloadMode == PreloadMode.NeverDie)
+                    {
+                        existing.Policy = PreloadMode.NeverDie;
+                    }
+
+                    if (!isPreload)
+                    {
+                        existing.RefCount++;
+                    }
+
+                    return existing;
                 }
+
                 AddressablesLoadedEntry created = new AddressablesLoadedEntry(asset, preloadMode);
-                if (!isPreload) created.RefCount = 1;
-                loaded.Add(assetType, key, created);
+                if (!isPreload)
+                {
+                    created.RefCount = 1;
+                }
+
+                loaded.Add(typeKey, key, created);
                 return created;
             }
         }

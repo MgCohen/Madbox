@@ -3,15 +3,14 @@ using Madbox.Levels;
 using Scaffold.MVVM;
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 
 namespace Madbox.App.MainMenu
 {
     public class MainMenuView : UIView<MainMenuViewModel>
     {
-        [SerializeField] private Component goldLabel;
+        [SerializeField] private TextMeshProUGUI goldLabel;
         [SerializeField] private Button addGoldButton;
-        [SerializeField] private GameObject levelButtonPrefab;
-        [SerializeField] private Transform levelListContainer;
         [SerializeField] private LevelButtonCollectionHandlerBehaviour levelButtonCollectionHandler;
 
         protected override void OnBind()
@@ -26,28 +25,10 @@ namespace Madbox.App.MainMenu
                 BindAddGoldButton();
             }
 
-            if (levelButtonPrefab != null && levelListContainer != null)
+            if(levelButtonCollectionHandler != null)
             {
-                LevelButtonCollectionHandlerBehaviour handler = EnsureLevelButtonCollectionHandler();
-                handler.Attach(this, levelButtonPrefab, levelListContainer);
-                BindCollection<AvailableLevel, Button>(() => viewModel.AvailableLevels, handler);
+                BindCollection(() => viewModel.AvailableLevels, levelButtonCollectionHandler);
             }
-        }
-
-        private LevelButtonCollectionHandlerBehaviour EnsureLevelButtonCollectionHandler()
-        {
-            if (levelButtonCollectionHandler != null)
-            {
-                return levelButtonCollectionHandler;
-            }
-
-            levelButtonCollectionHandler = GetComponent<LevelButtonCollectionHandlerBehaviour>();
-            if (levelButtonCollectionHandler == null)
-            {
-                levelButtonCollectionHandler = gameObject.AddComponent<LevelButtonCollectionHandlerBehaviour>();
-            }
-
-            return levelButtonCollectionHandler;
         }
 
         private void BindAddGoldButton()
@@ -57,18 +38,9 @@ namespace Madbox.App.MainMenu
 
         private void UpdateGoldText(int value)
         {
-            TrySetTextProperty(goldLabel, $"Gold: {value}");
+            goldLabel.text = $"Gold: {value}";
         }
 
-        internal void HandleLevelClicked(AvailableLevel entry)
-        {
-            if (entry?.Definition == null)
-            {
-                return;
-            }
-
-            Debug.Log(entry.Definition.name);
-        }
 
         protected override void OnUnbind()
         {
@@ -81,17 +53,6 @@ namespace Madbox.App.MainMenu
         public void OnAddGoldClicked()
         {
             viewModel?.AddOneGold();
-        }
-
-        private static void TrySetTextProperty(Component target, string text)
-        {
-            if (target == null)
-            {
-                return;
-            }
-
-            PropertyInfo property = target.GetType().GetProperty("text", BindingFlags.Instance | BindingFlags.Public);
-            property?.SetValue(target, text);
         }
     }
 }

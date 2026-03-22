@@ -1,3 +1,5 @@
+using Madbox.Levels;
+using System;
 using System.Reflection;
 using UnityEngine;
 using UnityEngine.UI;
@@ -25,7 +27,7 @@ namespace Madbox.App.MainMenu
         [SerializeField] private Button button;
         [SerializeField] private Component label;
 
-        public void SetLabel(string text)
+        public void Set(string text)
         {
             if (label == null)
             {
@@ -34,6 +36,11 @@ namespace Madbox.App.MainMenu
 
             PropertyInfo property = label.GetType().GetProperty("text", BindingFlags.Instance | BindingFlags.Public);
             property?.SetValue(label, text);
+        }
+
+        internal void SetLabel(AvailableLevel source)
+        {
+            throw new NotImplementedException();
         }
     }
 }
