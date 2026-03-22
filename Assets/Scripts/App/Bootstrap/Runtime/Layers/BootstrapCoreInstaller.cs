@@ -16,6 +16,7 @@ namespace Madbox.App.Bootstrap
             }
 
             Install(builder, new PlayerInstaller());
+            Install(builder, new BattleGameplayInstaller());
             Install(builder, new LiveOpsInstaller());
         }
     }
