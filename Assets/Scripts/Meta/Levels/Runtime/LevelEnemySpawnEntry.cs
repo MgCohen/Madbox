@@ -8,10 +8,10 @@ namespace Madbox.Levels
     [Serializable]
     public sealed class LevelEnemySpawnEntry
     {
-        public AssetReferenceT<EnemyActor> EnemyAssetReference => enemyAssetReference;
+        public AssetReference EnemyAssetReference => enemyAssetReference;
         public int Count => count;
 
-        [SerializeField] private AssetReferenceT<EnemyActor> enemyAssetReference;
+        [SerializeField] private AssetReference enemyAssetReference;
         [SerializeField, Min(1)] private int count = 1;
     }
 }

@@ -13,19 +13,50 @@ MonoBehaviour:
   m_Name: ProfileDataSourceSettings
   m_EditorClassIdentifier: 
   profileGroupTypes:
+  - m_GroupTypePrefix: Automatic
+    m_Variables:
+    - m_Suffix: BuildPath
+      m_Value: CCDBuildData/ManagedEnvironment/ManagedBucket/ManagedBadge
+    - m_Suffix: EnvironmentName
+      m_Value: production
+    - m_Suffix: LoadPath
+      m_Value: https://eaa7b29d-2917-48ff-99dc-9f38ea1ef705.client-api.unity3dusercontent.com/client_api/v1/environments/{CcdManager.EnvironmentName}/buckets/{CcdManager.BucketId}/release_by_badge/{CcdManager.Badge}/entry_by_path/content/?path=
   - m_GroupTypePrefix: Built-In
     m_Variables:
     - m_Suffix: BuildPath
       m_Value: '[UnityEngine.AddressableAssets.Addressables.BuildPath]/[BuildTarget]'
     - m_Suffix: LoadPath
       m_Value: '{UnityEngine.AddressableAssets.Addressables.RuntimePath}/[BuildTarget]'
+  - m_GroupTypePrefix: CCD.eaa7b29d-2917-48ff-99dc-9f38ea1ef705.05876d7f-b75c-4be9-a9bf-e06c62cdf528.56238143-1efc-4ca0-a07d-cac5bc17245e.latest
+    m_Variables:
+    - m_Suffix: BuildPath
+      m_Value: CCDBuildData/05876d7f-b75c-4be9-a9bf-e06c62cdf528/56238143-1efc-4ca0-a07d-cac5bc17245e/latest
+    - m_Suffix: CcdBadgeName
+      m_Value: latest
+    - m_Suffix: CcdBucketId
+      m_Value: 56238143-1efc-4ca0-a07d-cac5bc17245e
+    - m_Suffix: CcdBucketName
+      m_Value: Madbox Addressables Sample
+    - m_Suffix: Environmentid
+      m_Value: 05876d7f-b75c-4be9-a9bf-e06c62cdf528
+    - m_Suffix: Environmentname
+      m_Value: production
+    - m_Suffix: LoadPath
+      m_Value: https://eaa7b29d-2917-48ff-99dc-9f38ea1ef705.client-api.unity3dusercontent.com/client_api/v1/environments/production/buckets/56238143-1efc-4ca0-a07d-cac5bc17245e/release_by_badge/latest/entry_by_path/content/?path=
+    - m_Suffix: PromoteOnly
+      m_Value: False
   - m_GroupTypePrefix: Editor Hosted
     m_Variables:
     - m_Suffix: BuildPath
       m_Value: ServerData/[BuildTarget]
     - m_Suffix: LoadPath
       m_Value: http://[PrivateIpAddress]:[HostingServicePort]
-  environments: []
+  environments:
+  - id: 05876d7f-b75c-4be9-a9bf-e06c62cdf528
+    projectId: eaa7b29d-2917-48ff-99dc-9f38ea1ef705
+    projectGenesisId: eaa7b29d-2917-48ff-99dc-9f38ea1ef705
+    name: production
+    isDefault: 1
   currentEnvironment:
     id: 
     projectId: 

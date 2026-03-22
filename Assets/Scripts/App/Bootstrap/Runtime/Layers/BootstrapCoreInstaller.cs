@@ -14,8 +14,7 @@ namespace Madbox.App.Bootstrap
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            LiveOpsInstaller liveOpsInstaller = new LiveOpsInstaller();
-            liveOpsInstaller.Install(builder);
+            Install(builder, new LiveOpsInstaller());
         }
     }
 }

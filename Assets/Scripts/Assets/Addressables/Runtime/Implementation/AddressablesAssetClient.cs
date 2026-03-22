@@ -52,86 +52,79 @@ namespace Madbox.Addressables
             cancellationToken.ThrowIfCancellationRequested();
         }
 
-        public async Task<UnityEngine.Object> LoadAssetAsync(string key, Type assetType, CancellationToken cancellationToken)
+        public async Task<T> LoadAssetAsync<T>(string key, CancellationToken cancellationToken) where T : UnityEngine.Object
         {
             if (cancellationToken.IsCancellationRequested) throw new OperationCanceledException(cancellationToken);
             if (string.IsNullOrWhiteSpace(key)) throw new ArgumentException("Asset key cannot be empty.", nameof(key));
-            if (assetType == null) throw new ArgumentNullException(nameof(assetType));
-            if (!typeof(UnityEngine.Object).IsAssignableFrom(assetType)) throw new ArgumentException($"Asset type '{assetType.FullName}' must inherit UnityEngine.Object.", nameof(assetType));
-            var locationsHandle = UnityEngine.AddressableAssets.Addressables.LoadResourceLocationsAsync(key, assetType); IList<IResourceLocation> locations = await locationsHandle.Task;
-            UnityEngine.AddressableAssets.Addressables.Release(locationsHandle); cancellationToken.ThrowIfCancellationRequested();
-            if (locations == null || locations.Count == 0) throw new InvalidOperationException($"Addressables key '{key}' with type '{assetType.FullName}' was not found in resource locations.");
-            var assetHandle = UnityEngine.AddressableAssets.Addressables.LoadAssetAsync<UnityEngine.Object>(key); UnityEngine.Object asset = await assetHandle.Task;
+            var locationsHandle = UnityEngine.AddressableAssets.Addressables.LoadResourceLocationsAsync(key, typeof(T));
+            IList<IResourceLocation> locations = await locationsHandle.Task;
+            UnityEngine.AddressableAssets.Addressables.Release(locationsHandle);
             cancellationToken.ThrowIfCancellationRequested();
-            EnsureAssetWasLoaded(asset, key, assetType);
+            if (locations == null || locations.Count == 0)
+            {
+                throw new InvalidOperationException($"Addressables key '{key}' with type '{typeof(T).FullName}' was not found in resource locations.");
+            }
+
+            var assetHandle = UnityEngine.AddressableAssets.Addressables.LoadAssetAsync<T>(key);
+            T asset = await assetHandle.Task;
+            cancellationToken.ThrowIfCancellationRequested();
+            EnsureAssetWasLoaded(asset, key);
             return asset;
         }
 
-        public async Task<IReadOnlyList<UnityEngine.Object>> LoadAssetsByLabelAsync(Type assetType, AssetLabelReference label, CancellationToken cancellationToken)
+        public async Task<IReadOnlyList<T>> LoadAssetsByLabelAsync<T>(AssetLabelReference label, CancellationToken cancellationToken) where T : UnityEngine.Object
         {
             if (cancellationToken.IsCancellationRequested) throw new OperationCanceledException(cancellationToken);
-            if (assetType == null) throw new ArgumentNullException(nameof(assetType));
-            if (!typeof(UnityEngine.Object).IsAssignableFrom(assetType)) throw new ArgumentException($"Asset type '{assetType.FullName}' must inherit UnityEngine.Object.", nameof(assetType));
             if (label == null || string.IsNullOrWhiteSpace(label.labelString)) throw new ArgumentException("Label reference cannot be empty.", nameof(label));
 
-            var handle = UnityEngine.AddressableAssets.Addressables.LoadAssetsAsync<UnityEngine.Object>(
-                label.labelString,
-                null,
-                UnityEngine.AddressableAssets.Addressables.MergeMode.Union,
-                false);
-            IList<UnityEngine.Object> loadedAssets = await handle.Task;
+            var locationsHandle = UnityEngine.AddressableAssets.Addressables.LoadResourceLocationsAsync(label, typeof(T));
+            IList<IResourceLocation> locations = await locationsHandle.Task;
+            UnityEngine.AddressableAssets.Addressables.Release(locationsHandle);
             cancellationToken.ThrowIfCancellationRequested();
-            return ToValidatedTypedAssets(loadedAssets, label.labelString, assetType);
+            if (locations == null || locations.Count == 0)
+            {
+                return Array.Empty<T>();
+            }
+
+            var handle = UnityEngine.AddressableAssets.Addressables.LoadAssetsAsync<T>(locations, null, false);
+            IList<T> loadedAssets = await handle.Task;
+            cancellationToken.ThrowIfCancellationRequested();
+            return ToNonNullList(loadedAssets);
         }
 
-        private IReadOnlyList<UnityEngine.Object> ToValidatedTypedAssets(IList<UnityEngine.Object> loadedAssets, string label, Type assetType)
+        private static IReadOnlyList<T> ToNonNullList<T>(IList<T> loadedAssets) where T : UnityEngine.Object
         {
-            List<UnityEngine.Object> validated = new List<UnityEngine.Object>();
             if (loadedAssets == null)
             {
-                return validated;
+                return Array.Empty<T>();
             }
 
+            List<T> list = new List<T>(loadedAssets.Count);
             for (int i = 0; i < loadedAssets.Count; i++)
             {
-                UnityEngine.Object asset = loadedAssets[i];
-                if (asset == null)
+                T asset = loadedAssets[i];
+                if (asset != null)
                 {
-                    continue;
+                    list.Add(asset);
                 }
-
-                if (!assetType.IsInstanceOfType(asset))
-                {
-                    throw new InvalidOperationException(
-                        $"Addressables loaded type '{asset.GetType().FullName}' for label '{label}', expected assignable to '{assetType.FullName}'.");
-                }
-
-                validated.Add(asset);
             }
 
-            return validated;
+            return list;
         }
 
-        private void EnsureAssetWasLoaded(UnityEngine.Object asset, string key, Type assetType)
+        private static void EnsureAssetWasLoaded<T>(T asset, string key) where T : UnityEngine.Object
         {
             if (asset == null)
             {
-                throw new InvalidOperationException($"Addressables returned null for key '{key}' and type '{assetType.FullName}'.");
-            }
-
-            if (!assetType.IsInstanceOfType(asset))
-            {
-                throw new InvalidOperationException($"Addressables loaded type '{asset.GetType().FullName}' for key '{key}', expected assignable to '{assetType.FullName}'.");
+                throw new InvalidOperationException($"Addressables returned null for key '{key}' and type '{typeof(T).FullName}'.");
             }
         }
 
-        public async Task<IReadOnlyList<string>> ResolveLabelAsync(Type assetType, AssetLabelReference label, CancellationToken cancellationToken)
+        public async Task<IReadOnlyList<string>> ResolveLabelAsync<T>(AssetLabelReference label, CancellationToken cancellationToken) where T : UnityEngine.Object
         {
             if (cancellationToken.IsCancellationRequested) throw new OperationCanceledException(cancellationToken);
-            if (assetType == null) throw new ArgumentNullException(nameof(assetType));
-            if (!typeof(UnityEngine.Object).IsAssignableFrom(assetType)) throw new ArgumentException($"Asset type '{assetType.FullName}' must inherit UnityEngine.Object.", nameof(assetType));
             if (label == null || string.IsNullOrWhiteSpace(label.labelString)) throw new ArgumentException("Label reference cannot be empty.", nameof(label));
-            var locationsHandle = UnityEngine.AddressableAssets.Addressables.LoadResourceLocationsAsync(label, assetType);
+            var locationsHandle = UnityEngine.AddressableAssets.Addressables.LoadResourceLocationsAsync(label, typeof(T));
             IList<IResourceLocation> locations = await locationsHandle.Task;
             UnityEngine.AddressableAssets.Addressables.Release(locationsHandle);
             cancellationToken.ThrowIfCancellationRequested();

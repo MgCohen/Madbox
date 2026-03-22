@@ -12,9 +12,9 @@ A developer can verify success by tagging level assets with the label, entering 
 
 ## Progress
 
-- [ ] (not started) Author ExecPlan and align naming with existing `Madbox.Level` LiveOps module.
-- [ ] Implement asset-layer preloaders and core-layer `LevelDefinition` service + Main Menu UI wiring.
-- [ ] Add automated tests and run `.agents/scripts/validate-changes.cmd` until clean.
+- [x] (2026-03-22) ExecPlan aligned with `Madbox.Level.LevelService` (LiveOps) vs `Madbox.Levels.LevelDefinition` catalog naming.
+- [x] (2026-03-22) Implemented `ILevelDefinitionCatalogService`, `LevelDefinitionCatalogService`, `LevelDefinitionCatalogInstaller`, `LevelDefinitionAssetProvider` (label `MadboxLevels`), bootstrap registration, Main Menu VM/View + tests.
+- [ ] Run `.agents/scripts/validate-changes.cmd` until clean in your environment.
 
 ## Surprises & Discoveries
 
@@ -24,7 +24,7 @@ A developer can verify success by tagging level assets with the label, entering 
 ## Decision Log
 
 - Decision: Use a distinct type name for the gameplay level catalog service (`ILevelDefinitionCatalogService` / `LevelDefinitionCatalogService` in `Madbox.Levels`) instead of a type named only `LevelService`.
-  Rationale: The repository already defines `Madbox.Level.LevelService` in `Assets/Scripts/Core/LiveOpsLevel/` as a LiveOps `GameClientModuleBase<LevelGameData>` type. Reusing the name `LevelService` for `LevelDefinition` assets would confuse readers, analyzers, and dependency injection.
+  Rationale: The repository already defines `Madbox.Level.LevelService` in `Assets/Scripts/Meta/Levels/LiveOps/` as a LiveOps `GameClientModuleBase<LevelGameData>` type. Reusing the name `LevelService` for `LevelDefinition` assets would confuse readers, analyzers, and dependency injection.
   Date: 2026-03-22
 
 - Decision: Prefer `AssetGroupProvider<LevelDefinition>` (see `Assets/Scripts/Assets/Addressables/Runtime/Implementation/AssetGroupProvider.cs`) for label-based preloading instead of inventing a parallel loader.
@@ -37,7 +37,8 @@ A developer can verify success by tagging level assets with the label, entering 
 
 ## Outcomes & Retrospective
 
-- (Pending implementation.)
+- Integrated `origin/main` (2026-03-22) and resolved stash conflicts with this plan’s implementation.
+- Main menu builds dynamic level buttons from `ILevelDefinitionCatalogService`; LiveOps `Madbox.Level.LevelService` remains separate for `CompleteLevelAsync` and remote-config IDs (`LevelDefinition.LevelId` matches that ordering per docs).
 
 ## Context and Orientation
 

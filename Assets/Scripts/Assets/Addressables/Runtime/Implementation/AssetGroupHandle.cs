@@ -27,7 +27,7 @@ namespace Madbox.Addressables
         public Task WhenReady => completion.Task;
         public IReadOnlyList<T> Assets => assets;
 
-        internal void CompleteFromAssets(IReadOnlyList<UnityEngine.Object> loadedAssets)
+        internal void CompleteFromAssets(IReadOnlyList<T> loadedAssets)
         {
             if (loadedAssets == null)
             {
@@ -45,7 +45,8 @@ namespace Madbox.Addressables
                 assets.Clear();
                 for (int i = 0; i < loadedAssets.Count; i++)
                 {
-                    if (loadedAssets[i] is T typedAsset)
+                    T typedAsset = loadedAssets[i];
+                    if (typedAsset != null)
                     {
                         assets.Add(typedAsset);
                     }

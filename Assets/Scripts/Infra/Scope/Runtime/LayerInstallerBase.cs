@@ -94,6 +94,24 @@ namespace Madbox.Scope
 
         protected abstract void Install(IContainerBuilder builder);
 
+        /// <summary>
+        /// Invokes <see cref="IInstaller.Install"/> on the given installer. Use from <see cref="Install(IContainerBuilder)"/> overrides to avoid repeating <c>new XInstaller().Install(builder)</c>.
+        /// </summary>
+        protected static void Install(IContainerBuilder builder, IInstaller installer)
+        {
+            if (builder == null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            if (installer == null)
+            {
+                throw new ArgumentNullException(nameof(installer));
+            }
+
+            installer.Install(builder);
+        }
+
         protected virtual void ConfigureChildBuilder(LayerInstallerBase child, IObjectResolver parentResolver, IContainerBuilder childBuilder)
         {
         }

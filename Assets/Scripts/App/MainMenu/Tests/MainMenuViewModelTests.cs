@@ -1,9 +1,14 @@
 using System;
+using System.Collections.Generic;
+using System.Reflection;
+using Madbox.App.MainMenu;
 using Madbox.Gold;
 using Madbox.Gold.Contracts;
+using Madbox.Levels;
 using NUnit.Framework;
 using Scaffold.Navigation.Contracts;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace Madbox.App.MainMenu.Tests
 {
@@ -14,7 +19,7 @@ namespace Madbox.App.MainMenu.Tests
         {
             FakeGoldService service = new FakeGoldService(7);
             MainMenuViewModel viewModel = CreateBoundViewModel(service);
-            Assert.AreEqual(7, viewModel.Gold);
+            Assert.AreEqual(7, viewModel.Wallet.CurrentGold);
         }
 
         [Test]
@@ -23,7 +28,7 @@ namespace Madbox.App.MainMenu.Tests
             FakeGoldService service = new FakeGoldService(3);
             MainMenuViewModel viewModel = CreateBoundViewModel(service);
             viewModel.AddOneGold();
-            Assert.AreEqual(4, viewModel.Gold);
+            Assert.AreEqual(4, viewModel.Wallet.CurrentGold);
         }
 
         [Test]
@@ -39,20 +44,86 @@ namespace Madbox.App.MainMenu.Tests
             Assert.AreEqual("Gold: 2", text);
         }
 
-        private static MainMenuViewModel CreateBoundViewModel(FakeGoldService service)
+        [Test]
+        public void View_Bind_WhenLevelServiceHasEntries_CreatesLevelButton()
+        {
+            FakeGoldService gold = new FakeGoldService(0);
+            AvailableLevel entry = new AvailableLevel(ScriptableObject.CreateInstance<LevelDefinition>(), GameModuleDTO.Modules.Level.LevelAvailabilityState.Unlocked);
+            FakeLevelMenu menu = new FakeLevelMenu(entry);
+            MainMenuViewModel viewModel = CreateBoundViewModel(gold, menu);
+            using ViewFixture fixture = CreateViewFixture(viewModel);
+            Transform levelList = fixture.Root.transform.Find("LevelList");
+            Assert.IsNotNull(levelList);
+            MainMenuLevelListItem[] items = levelList.GetComponentsInChildren<MainMenuLevelListItem>(true);
+            Assert.AreEqual(1, items.Length);
+        }
+
+        [Test]
+        public void Bind_WhenLevelServiceHasEntries_ExposesAvailableLevels()
+        {
+            FakeGoldService gold = new FakeGoldService(0);
+            AvailableLevel entry = new AvailableLevel(ScriptableObject.CreateInstance<LevelDefinition>(), GameModuleDTO.Modules.Level.LevelAvailabilityState.Unlocked);
+            FakeLevelMenu menu = new FakeLevelMenu(entry);
+            MainMenuViewModel viewModel = new MainMenuViewModel();
+            InjectMainMenuServices(viewModel, gold, menu);
+            viewModel.Bind(new FakeNavigation());
+            Assert.AreEqual(1, viewModel.AvailableLevels.Count);
+            Assert.AreSame(entry, viewModel.AvailableLevels[0]);
+        }
+
+        private static MainMenuViewModel CreateBoundViewModel(FakeGoldService service, FakeLevelMenu levelMenu = null)
         {
             MainMenuViewModel viewModel = new MainMenuViewModel();
-            viewModel.Construct(service);
+            InjectMainMenuServices(viewModel, service, levelMenu ?? new FakeLevelMenu());
             viewModel.Bind(new FakeNavigation());
             return viewModel;
+        }
+
+        private static void InjectMainMenuServices(MainMenuViewModel viewModel, IGoldService goldService, ILevelService levelService)
+        {
+            Type type = typeof(MainMenuViewModel);
+            FieldInfo goldField = type.GetField("goldService", BindingFlags.Instance | BindingFlags.NonPublic);
+            FieldInfo levelField = type.GetField("levelService", BindingFlags.Instance | BindingFlags.NonPublic);
+            goldField.SetValue(viewModel, goldService);
+            levelField.SetValue(viewModel, levelService);
         }
 
         private static ViewFixture CreateViewFixture(MainMenuViewModel viewModel)
         {
             GameObject root = new GameObject("MainMenuViewTestRoot", typeof(RectTransform));
+
+            GameObject goldGo = new GameObject("GoldText", typeof(RectTransform));
+            goldGo.transform.SetParent(root.transform, false);
+            Type tmpType = Type.GetType("TMPro.TextMeshProUGUI, Unity.TextMeshPro");
+            Component goldLabel = tmpType != null
+                ? goldGo.AddComponent(tmpType) as Component
+                : goldGo.AddComponent<Text>() as Component;
+
+            GameObject addGoldGo = new GameObject("AddGold", typeof(RectTransform), typeof(Image), typeof(Button));
+            addGoldGo.transform.SetParent(root.transform, false);
+            Button addGoldButton = addGoldGo.GetComponent<Button>();
+
+            GameObject levelList = new GameObject("LevelList", typeof(RectTransform));
+            levelList.transform.SetParent(root.transform, false);
+
+            GameObject levelPrefab = new GameObject("LevelButtonPrefab", typeof(RectTransform), typeof(Image), typeof(Button), typeof(MainMenuLevelListItem));
+            levelPrefab.transform.SetParent(root.transform, false);
+            levelPrefab.SetActive(false);
+
             MainMenuView view = root.AddComponent<MainMenuView>();
+            SetMainMenuViewSerializedField(view, "goldLabel", goldLabel);
+            SetMainMenuViewSerializedField(view, "addGoldButton", addGoldButton);
+            SetMainMenuViewSerializedField(view, "levelButtonPrefab", levelPrefab);
+            SetMainMenuViewSerializedField(view, "levelListContainer", levelList.transform);
+
             view.Bind(viewModel);
             return new ViewFixture(root);
+        }
+
+        private static void SetMainMenuViewSerializedField(MainMenuView view, string fieldName, object value)
+        {
+            FieldInfo field = typeof(MainMenuView).GetField(fieldName, BindingFlags.Instance | BindingFlags.NonPublic);
+            field?.SetValue(view, value);
         }
 
         private static Component BuildResolveGoldLabel(GameObject root)
@@ -76,18 +147,19 @@ namespace Madbox.App.MainMenu.Tests
 
         private static bool BuildIsGoldLabel(Component component)
         {
-            if (!BuildIsTmpLabel(component))
+            if (component == null)
             {
                 return false;
             }
 
-            string value = BuildReadTextValue(component);
-            return value.StartsWith("Gold:");
-        }
+            PropertyInfo property = component.GetType().GetProperty("text");
+            if (property == null)
+            {
+                return false;
+            }
 
-        private static bool BuildIsTmpLabel(Component component)
-        {
-            return component != null && component.GetType().Name == "TextMeshProUGUI";
+            string value = property.GetValue(component) as string ?? string.Empty;
+            return value.StartsWith("Gold:");
         }
 
         private static string BuildReadTextValue(Component component)
@@ -105,6 +177,21 @@ namespace Madbox.App.MainMenu.Tests
 
             object value = property.GetValue(component);
             return value as string ?? string.Empty;
+        }
+
+        private sealed class FakeLevelMenu : ILevelService
+        {
+            public FakeLevelMenu(params AvailableLevel[] levels)
+            {
+                this.levels = levels ?? Array.Empty<AvailableLevel>();
+            }
+
+            private readonly AvailableLevel[] levels;
+
+            public IReadOnlyList<AvailableLevel> GetAvailableLevels()
+            {
+                return levels;
+            }
         }
 
         private sealed class ViewFixture : IDisposable

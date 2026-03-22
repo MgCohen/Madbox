@@ -229,7 +229,13 @@ namespace Scaffold.Analyzers
 
         private static bool IsNamespaceValidationExempt(string filePath)
         {
-            var fileName = System.IO.Path.GetFileName(filePath);
+            if (string.IsNullOrWhiteSpace(filePath))
+            {
+                return false;
+            }
+
+            var normalized = filePath.Replace('\\', '/');
+            var fileName = normalized.Split('/').LastOrDefault() ?? string.Empty;
             return string.Equals(fileName, "IsExternalInit.cs", StringComparison.OrdinalIgnoreCase);
         }
 

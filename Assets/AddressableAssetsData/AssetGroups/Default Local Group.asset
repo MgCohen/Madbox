@@ -17,33 +17,13 @@ MonoBehaviour:
     m_SerializedData: []
   m_GUID: 258c332eb00663641841ccb2eaaf820e
   m_SerializeEntries:
-  - m_GUID: 17cf6e9fc28f3a544bc062d510f66f4a
-    m_Address: GreatSword
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 44b03c24ec1888b45b3fec2bd00ef1cf
     m_Address: Navigation/BaseView
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 4d0814cafad460246890ec829fa7071d
-    m_Address: CurvedSword
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: bac79aa2a0057e5429a664d3f336da3d
-    m_Address: LongSword
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: bde157de4617a8c4ebbb38b96b5234ce
     m_Address: Navigation/BaseUIView
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: d1d8d7d8e4f24e6aa0aa0c1c4c5d9e25
-    m_Address: levels/whitebox-level-1
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0

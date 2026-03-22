@@ -110,6 +110,7 @@ Current module documentation map:
 - `Docs/Infra/Model.md`
 - `Docs/Infra/Navigation.md`
 - `Docs/Infra/Scope.md`
+- `Docs/Infra/SceneFlow.md`
 - `Docs/Meta/Gold.md`
 - `Docs/Tools/Maps.md`
 - `Docs/Tools/Records.md`

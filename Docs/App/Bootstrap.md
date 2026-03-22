@@ -18,6 +18,7 @@
 | Symbol | Purpose | Inputs | Outputs | Failure behavior |
 |---|---|---|---|---|
 | `BootstrapScope` | Runtime composition root for this project. | Serialized scene fields + installer tree. | Final initialized scope and first screen open. | Throws on missing serialized references or startup failures. |
+| `LoadingView` | Optional standalone transition loading UI (Show/Hide/IsVisible/SetProgress). | Scene placement; not registered in DI. | Visibility state. | Callers orchestrate when to show; not coupled to SceneFlow. |
 
 ## Setup / Integration
 
@@ -76,6 +77,7 @@ sequenceDiagram
 
 ## Changelog
 
+- 2026-03-22: Added standalone `LoadingView` for caller-owned transition UI; infra installers use `LayerInstallerBase.Install(builder, IInstaller)`; removed default `Madbox.SceneFlow` registration from `BootstrapInfraInstaller`.
 - 2026-03-21: Migrated bootstrap composition to single-tree `LayerInstallerBase` flow and updated startup sequence documentation.
 - 2026-03-18: Introduced asset-first startup layer (`BootstrapAssetInstaller`) before infra and documented Addressables preload availability for downstream scopes.
 - 2026-03-16: Refactored Bootstrap to project-specific composition only; moved generic layered startup orchestration to `Madbox.Scope`.

@@ -1,7 +1,6 @@
 using System;
 using Madbox.CloudCode.Container;
-using Madbox.Gold.Container;
-using Madbox.LiveOps.Container;
+using Madbox.SceneFlow;
 using Madbox.Scope;
 using Madbox.Ugs.Container;
 using Scaffold.Events.Container;
@@ -14,12 +13,14 @@ namespace Madbox.App.Bootstrap
 {
     internal sealed class BootstrapInfraInstaller : LayerInstallerBase
     {
-        internal BootstrapInfraInstaller(Transform viewHolder)
+        internal BootstrapInfraInstaller(Transform viewHolder, ISceneFlowBootstrapShell sceneFlowBootstrapShell)
         {
-            this.viewHolder = viewHolder ?? throw new ArgumentNullException(nameof(viewHolder));
+            this.viewHolder = viewHolder;
+            this.sceneFlowBootstrapShell = sceneFlowBootstrapShell;
         }
 
         private readonly Transform viewHolder;
+        private readonly ISceneFlowBootstrapShell sceneFlowBootstrapShell;
 
         protected override void Install(IContainerBuilder builder)
         {
@@ -28,24 +29,25 @@ namespace Madbox.App.Bootstrap
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            RunInfraInstallers(builder);
-        }
-
-        private void RunInfraInstallers(IContainerBuilder builder)
-        {
             InstallSharedInfra(builder);
         }
 
         private void InstallSharedInfra(IContainerBuilder builder)
         {
             EventsInstaller eventsInstaller = new EventsInstaller();
-            eventsInstaller.Install(builder);
+            Install(builder, eventsInstaller);
+
             NavigationInstaller navigationInstaller = new NavigationInstaller(viewHolder);
-            navigationInstaller.Install(builder);
+            Install(builder, navigationInstaller);
+
             UgsInstaller ugsInstaller = new UgsInstaller();
-            ugsInstaller.Install(builder);
+            Install(builder, ugsInstaller);
+
             CloudCodeInstaller cloudCodeInstaller = new CloudCodeInstaller();
-            cloudCodeInstaller.Install(builder);
+            Install(builder, cloudCodeInstaller);
+
+            SceneFlowInstaller sceneFlowInstaller = new SceneFlowInstaller(sceneFlowBootstrapShell);
+            Install(builder, sceneFlowInstaller);
         }
     }
 }

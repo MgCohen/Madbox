@@ -17,17 +17,10 @@ namespace Madbox.App.Bootstrap
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            GoldInstaller goldInstaller = new GoldInstaller();
-            goldInstaller.Install(builder);
-
-            LevelInstaller levelInstaller = new LevelInstaller();
-            levelInstaller.Install(builder);
-
-            AdsInstaller adsInstaller = new AdsInstaller();
-            adsInstaller.Install(builder);
-
-            TutorialInstaller tutorialInstaller = new TutorialInstaller();
-            tutorialInstaller.Install(builder);
+            Install(builder, new GoldInstaller());
+            Install(builder, new LevelInstaller());
+            Install(builder, new AdsInstaller());
+            Install(builder, new TutorialInstaller());
         }
     }
 }

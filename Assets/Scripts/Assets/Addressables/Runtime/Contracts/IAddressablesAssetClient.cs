@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -10,9 +9,13 @@ namespace Madbox.Addressables.Contracts
     public interface IAddressablesAssetClient
     {
         Task SyncCatalogAndContentAsync(CancellationToken cancellationToken);
-        Task<UnityEngine.Object> LoadAssetAsync(string key, Type assetType, CancellationToken cancellationToken);
-        Task<IReadOnlyList<UnityEngine.Object>> LoadAssetsByLabelAsync(Type assetType, AssetLabelReference label, CancellationToken cancellationToken);
-        Task<IReadOnlyList<string>> ResolveLabelAsync(Type assetType, AssetLabelReference label, CancellationToken cancellationToken);
+
+        Task<T> LoadAssetAsync<T>(string key, CancellationToken cancellationToken) where T : UnityEngine.Object;
+
+        Task<IReadOnlyList<T>> LoadAssetsByLabelAsync<T>(AssetLabelReference label, CancellationToken cancellationToken) where T : UnityEngine.Object;
+
+        Task<IReadOnlyList<string>> ResolveLabelAsync<T>(AssetLabelReference label, CancellationToken cancellationToken) where T : UnityEngine.Object;
+
         void Release(UnityEngine.Object asset);
     }
 }

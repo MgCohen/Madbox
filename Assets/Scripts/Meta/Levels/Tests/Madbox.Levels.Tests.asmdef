@@ -4,7 +4,11 @@
     "references": [
         "Madbox.Levels",
         "Madbox.Enemies",
-        "Unity.Addressables"
+        "Madbox.LiveOps",
+        "Madbox.Addressables",
+        "Madbox.Scope",
+        "Unity.Addressables",
+        "VContainer"
     ],
     "includePlatforms": [
         "Editor"
@@ -12,7 +16,9 @@
     "excludePlatforms": [],
     "allowUnsafeCode": false,
     "overrideReferences": false,
-    "precompiledReferences": [],
+    "precompiledReferences": [
+        "Madbox.LiveOps.DTO.dll"
+    ],
     "autoReferenced": false,
     "defineConstraints": [],
     "versionDefines": [],

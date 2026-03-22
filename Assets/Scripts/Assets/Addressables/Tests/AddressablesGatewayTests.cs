@@ -289,10 +289,10 @@ namespace Madbox.Addressables.Tests
                 return Task.CompletedTask;
             }
 
-            public async Task<UnityEngine.Object> LoadAssetAsync(string key, Type assetType, CancellationToken cancellationToken)
+            public async Task<T> LoadAssetAsync<T>(string key, CancellationToken cancellationToken) where T : UnityEngine.Object
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                LoadCalls.Add($"{assetType.FullName}|{key}");
+                LoadCalls.Add($"{typeof(T).FullName}|{key}");
                 if (LoadGate != null)
                 {
                     await LoadGate.Task;
@@ -300,18 +300,18 @@ namespace Madbox.Addressables.Tests
 
                 if (ObjectAssets.TryGetValue(key, out UnityEngine.Object existing))
                 {
-                    return existing;
+                    return (T)existing;
                 }
 
                 if (cache.TryGetValue(key, out TestAsset cachedAsset))
                 {
-                    return cachedAsset;
+                    return (T)(UnityEngine.Object)cachedAsset;
                 }
 
                 TestAsset created = ScriptableObject.CreateInstance<TestAsset>();
                 created.AssetId = key;
                 cache[key] = created;
-                return created;
+                return (T)(UnityEngine.Object)created;
             }
 
             public int CountLoadCallsForType(Type type)
@@ -329,10 +329,10 @@ namespace Madbox.Addressables.Tests
                 return count;
             }
 
-            public async Task<IReadOnlyList<UnityEngine.Object>> LoadAssetsByLabelAsync(Type assetType, AssetLabelReference label, CancellationToken cancellationToken)
+            public async Task<IReadOnlyList<T>> LoadAssetsByLabelAsync<T>(AssetLabelReference label, CancellationToken cancellationToken) where T : UnityEngine.Object
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                LabelLoadCalls.Add($"{assetType.FullName}|{label?.labelString}");
+                LabelLoadCalls.Add($"{typeof(T).FullName}|{label?.labelString}");
                 if (LabelLoadGate != null)
                 {
                     await LabelLoadGate.Task;
@@ -340,16 +340,16 @@ namespace Madbox.Addressables.Tests
 
                 if (label == null || !CatalogToKeys.TryGetValue(label.labelString, out IReadOnlyList<string> keys))
                 {
-                    return Array.Empty<UnityEngine.Object>();
+                    return Array.Empty<T>();
                 }
 
-                List<UnityEngine.Object> assets = new List<UnityEngine.Object>(keys.Count);
+                List<T> assets = new List<T>(keys.Count);
                 for (int i = 0; i < keys.Count; i++)
                 {
                     string key = keys[i];
                     if (ObjectAssets.TryGetValue(key, out UnityEngine.Object existing))
                     {
-                        assets.Add(existing);
+                        assets.Add((T)existing);
                         continue;
                     }
 
@@ -360,7 +360,7 @@ namespace Madbox.Addressables.Tests
                         cache[key] = cachedAsset;
                     }
 
-                    assets.Add(cachedAsset);
+                    assets.Add((T)(UnityEngine.Object)cachedAsset);
                 }
 
                 return assets;
@@ -374,7 +374,7 @@ namespace Madbox.Addressables.Tests
                 }
             }
 
-            public async Task<IReadOnlyList<string>> ResolveLabelAsync(Type assetType, AssetLabelReference label, CancellationToken cancellationToken)
+            public async Task<IReadOnlyList<string>> ResolveLabelAsync<T>(AssetLabelReference label, CancellationToken cancellationToken) where T : UnityEngine.Object
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 if (ResolveLabelGate != null)
