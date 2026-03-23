@@ -2,7 +2,6 @@ using System;
 using Madbox.Ads.Container;
 using Madbox.Gold.Container;
 using Madbox.Level.Container;
-using Madbox.Tutorial.Container;
 using Madbox.Scope;
 using VContainer;
 
@@ -20,7 +19,6 @@ namespace Madbox.App.Bootstrap
             Install(builder, new GoldInstaller());
             Install(builder, new LevelInstaller());
             Install(builder, new AdsInstaller());
-            Install(builder, new TutorialInstaller());
         }
     }
 }

@@ -102,7 +102,6 @@ Current module documentation map:
 - `Docs/Core/ViewModel.md`
 - `Docs/Core/LiveOps.md`
 - `Docs/Core/Ads.md`
-- `Docs/Core/Tutorial.md`
 - `Docs/Core/LiveOpsLevel.md`
 - `Docs/Infra/Addressables.md`
 - `Docs/Infra/BaseMVVM.md`
