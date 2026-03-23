@@ -10,6 +10,7 @@
         "Madbox.Battle",
         "Madbox.SceneFlow",
         "Madbox.GameView",
+        "Madbox.Player",
         "Madbox.Enemies",
         "Unity.Addressables",
         "VContainer",

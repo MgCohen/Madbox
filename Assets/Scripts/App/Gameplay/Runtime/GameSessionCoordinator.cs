@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Madbox.App.GameView.Arenas;
 using Madbox.Battle;
 using Madbox.Enemies;
+using Madbox.Players;
 using Madbox.SceneFlow;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -38,16 +39,16 @@ namespace Madbox.App.Gameplay
 
         public BattleGame ActiveGame => activeGame;
 
-        public async Task RunSessionAsync(Madbox.Levels.LevelDefinition level, IPlayerSpawnService playerSpawn, CancellationToken cancellationToken = default)
+        public async Task RunSessionAsync(Madbox.Levels.LevelDefinition level, PlayerFactory playerFactory, CancellationToken cancellationToken = default)
         {
             if (level == null)
             {
                 throw new ArgumentNullException(nameof(level));
             }
 
-            if (playerSpawn == null)
+            if (playerFactory == null)
             {
-                throw new ArgumentNullException(nameof(playerSpawn));
+                throw new ArgumentNullException(nameof(playerFactory));
             }
 
             await TeardownSessionAsync(cancellationToken);
@@ -90,7 +91,7 @@ namespace Madbox.App.Gameplay
 
                 GameObject worldRoot = new GameObject("SessionWorld");
                 SceneManager.MoveGameObjectToScene(worldRoot, levelScene);
-                await playerSpawn.SpawnPlayerAtAsync(worldRoot.transform, playerPos, playerRot, cancellationToken);
+                await playerFactory.CreateReadyPlayerAsync(worldRoot.transform, playerPos, playerRot, cancellationToken);
             }
             catch
             {
