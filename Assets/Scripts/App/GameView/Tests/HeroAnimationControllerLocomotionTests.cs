@@ -1,4 +1,5 @@
 using System.Linq;
+using Madbox.App.Animation;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEditor.Animations;

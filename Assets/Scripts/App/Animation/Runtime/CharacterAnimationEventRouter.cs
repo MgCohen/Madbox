@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Madbox.App.GameView.Animation
+namespace Madbox.App.Animation
 {
     /// <summary>
     /// Place on the same GameObject as the <see cref="Animator"/> that receives clip events.

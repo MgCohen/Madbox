@@ -1,4 +1,4 @@
-using Madbox.App.GameView.Animation;
+using Madbox.App.Animation;
 using UnityEngine;
 
 namespace Madbox.App.GameView.Player

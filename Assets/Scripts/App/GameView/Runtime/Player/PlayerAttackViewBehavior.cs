@@ -1,4 +1,4 @@
-using Madbox.App.GameView.Animation;
+using Madbox.App.Animation;
 using Madbox.Enemies;
 using UnityEngine;
 

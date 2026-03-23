@@ -1,11 +1,7 @@
 {
-    "name": "Madbox.GameView",
-    "rootNamespace": "Madbox.App.GameView",
-    "references": [
-        "Madbox.Animation",
-        "Madbox.Entity",
-        "Madbox.Enemies"
-    ],
+    "name": "Madbox.Animation",
+    "rootNamespace": "Madbox.App.Animation",
+    "references": [],
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
@@ -16,4 +12,3 @@
     "versionDefines": [],
     "noEngineReferences": false
 }
-

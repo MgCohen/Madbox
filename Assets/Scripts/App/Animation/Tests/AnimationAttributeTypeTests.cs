@@ -1,8 +1,8 @@
-using Madbox.App.GameView.Animation;
+using Madbox.App.Animation;
 using NUnit.Framework;
 using UnityEngine;
 
-namespace Madbox.App.GameView.Tests
+namespace Madbox.App.Animation.Tests
 {
     /// <summary>
     /// Regression: <see cref="AnimationAttribute"/> is usable as a ScriptableObject (authored assets share the
