@@ -22,21 +22,19 @@ namespace GameModuleDTO.Modules.Level
         public IReadOnlyList<LevelStateEntry> States => _states;
 
         /// <summary>Used by Newtonsoft when deserializing <c>GameData</c>; <see cref="_states"/> is filled from JSON.</summary>
-        private LevelGameData()
+        [JsonConstructor]
+        public LevelGameData()
         {
         }
 
         /// <summary>Build from persistence + config (server).</summary>
         public LevelGameData(LevelPersistence persistence, LevelConfig config)
         {
-            if (persistence == null)
+            if (persistence == null || config == null)
             {
-                throw new ArgumentNullException(nameof(persistence));
-            }
-
-            if (config == null)
-            {
-                throw new ArgumentNullException(nameof(config));
+                // Newtonsoft JSON deserializer greedily invokes this constructor with null parameters.
+                // We return early and let it populate the fields via reflection parameters.
+                return; 
             }
 
             HashSet<int> completed = new HashSet<int>(persistence.CompletedLevelIds);

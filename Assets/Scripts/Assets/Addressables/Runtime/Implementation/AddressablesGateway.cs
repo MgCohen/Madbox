@@ -85,21 +85,25 @@ namespace Madbox.Addressables
 
         private async Task InitializeCoreAsync(CancellationToken cancellationToken)
         {
+            UnityEngine.Debug.Log($"[AddressablesGateway] InitializeCoreAsync called. Current instance: {this.GetHashCode()}, initialized={initialized}");
             cancellationToken.ThrowIfCancellationRequested();
 
             lock (initSync)
             {
                 if (initialized)
                 {
+                    UnityEngine.Debug.Log($"[AddressablesGateway] Instance {this.GetHashCode()} is already initialized, skipping sync.");
                     return;
                 }
             }
 
+            UnityEngine.Debug.Log($"[AddressablesGateway] Instance {this.GetHashCode()} is triggering Catalog Sync...");
             await RunCatalogSyncAsync(cancellationToken);
 
             lock (initSync)
             {
                 initialized = true;
+                UnityEngine.Debug.Log($"[AddressablesGateway] Instance {this.GetHashCode()} set initialized=true.");
             }
         }
 
@@ -107,7 +111,9 @@ namespace Madbox.Addressables
         {
             try
             {
+                UnityEngine.Debug.Log($"[AddressablesGateway] [{this.GetHashCode()}] SyncCatalogAndContentAsync starting...");
                 await client.SyncCatalogAndContentAsync(cancellationToken);
+                UnityEngine.Debug.Log($"[AddressablesGateway] [{this.GetHashCode()}] SyncCatalogAndContentAsync COMPLETED successfully!");
             }
             catch (Exception exception) when (exception is not OperationCanceledException)
             {
