@@ -62,12 +62,14 @@ namespace Madbox.App.Bootstrap.Player
                 spawned.Add(await InstantiateWeaponAtSocketAsync(weaponRefs[i], visual, i, cancellationToken));
             }
 
+            visual.SetWeaponInstances(spawned);
+
             if (playerWeaponController != null)
             {
                 playerWeaponController.Bind(playerData, visual);
             }
 
-            visual.SetWeaponInstances(spawned);
+            playerData.SetAvailableWeapons(spawned);
         }
 
         private async Task<GameObject> InstantiatePlayerFromReferenceAsync(
