@@ -13,17 +13,24 @@ namespace Madbox.LiveOps
 {
     internal sealed class LiveOpsService : ILiveOpsService, IAsyncLayerInitializable
     {
-        public LiveOpsService(ICloudCodeModuleService cloudCodeModuleService)
+        public LiveOpsService(ICloudCodeModuleService cloudCodeModuleService, IObjectResolver objectResolver)
         {
             if (cloudCodeModuleService == null)
             {
                 throw new ArgumentNullException(nameof(cloudCodeModuleService));
             }
 
+            if (objectResolver == null)
+            {
+                throw new ArgumentNullException(nameof(objectResolver));
+            }
+
             this.cloudCodeModuleService = cloudCodeModuleService;
+            this.objectResolver = objectResolver;
         }
 
         private readonly ICloudCodeModuleService cloudCodeModuleService;
+        private readonly IObjectResolver objectResolver;
         private GameData gameData;
 
         public T GetModuleData<T>() where T : class, IGameModuleData
@@ -53,6 +60,7 @@ namespace Madbox.LiveOps
             Task<TResponse> endpointCall = cloudCodeModuleService.CallEndpointAsync<TResponse>(request.ModuleName, request.FunctionName, payload: payload, cancellationToken: cancellationToken);
             TResponse response = await endpointCall.ConfigureAwait(false);
             ApplyCompleteLevelSnapshot(response);
+            ModuleResponseHandlerDispatch.DispatchNestedResponses(objectResolver, response);
             return response;
         }
 
