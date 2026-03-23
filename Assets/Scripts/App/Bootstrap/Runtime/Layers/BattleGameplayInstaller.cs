@@ -32,7 +32,6 @@ namespace Madbox.App.Bootstrap
 
             builder.Register<IGameFlowService, GameNavigationFlowService>(Lifetime.Singleton);
             builder.Register<IMainMenuLauncher, BootstrapMainMenuLauncher>(Lifetime.Singleton);
-            builder.Register<IPlayerSpawnService, PlayerSpawnBridge>(Lifetime.Singleton);
         }
     }
 }

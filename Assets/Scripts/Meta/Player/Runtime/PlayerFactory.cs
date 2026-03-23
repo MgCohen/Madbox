@@ -3,13 +3,13 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Madbox.Addressables.Contracts;
-using Madbox.App.GameView.Players;
 using Madbox.Entities;
 using Madbox.Levels;
+using Madbox.Players;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 
-namespace Madbox.App.Bootstrap.Players
+namespace Madbox.Players
 {
     public sealed class PlayerFactory
     {

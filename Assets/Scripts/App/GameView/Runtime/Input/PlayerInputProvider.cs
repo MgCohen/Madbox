@@ -1,5 +1,5 @@
 using Madbox.Entities;
-using Madbox.App.GameView.Players;
+using Madbox.Players;
 using UnityEngine;
 
 namespace Madbox.App.GameView.Input
