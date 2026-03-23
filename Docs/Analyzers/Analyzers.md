@@ -253,12 +253,18 @@ public void Setup() { }
 
 ### SCA0003 - No Nested Calls
 
-Function calls and object constructions must not be nested as arguments. Extract intermediate values to named local variables.
+Function calls and object constructions must not be nested as arguments beyond the configured depth. Extract intermediate values to named local variables when the depth limit is exceeded.
+
+**Configuration:** `scaffold.SCA0003.max_nesting_depth` (default `1`). The analyzer reports when the computed nesting depth of an argument expression is **greater than or equal to** this value. Use `1` for strict mode (no call/object-creation in argument position). Use `2` to allow one level (for example `Outer(new Inner())` or `Outer(GetValue())`).
+
+```ini
+scaffold.SCA0003.max_nesting_depth = 1
+```
 
 **Exception:** `nameof()` expressions are allowed to be nested.
 
 ```csharp
-// VIOLATION
+// VIOLATION (default max_nesting_depth = 1)
 var result = Process(GetInput());
 var obj = new Handler(new Config());
 

@@ -557,8 +557,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e2d3c4b5a69788796a5b4c3d2e1f0a1b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  isAliveAttribute: {fileID: 11400000, guid: f0e1d2c3b4a5968778695a4b3c2d1e0f, type: 2}
-  canMoveAttribute: {fileID: 11400000, guid: e1d2c3b4a5968778695a4b3c2d1e0f1a, type: 2}
   attributeEntries:
   - attribute: {fileID: 11400000, guid: f0e1d2c3b4a5968778695a4b3c2d1e0f, type: 2}
     value: 1
@@ -630,6 +628,8 @@ MonoBehaviour:
   inputAcceptSqrThreshold: 0.0025
   animationController: {fileID: 4278100186079492272}
   moveSpeedAttribute: {fileID: 11400000, guid: 10101010101010101010101010101010, type: 2}
+  canMoveAttribute: {fileID: 11400000, guid: e1d2c3b4a5968778695a4b3c2d1e0f1a, type: 2}
+  isAliveAttribute: {fileID: 11400000, guid: f0e1d2c3b4a5968778695a4b3c2d1e0f, type: 2}
   movingParameter: {fileID: 11400000, guid: d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1, type: 2}
   invertMovementInput: 1
   invertFacingDirection: 1
@@ -649,6 +649,7 @@ MonoBehaviour:
   animationController: {fileID: 4278100186079492272}
   attackingParameter: {fileID: 11400000, guid: d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2, type: 2}
   attackRangeAttribute: {fileID: 11400000, guid: 20202020202020202020202020202020, type: 2}
+  isAliveAttribute: {fileID: 11400000, guid: f0e1d2c3b4a5968778695a4b3c2d1e0f, type: 2}
   enemyLayers:
     serializedVersion: 2
     m_Bits: 4294967295
