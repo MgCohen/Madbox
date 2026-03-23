@@ -13,9 +13,10 @@ namespace Madbox.App.GameView.Input
 
         public override PlayerInputContext GetInputContext()
         {
-            if (joystick != null && joystick.Direction.sqrMagnitude > 0.0001f)
+            VirtualJoystickInput joystickInput = ResolveJoystick();
+            if (joystickInput != null && joystickInput.Direction.sqrMagnitude > 0.0001f)
             {
-                return new PlayerInputContext(joystick.Direction);
+                return new PlayerInputContext(joystickInput.Direction);
             }
 
             float x = UnityEngine.Input.GetAxisRaw("Horizontal");
@@ -23,6 +24,17 @@ namespace Madbox.App.GameView.Input
             Vector2 kb = new Vector2(x, y);
             Vector2 move = kb.sqrMagnitude > 1f ? kb.normalized : kb;
             return new PlayerInputContext(move);
+        }
+
+        private VirtualJoystickInput ResolveJoystick()
+        {
+            if (joystick != null)
+            {
+                return joystick;
+            }
+
+            joystick = FindAnyObjectByType<VirtualJoystickInput>(FindObjectsInactive.Include);
+            return joystick;
         }
     }
 }

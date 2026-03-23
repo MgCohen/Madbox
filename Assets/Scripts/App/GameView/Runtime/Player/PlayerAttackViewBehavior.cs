@@ -21,6 +21,9 @@ namespace Madbox.App.GameView.Players
         private PlayerAttribute attackRangeAttribute;
 
         [SerializeField]
+        private PlayerAttribute isAliveAttribute;
+
+        [SerializeField]
         private LayerMask enemyLayers = ~0;
 
         [SerializeField]
@@ -38,7 +41,7 @@ namespace Madbox.App.GameView.Players
 
         public bool TryAcceptControl(Madbox.Players.Player data, in PlayerInputContext _)
         {
-            if (data == null || !data.IsAlive)
+            if (data == null || !IsEnabled(data, isAliveAttribute))
             {
                 return false;
             }
@@ -71,6 +74,16 @@ namespace Madbox.App.GameView.Players
             }
 
             return false;
+        }
+
+        private static bool IsEnabled(Madbox.Players.Player data, PlayerAttribute attribute)
+        {
+            if (attribute == null)
+            {
+                return true;
+            }
+
+            return data.GetBoolAttribute(attribute);
         }
 
         public void Execute(Madbox.Players.Player data, in PlayerInputContext _, float deltaTime)

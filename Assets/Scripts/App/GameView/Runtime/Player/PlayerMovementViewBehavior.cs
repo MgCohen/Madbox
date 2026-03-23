@@ -20,6 +20,12 @@ namespace Madbox.App.GameView.Players
         private PlayerAttribute moveSpeedAttribute;
 
         [SerializeField]
+        private PlayerAttribute canMoveAttribute;
+
+        [SerializeField]
+        private PlayerAttribute isAliveAttribute;
+
+        [SerializeField]
         private AnimationAttribute movingParameter;
 
         [SerializeField]
@@ -33,7 +39,7 @@ namespace Madbox.App.GameView.Players
 
         public bool TryAcceptControl(Madbox.Players.Player data, in PlayerInputContext input)
         {
-            if (data == null || !data.CanMove || !data.IsAlive)
+            if (data == null || !IsEnabled(data, canMoveAttribute) || !IsEnabled(data, isAliveAttribute))
             {
                 return false;
             }
@@ -45,6 +51,16 @@ namespace Madbox.App.GameView.Players
 
             animationController.SetBool(movingParameter, true);
             return true;
+        }
+
+        private static bool IsEnabled(Madbox.Players.Player data, PlayerAttribute attribute)
+        {
+            if (attribute == null)
+            {
+                return true;
+            }
+
+            return data.GetBoolAttribute(attribute);
         }
 
         public void Execute(Madbox.Players.Player data, in PlayerInputContext input, float deltaTime)

@@ -559,30 +559,33 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   attributeEntries:
   - attribute: {fileID: 11400000, guid: f0e1d2c3b4a5968778695a4b3c2d1e0f, type: 2}
-    value: 1
+    baseValue: 1
     onValueChanged:
       m_PersistentCalls:
         m_Calls: []
   - attribute: {fileID: 11400000, guid: e1d2c3b4a5968778695a4b3c2d1e0f1a, type: 2}
-    value: 1
+    baseValue: 1
     onValueChanged:
       m_PersistentCalls:
         m_Calls: []
-  - attribute: {fileID: 11400000, guid: 10101010101010101010101010101010, type: 2}
-    value: 3.5
+  - attribute: {fileID: 11400000, guid: fc41244c06b2f7d4ab197e5bb8b95067, type: 2}
+    baseValue: 3.5
     onValueChanged:
       m_PersistentCalls:
         m_Calls: []
-  - attribute: {fileID: 11400000, guid: 20202020202020202020202020202020, type: 2}
-    value: 8
+  - attribute: {fileID: 11400000, guid: 676b1e8b45d968e4ab53ac34843543f0, type: 2}
+    baseValue: 8
     onValueChanged:
       m_PersistentCalls:
         m_Calls: []
-  - attribute: {fileID: 11400000, guid: 30303030303030303030303030303030, type: 2}
-    value: 1
+  - attribute: {fileID: 11400000, guid: 74db7c80a206d774cac4300ec8e64f50, type: 2}
+    baseValue: 1
     onValueChanged:
       m_PersistentCalls:
         m_Calls: []
+  attributeModifiers: []
+  isAliveAttribute: {fileID: 0}
+  canMoveAttribute: {fileID: 0}
 --- !u!114 &3206923099687242372
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -608,11 +611,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b5a69788796a5b4c3d2e1f0a1b2c3d4e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  playerData: {fileID: 3206923099687242368}
-  inputProvider: {fileID: 3206923099687242372}
+  Entity: {fileID: 3206923099687242368}
+  inputProviderBehaviour: {fileID: 0}
   behaviorComponents:
-  - {fileID: 3206923099687242371}
   - {fileID: 3206923099687242367}
+  - {fileID: 3206923099687242371}
 --- !u!114 &3206923099687242367
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -627,7 +630,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   inputAcceptSqrThreshold: 0.0025
   animationController: {fileID: 4278100186079492272}
-  moveSpeedAttribute: {fileID: 11400000, guid: 10101010101010101010101010101010, type: 2}
+  moveSpeedAttribute: {fileID: 11400000, guid: fc41244c06b2f7d4ab197e5bb8b95067, type: 2}
   canMoveAttribute: {fileID: 11400000, guid: e1d2c3b4a5968778695a4b3c2d1e0f1a, type: 2}
   isAliveAttribute: {fileID: 11400000, guid: f0e1d2c3b4a5968778695a4b3c2d1e0f, type: 2}
   movingParameter: {fileID: 11400000, guid: d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1, type: 2}
@@ -647,8 +650,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   animationController: {fileID: 4278100186079492272}
-  attackingParameter: {fileID: 11400000, guid: d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2, type: 2}
-  attackRangeAttribute: {fileID: 11400000, guid: 20202020202020202020202020202020, type: 2}
+  attackingParameter: {fileID: 11400000, guid: 262c505db64bffc44a9ca6d3ad23b2ce, type: 2}
+  attackRangeAttribute: {fileID: 11400000, guid: 676b1e8b45d968e4ab53ac34843543f0, type: 2}
   isAliveAttribute: {fileID: 11400000, guid: f0e1d2c3b4a5968778695a4b3c2d1e0f, type: 2}
   enemyLayers:
     serializedVersion: 2

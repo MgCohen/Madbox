@@ -58,5 +58,23 @@ namespace Madbox.App.GameView.Tests
             Object.DestroyImmediate(providerGo);
             Object.DestroyImmediate(vjGo);
         }
+
+        [Test]
+        public void JoystickAndKeyboardPlayerInputProvider_UsesSceneJoystickWhenReferenceMissing()
+        {
+            GameObject vjGo = new GameObject("vj");
+            VirtualJoystickInput vj = vjGo.AddComponent<VirtualJoystickInput>();
+            vj.SetDirection(new Vector2(0.8f, 0.1f));
+
+            GameObject providerGo = new GameObject("provider");
+            JoystickAndKeyboardPlayerInputProvider provider = providerGo.AddComponent<JoystickAndKeyboardPlayerInputProvider>();
+
+            PlayerInputContext ctx = provider.GetInputContext();
+            Assert.That(ctx.MoveDirection.x, Is.EqualTo(0.8f).Within(0.0001f));
+            Assert.That(ctx.MoveDirection.y, Is.EqualTo(0.1f).Within(0.0001f));
+
+            Object.DestroyImmediate(providerGo);
+            Object.DestroyImmediate(vjGo);
+        }
     }
 }
