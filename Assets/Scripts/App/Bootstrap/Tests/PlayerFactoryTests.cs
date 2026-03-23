@@ -72,6 +72,7 @@ namespace Madbox.App.Bootstrap.Tests
             PlayerData data = root.AddComponent<PlayerData>();
             SetBaseAttributeEntry(data, baseAttribute, baseValue);
             WeaponVisualController visual = root.AddComponent<WeaponVisualController>();
+            root.AddComponent<PlayerWeaponController>();
             var sockets = new List<Transform>();
             for (int i = 0; i < socketCount; i++)
             {

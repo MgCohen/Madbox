@@ -3,6 +3,7 @@ using Madbox.App.GameView.Player;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
+using System.Collections.Generic;
 
 namespace Madbox.App.GameView.Tests
 {
@@ -86,6 +87,48 @@ namespace Madbox.App.GameView.Tests
 
             Object.DestroyImmediate(attr);
             Object.DestroyImmediate(go);
+        }
+
+        [Test]
+        public void EquipAndUnequip_RegistersAndUnregistersWeaponModifiers()
+        {
+            EntityAttribute moveSpeed = ScriptableObject.CreateInstance<EntityAttribute>();
+            moveSpeed.name = "MoveSpeed";
+
+            GameObject playerGo = new GameObject("player");
+            var data = playerGo.AddComponent<PlayerData>();
+            SerializedObject dataSo = new SerializedObject(data);
+            SerializedProperty list = dataSo.FindProperty("attributeEntries");
+            list.arraySize = 1;
+            SerializedProperty entry = list.GetArrayElementAtIndex(0);
+            entry.FindPropertyRelative("attribute").objectReferenceValue = moveSpeed;
+            entry.FindPropertyRelative("baseValue").floatValue = 10f;
+            dataSo.ApplyModifiedPropertiesWithoutUndo();
+
+            GameObject weaponGo = new GameObject("weapon");
+            Weapon weapon = weaponGo.AddComponent<Weapon>();
+            SetWeaponModifiers(weapon, moveSpeed, 2f);
+
+            data.Equip(weapon);
+            Assert.That(data.GetFloatAttribute(moveSpeed), Is.EqualTo(12f).Within(0.0001f));
+
+            data.Unequip(weapon);
+            Assert.That(data.GetFloatAttribute(moveSpeed), Is.EqualTo(10f).Within(0.0001f));
+
+            Object.DestroyImmediate(weaponGo);
+            Object.DestroyImmediate(playerGo);
+            Object.DestroyImmediate(moveSpeed);
+        }
+
+        private static void SetWeaponModifiers(Weapon weapon, EntityAttribute attribute, float delta)
+        {
+            SerializedObject weaponSo = new SerializedObject(weapon);
+            SerializedProperty list = weaponSo.FindProperty("modifiers");
+            list.arraySize = 1;
+            SerializedProperty entry = list.GetArrayElementAtIndex(0);
+            entry.FindPropertyRelative("attribute").objectReferenceValue = attribute;
+            entry.FindPropertyRelative("delta").floatValue = delta;
+            weaponSo.ApplyModifiedPropertiesWithoutUndo();
         }
     }
 }

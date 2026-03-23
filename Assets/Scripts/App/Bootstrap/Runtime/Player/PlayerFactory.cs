@@ -53,7 +53,7 @@ namespace Madbox.App.Bootstrap.Player
         {
             WeaponVisualController visual = playerInstance.GetComponentInChildren<WeaponVisualController>(true);
             PlayerData playerData = playerInstance.GetComponentInChildren<PlayerData>(true);
-            WeaponModifierBindingController modifierBinding = playerInstance.GetComponentInChildren<WeaponModifierBindingController>(true);
+            PlayerWeaponController playerWeaponController = playerInstance.GetComponentInChildren<PlayerWeaponController>(true);
             IReadOnlyList<AssetReference> weaponRefs = loadout.WeaponPrefabs;
             int count = weaponRefs.Count;
             var spawned = new List<GameObject>(count);
@@ -62,9 +62,9 @@ namespace Madbox.App.Bootstrap.Player
                 spawned.Add(await InstantiateWeaponAtSocketAsync(weaponRefs[i], visual, i, cancellationToken));
             }
 
-            if (modifierBinding != null)
+            if (playerWeaponController != null)
             {
-                modifierBinding.Bind(visual, playerData, spawned);
+                playerWeaponController.Bind(playerData, visual);
             }
 
             visual.SetWeaponInstances(spawned);
