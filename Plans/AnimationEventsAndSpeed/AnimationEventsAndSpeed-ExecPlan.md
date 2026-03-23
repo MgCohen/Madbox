@@ -67,7 +67,7 @@ Milestone 6 is **closure**. Finish module documentation, run the repository qual
   Date/Author: 2026-03-22 / Planning
 
 - Decision: Add `Madbox.GameView` assembly with no Core references; use `CombatAnimationEventResponse` as a view-only spawn demo until a battle intent bridge exists.
-  Rationale: Preserves Architecture boundary; projectile is visual-only (`SimpleProjectile`), not authoritative simulation.
+  Rationale: Preserves Architecture boundary; projectile is visual-only (`Projectile`), not authoritative simulation.
   Date/Author: 2026-03-22 / Implementation
 
 - Decision: Use `AttackSpeedMultiplierDriver` on enemies to drive the same animator float without a `PlayerViewData` component.

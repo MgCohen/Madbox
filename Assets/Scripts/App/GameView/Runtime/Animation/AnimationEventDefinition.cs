@@ -3,34 +3,25 @@ using UnityEngine;
 namespace Madbox.App.GameView.Animation
 {
     /// <summary>
-    /// Authoring identity for a clip animation event. Set <see cref="StableId"/> on each clip event's int parameter to match.
+    /// Asset marker for a clip animation event id. Match <see cref="EventId"/> to the clip event string parameter.
     /// </summary>
     [CreateAssetMenu(fileName = "AnimationEventDefinition", menuName = "Madbox/Game View/Animation Event Definition", order = 0)]
     public sealed class AnimationEventDefinition : ScriptableObject
     {
         [SerializeField]
-        [Tooltip("Must match Animation Event int parameter on clips. Must be non-zero.")]
-        private int stableId;
+        private string eventId;
 
-        [SerializeField]
-        private string displayName;
-
-        [SerializeField]
-        [TextArea(2, 6)]
-        private string description;
-
-        public int StableId => stableId;
-
-        public string DisplayName => string.IsNullOrEmpty(displayName) ? name : displayName;
-
-        public string Description => description;
+        /// <summary>
+        /// String dispatched from clips via <see cref="CharacterAnimationEventRouter.OnCharacterAnimationEvent(string)"/>.
+        /// </summary>
+        public string EventId => string.IsNullOrEmpty(eventId) ? name : eventId;
 
 #if UNITY_EDITOR
         private void OnValidate()
         {
-            if (stableId == 0)
+            if (string.IsNullOrEmpty(eventId))
             {
-                stableId = UnityEngine.Random.Range(1, int.MaxValue);
+                eventId = name;
             }
         }
 #endif

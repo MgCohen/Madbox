@@ -1,36 +1,28 @@
-using Madbox.App.GameView.Input;
+using Madbox.App.GameView.Animation;
 using UnityEngine;
 
 namespace Madbox.App.GameView.Player
 {
     /// <summary>
-    /// Moves the player root from joystick or keyboard fallback; drives locomotion animation.
+    /// Moves the player root from resolved move input; sets the animator locomotion bool so transitions can drive idle/run.
     /// </summary>
     public sealed class PlayerMovementViewBehavior : MonoBehaviour, IPlayerBehavior
     {
         [SerializeField]
-        private VirtualJoystickInput joystick;
+        [Min(0f)]
+        private float inputAcceptSqrThreshold = 0.025f;
 
         [SerializeField]
-        private PlayerInputProvider inputProviderOverride;
+        private AnimationController animationController;
 
         [SerializeField]
-        private PlayerAnimationController animationController;
+        private PlayerAttribute moveSpeedAttribute;
 
         [SerializeField]
-        private float movementSpeed = 3.5f;
+        private AnimationAttribute movingParameter;
 
         [SerializeField]
-        private float inputThreshold = 0.05f;
-
-        [SerializeField]
-        private bool invertHorizontalAxis;
-
-        [SerializeField]
-        private bool invertVerticalAxis;
-
-        [SerializeField]
-        private bool rotateToDirection = true;
+        private bool invertMovementInput;
 
         [SerializeField]
         private bool invertFacingDirection;
@@ -38,67 +30,63 @@ namespace Madbox.App.GameView.Player
         [SerializeField]
         private float rotateLerpSpeed = 12f;
 
-        public bool TryAcceptControl(PlayerCore core)
+        public bool TryAcceptControl(PlayerData data, in PlayerInputContext input)
         {
-            if (core == null || core.ViewData == null || !core.ViewData.CanMove || !core.ViewData.IsAlive)
+            if (data == null || !data.CanMove || !data.IsAlive)
             {
                 return false;
             }
 
-            return ReadMoveInput().sqrMagnitude > inputThreshold * inputThreshold;
+            if(input.MoveDirection.sqrMagnitude < inputAcceptSqrThreshold)
+            {
+                return false;
+            }
+
+            animationController.SetBool(movingParameter, true);
+            return true;
         }
 
-        public void Execute(PlayerCore core, float deltaTime)
+        public void Execute(PlayerData data, in PlayerInputContext input, float deltaTime)
         {
-            Vector2 input = ReadMoveInput();
-            if (invertHorizontalAxis)
+            Vector2 move = input.MoveDirection;
+            if (invertMovementInput)
             {
-                input.x = -input.x;
+                move.x = -move.x;
+                move.y = -move.y;
             }
 
-            if (invertVerticalAxis)
+            Vector3 world = new Vector3(move.x, 0f, move.y);
+            Move(data, deltaTime, world);
+            if (world.sqrMagnitude > 0.0001f)
             {
-                input.y = -input.y;
+                Rotate(deltaTime, world);
             }
+        }
 
-            Vector3 world = new Vector3(input.x, 0f, input.y);
-            float speed = movementSpeed > 0f ? movementSpeed : core.ViewData.MoveSpeed;
+        private void Move(PlayerData data, float deltaTime, Vector3 world)
+        {
+            float speed = data.GetFloatAttribute(moveSpeedAttribute);
             transform.position += world * (speed * deltaTime);
-
-            if (animationController != null)
-            {
-                animationController.SetLocomotionMoving(true);
-            }
-
-            if (rotateToDirection && world.sqrMagnitude > 0.0001f)
-            {
-                Vector3 dir = world.normalized;
-                if (invertFacingDirection)
-                {
-                    dir = -dir;
-                }
-
-                Quaternion target = Quaternion.LookRotation(dir, Vector3.up);
-                transform.rotation = Quaternion.Slerp(transform.rotation, target, 1f - Mathf.Exp(-rotateLerpSpeed * deltaTime));
-            }
         }
 
-        private Vector2 ReadMoveInput()
+        private void Rotate(float deltaTime, Vector3 world)
         {
-            if (inputProviderOverride != null)
+            Vector3 dir = world.normalized;
+            if (invertFacingDirection)
             {
-                return inputProviderOverride.GetMoveDirection();
+                dir = -dir;
             }
 
-            if (joystick != null && joystick.Direction.sqrMagnitude > 0.0001f)
-            {
-                return joystick.Direction;
-            }
+            Quaternion target = Quaternion.LookRotation(dir, Vector3.up);
+            transform.rotation = Quaternion.Slerp(transform.rotation, target, 1f - Mathf.Exp(-rotateLerpSpeed * deltaTime));
+        }
 
-            float x = UnityEngine.Input.GetAxisRaw("Horizontal");
-            float y = UnityEngine.Input.GetAxisRaw("Vertical");
-            Vector2 kb = new Vector2(x, y);
-            return kb.sqrMagnitude > 1f ? kb.normalized : kb;
+        public void OnQuit(PlayerData data)
+        {
+            if (animationController != null && movingParameter != null)
+            {
+                animationController.SetBool(movingParameter, false);
+            }
         }
     }
 }

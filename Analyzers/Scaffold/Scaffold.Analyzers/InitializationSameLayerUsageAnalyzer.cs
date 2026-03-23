@@ -51,6 +51,13 @@ namespace Scaffold.Analyzers
 
         private static void AnalyzeMethodSymbol(SymbolAnalysisContext context, INamedTypeSymbol initializationInterface)
         {
+            if (context.Symbol.Locations.Any(
+                    location => location.IsInSource &&
+                                ModuleConventions.IsExcludedThirdPartyVendorPath(location.SourceTree?.FilePath ?? string.Empty)))
+            {
+                return;
+            }
+
             var options = context.Options.AnalyzerConfigOptionsProvider.GlobalOptions;
             if (AnalyzerConfig.ShouldSuppress(options, DiagnosticId)) return;
             var rule = AnalyzerConfig.GetEffectiveDescriptor(options, DiagnosticId, Rule);

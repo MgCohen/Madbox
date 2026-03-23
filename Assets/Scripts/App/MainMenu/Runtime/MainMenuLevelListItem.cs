@@ -1,5 +1,4 @@
 using Madbox.Levels;
-using System;
 using System.Reflection;
 using UnityEngine;
 using UnityEngine.UI;
@@ -40,7 +39,12 @@ namespace Madbox.App.MainMenu
 
         internal void SetLabel(AvailableLevel source)
         {
-            throw new NotImplementedException();
+            if (source == null)
+            {
+                return;
+            }
+
+            Set(source.MenuButtonLabel);
         }
     }
 }

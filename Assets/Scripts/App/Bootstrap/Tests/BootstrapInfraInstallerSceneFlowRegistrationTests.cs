@@ -13,7 +13,7 @@ namespace Madbox.App.Bootstrap.Tests
         {
             ContainerBuilder builder = new ContainerBuilder();
             Transform viewHolder = new GameObject("ViewHolder").transform;
-            var infra = new BootstrapInfraInstaller(viewHolder, null);
+            var infra = new BootstrapInfraInstaller(viewHolder, new FakeSceneFlowBootstrapShell());
 
             MethodInfo install = typeof(BootstrapInfraInstaller).GetMethod(
                 "Install",
@@ -28,6 +28,13 @@ namespace Madbox.App.Bootstrap.Tests
             {
                 ISceneFlowService service = container.Resolve<ISceneFlowService>();
                 Assert.IsNotNull(service);
+            }
+        }
+
+        private sealed class FakeSceneFlowBootstrapShell : ISceneFlowBootstrapShell
+        {
+            public void SetAdditiveContentActive(bool active)
+            {
             }
         }
     }

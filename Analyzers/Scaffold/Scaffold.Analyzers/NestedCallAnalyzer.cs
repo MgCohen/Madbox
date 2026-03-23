@@ -54,6 +54,8 @@ namespace Scaffold.Analyzers
 
         private void AnalyzeArguments(SyntaxNodeAnalysisContext context, ArgumentListSyntax argumentList)
         {
+            if (ModuleConventions.IsExcludedThirdPartyVendorPath(context.Node.SyntaxTree.FilePath)) return;
+
             var options = context.Options.AnalyzerConfigOptionsProvider.GetOptions(context.Node.SyntaxTree);
             if (AnalyzerConfig.ShouldSuppress(options, DiagnosticId)) return;
             var rule = AnalyzerConfig.GetEffectiveDescriptor(options, DiagnosticId, Rule);

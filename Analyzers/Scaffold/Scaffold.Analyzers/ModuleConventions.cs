@@ -57,6 +57,20 @@ namespace Scaffold.Analyzers
                    assemblyName.EndsWith(".Editor", StringComparison.OrdinalIgnoreCase);
         }
 
+        /// <summary>
+        /// Third-party sources shipped under Assets/Plugins (for example DOTween module scripts) are not project-owned code and must not be analyzed by Scaffold rules.
+        /// </summary>
+        internal static bool IsExcludedThirdPartyVendorPath(string filePath)
+        {
+            if (string.IsNullOrWhiteSpace(filePath))
+            {
+                return false;
+            }
+
+            var normalized = filePath.Replace('\\', '/');
+            return normalized.IndexOf("/Assets/Plugins/Demigiant/DOTween/", StringComparison.OrdinalIgnoreCase) >= 0;
+        }
+
         internal static string GetModuleRootName(string assemblyName)
         {
             var suffixes = new[]

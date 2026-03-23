@@ -25,6 +25,7 @@
         "Madbox.Levels",
         "Madbox.LiveOps",
         "Madbox.LiveOps.Container",
+        "Madbox.GameView",
         "Madbox.MainMenu.Runtime",
         "Madbox.SceneFlow",
         "Scaffold.Types",

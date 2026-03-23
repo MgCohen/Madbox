@@ -63,6 +63,11 @@ namespace Scaffold.Analyzers
             SyntaxToken headerToken,
             string loopLabel)
         {
+            if (ModuleConventions.IsExcludedThirdPartyVendorPath(context.Node.SyntaxTree.FilePath))
+            {
+                return;
+            }
+
             var options = context.Options.AnalyzerConfigOptionsProvider.GetOptions(context.Node.SyntaxTree);
             if (AnalyzerConfig.ShouldSuppress(options, DiagnosticId))
             {

@@ -15,6 +15,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Madbox.MainMenu.Runtime", "
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Madbox.Bootstrap.Runtime", "Madbox.Bootstrap.Runtime.csproj", "{F41D7C57-BD12-3AE9-6C3B-E635B5C1C2DB}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Madbox.GameView", "Madbox.GameView.csproj", "{489E7E0B-3DDF-A5E7-8AFE-44EC5CA80E50}"
+EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Madbox.Ugs", "Madbox.Ugs.csproj", "{25F941C5-F685-E3C4-A3DE-14ED2B9F65FE}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Scaffold.Types", "Scaffold.Types.csproj", "{5FBA2F37-633D-87D4-5DAD-6AD695FCC9AD}"
@@ -34,6 +36,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Madbox.MainMenu.Tests", "Madbox.MainMenu.Tests.csproj", "{E86ED942-180F-FBA6-0BFD-BF79C60E5154}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Scaffold.Events", "Scaffold.Events.csproj", "{F3A7251E-5D7D-0388-FFBA-C8A7B052021A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Madbox.GameView.Tests", "Madbox.GameView.Tests.csproj", "{531F5845-73BA-4FAA-5165-14EA79206947}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Madbox.Gold", "Madbox.Gold.csproj", "{C9A15306-573C-64AA-2F3A-3830A14A1766}"
 EndProject
@@ -75,6 +79,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Scaffold.Navigation.Contain
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Madbox.Tutorial.Container", "Madbox.Tutorial.Container.csproj", "{78AD2A90-9F29-A4A7-5040-488D0ADB9D24}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Madbox.Bootstrap.Tests", "Madbox.Bootstrap.Tests.csproj", "{F32B0194-A5F2-22B5-9AFF-C54C450F0704}"
+EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Scaffold.MVVM.Samples", "Scaffold.MVVM.Samples.csproj", "{373F59DA-4338-FD9B-4F10-BA3CBD168317}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Scaffold.Records.Samples", "Scaffold.Records.Samples.csproj", "{8D6DE8B9-7A9D-8E9D-624D-5425E7E64AF6}"
@@ -108,8 +114,6 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Scaffold.MVVM.ViewModel.Tests", "Scaffold.MVVM.ViewModel.Tests.csproj", "{AFC7131E-AFD4-7D87-DBD4-8CBF8267B83D}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Madbox.CloudCode.Tests", "Madbox.CloudCode.Tests.csproj", "{1EFC39EF-167B-F3B6-7C06-58B92F2B89FD}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Madbox.Bootstrap.Tests", "Madbox.Bootstrap.Tests.csproj", "{F32B0194-A5F2-22B5-9AFF-C54C450F0704}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Madbox.Ugs.Tests", "Madbox.Ugs.Tests.csproj", "{645B0B69-D1C5-11F3-8B52-DA129B0973B5}"
 EndProject
@@ -177,6 +181,10 @@ Global
 		{F41D7C57-BD12-3AE9-6C3B-E635B5C1C2DB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F41D7C57-BD12-3AE9-6C3B-E635B5C1C2DB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F41D7C57-BD12-3AE9-6C3B-E635B5C1C2DB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{489E7E0B-3DDF-A5E7-8AFE-44EC5CA80E50}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{489E7E0B-3DDF-A5E7-8AFE-44EC5CA80E50}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{489E7E0B-3DDF-A5E7-8AFE-44EC5CA80E50}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{489E7E0B-3DDF-A5E7-8AFE-44EC5CA80E50}.Release|Any CPU.Build.0 = Release|Any CPU
 		{25F941C5-F685-E3C4-A3DE-14ED2B9F65FE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{25F941C5-F685-E3C4-A3DE-14ED2B9F65FE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{25F941C5-F685-E3C4-A3DE-14ED2B9F65FE}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -217,6 +225,10 @@ Global
 		{F3A7251E-5D7D-0388-FFBA-C8A7B052021A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F3A7251E-5D7D-0388-FFBA-C8A7B052021A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F3A7251E-5D7D-0388-FFBA-C8A7B052021A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{531F5845-73BA-4FAA-5165-14EA79206947}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{531F5845-73BA-4FAA-5165-14EA79206947}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{531F5845-73BA-4FAA-5165-14EA79206947}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{531F5845-73BA-4FAA-5165-14EA79206947}.Release|Any CPU.Build.0 = Release|Any CPU
 		{C9A15306-573C-64AA-2F3A-3830A14A1766}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{C9A15306-573C-64AA-2F3A-3830A14A1766}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C9A15306-573C-64AA-2F3A-3830A14A1766}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -297,6 +309,10 @@ Global
 		{78AD2A90-9F29-A4A7-5040-488D0ADB9D24}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{78AD2A90-9F29-A4A7-5040-488D0ADB9D24}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{78AD2A90-9F29-A4A7-5040-488D0ADB9D24}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F32B0194-A5F2-22B5-9AFF-C54C450F0704}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F32B0194-A5F2-22B5-9AFF-C54C450F0704}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F32B0194-A5F2-22B5-9AFF-C54C450F0704}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F32B0194-A5F2-22B5-9AFF-C54C450F0704}.Release|Any CPU.Build.0 = Release|Any CPU
 		{373F59DA-4338-FD9B-4F10-BA3CBD168317}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{373F59DA-4338-FD9B-4F10-BA3CBD168317}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{373F59DA-4338-FD9B-4F10-BA3CBD168317}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -365,10 +381,6 @@ Global
 		{1EFC39EF-167B-F3B6-7C06-58B92F2B89FD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1EFC39EF-167B-F3B6-7C06-58B92F2B89FD}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1EFC39EF-167B-F3B6-7C06-58B92F2B89FD}.Release|Any CPU.Build.0 = Release|Any CPU
-		{F32B0194-A5F2-22B5-9AFF-C54C450F0704}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{F32B0194-A5F2-22B5-9AFF-C54C450F0704}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{F32B0194-A5F2-22B5-9AFF-C54C450F0704}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{F32B0194-A5F2-22B5-9AFF-C54C450F0704}.Release|Any CPU.Build.0 = Release|Any CPU
 		{645B0B69-D1C5-11F3-8B52-DA129B0973B5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{645B0B69-D1C5-11F3-8B52-DA129B0973B5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{645B0B69-D1C5-11F3-8B52-DA129B0973B5}.Release|Any CPU.ActiveCfg = Release|Any CPU

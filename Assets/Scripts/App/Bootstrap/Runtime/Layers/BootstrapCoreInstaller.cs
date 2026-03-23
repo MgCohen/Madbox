@@ -1,3 +1,4 @@
+using Madbox.App.Bootstrap.Player;
 using Madbox.LiveOps.Container;
 using Madbox.Scope;
 using System;
@@ -14,6 +15,7 @@ namespace Madbox.App.Bootstrap
                 throw new ArgumentNullException(nameof(builder));
             }
 
+            Install(builder, new PlayerInstaller());
             Install(builder, new LiveOpsInstaller());
         }
     }

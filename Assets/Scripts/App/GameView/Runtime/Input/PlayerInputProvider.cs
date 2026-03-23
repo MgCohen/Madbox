@@ -1,12 +1,13 @@
+using Madbox.App.GameView.Player;
 using UnityEngine;
 
 namespace Madbox.App.GameView.Input
 {
     /// <summary>
-    /// Optional override for movement input (scene wiring). Returns zero if not driving movement.
+    /// Resolves <see cref="PlayerInputContext"/> for the current frame (wired on the scene or player prefab).
     /// </summary>
     public abstract class PlayerInputProvider : MonoBehaviour
     {
-        public abstract Vector2 GetMoveDirection();
+        public abstract PlayerInputContext GetInputContext();
     }
 }

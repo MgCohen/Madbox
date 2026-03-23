@@ -95,4 +95,25 @@ namespace Demo
 
         Assert.Empty(diagnostics);
     }
+
+    [Fact]
+    public async Task NoDiagnostic_WhenSourceIsThirdPartyDotweenPath()
+    {
+        const string source = @"
+namespace DG.Tweening
+{
+    public class Demo
+    {
+        public void processData() { }
+    }
+}";
+
+        var diagnostics = await AnalyzerTestHarness.GetDiagnosticsByIdAsync(
+            source,
+            @"C:\Repo\Assets\Plugins\Demigiant\DOTween\Modules\DOTweenModuleUI.cs",
+            new NamingConventionAnalyzer(),
+            NamingConventionAnalyzer.DiagnosticIdPascal);
+
+        Assert.Empty(diagnostics);
+    }
 }

@@ -12,8 +12,8 @@ namespace Madbox.App.MainMenu
     [DisallowMultipleComponent]
     public sealed class LevelButtonCollectionHandlerBehaviour : MonoBehaviour, ICollectionHandler<AvailableLevel, MainMenuLevelListItem>
     {
-        private MainMenuLevelListItem levelButtonPrefab;
-        private Transform levelListContainer;
+        [SerializeField] private MainMenuLevelListItem levelButtonPrefab;
+        [SerializeField] private Transform levelListContainer;
 
         public MainMenuLevelListItem Add(AvailableLevel source)
         {

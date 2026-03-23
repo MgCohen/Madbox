@@ -8,6 +8,7 @@ Unity-side enemy actors for the battle slice (`EnemyActor`, `EnemyService`). Beh
 
 | Type | Role |
 |------|------|
+| `Enemy` | Marker on the hit target for presentation (e.g. projectile `OnTriggerEnter`); place on the GameObject that owns the collider you expect hits against. |
 | `EnemyActor` | Spawn marker and `Initialize()` gate for pooled/Addressables instances. |
 | `EnemyService` / `EnemyFactory` | Spawn and track alive `EnemyActor` instances. |
 | `IEnemyActorBehavior` | One step of prioritized enemy logic; return `true` to claim the current frame. |

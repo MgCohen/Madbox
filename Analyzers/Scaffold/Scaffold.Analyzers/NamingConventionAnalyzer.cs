@@ -38,6 +38,8 @@ namespace Scaffold.Analyzers
 
         private void AnalyzeField(SyntaxNodeAnalysisContext context)
         {
+            if (ModuleConventions.IsExcludedThirdPartyVendorPath(context.Node.SyntaxTree.FilePath)) return;
+
             var options = context.Options.AnalyzerConfigOptionsProvider.GetOptions(context.Node.SyntaxTree);
             var prefixRule = AnalyzerConfig.ShouldSuppress(options, DiagnosticIdPrefix) ? null : AnalyzerConfig.GetEffectiveDescriptor(options, DiagnosticIdPrefix, PrefixRule);
             var camelRule  = AnalyzerConfig.ShouldSuppress(options, DiagnosticIdCamel)  ? null : AnalyzerConfig.GetEffectiveDescriptor(options, DiagnosticIdCamel, CamelRule);
@@ -79,6 +81,8 @@ namespace Scaffold.Analyzers
 
         private void AnalyzeProperty(SyntaxNodeAnalysisContext context)
         {
+            if (ModuleConventions.IsExcludedThirdPartyVendorPath(context.Node.SyntaxTree.FilePath)) return;
+
             var options = context.Options.AnalyzerConfigOptionsProvider.GetOptions(context.Node.SyntaxTree);
             if (AnalyzerConfig.ShouldSuppress(options, DiagnosticIdPascal)) return;
             var pascalRule = AnalyzerConfig.GetEffectiveDescriptor(options, DiagnosticIdPascal, PascalRule);
@@ -98,6 +102,8 @@ namespace Scaffold.Analyzers
 
         private void AnalyzeMethod(SyntaxNodeAnalysisContext context)
         {
+            if (ModuleConventions.IsExcludedThirdPartyVendorPath(context.Node.SyntaxTree.FilePath)) return;
+
             var options = context.Options.AnalyzerConfigOptionsProvider.GetOptions(context.Node.SyntaxTree);
             if (AnalyzerConfig.ShouldSuppress(options, DiagnosticIdPascal)) return;
             var pascalRule = AnalyzerConfig.GetEffectiveDescriptor(options, DiagnosticIdPascal, PascalRule);

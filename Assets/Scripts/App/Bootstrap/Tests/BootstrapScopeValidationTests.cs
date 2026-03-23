@@ -10,14 +10,14 @@ namespace Madbox.App.Bootstrap.Tests
     {
 
         [Test]
-        public void BuildLayerTree_Throws_WhenViewHolderMissing()
+        public void BuildLayerTree_ReturnsLayerTree_WhenViewHolderMissing()
         {
             using ScopeHarness harness = CreateScopeHarness();
             ConfigureScope(harness.Scope, includeViewHolder: false);
-            Exception exception = CaptureBuildLayerTreeException(harness.Scope);
-            Assert.IsNotNull(exception);
-            Assert.IsInstanceOf<ArgumentNullException>(exception);
-            Assert.AreEqual("viewHolder", ((ArgumentNullException)exception).ParamName);
+            LayerInstallerBase root = InvokeBuildLayerTree(harness.Scope);
+            Assert.IsNotNull(root);
+            Assert.AreEqual(1, root.Children.Count);
+            Assert.AreEqual("BootstrapInfraInstaller", root.Children[0].GetType().Name);
         }
 
         [Test]
@@ -57,19 +57,6 @@ namespace Madbox.App.Bootstrap.Tests
             Type type = Type.GetType("Madbox.App.Bootstrap.BootstrapScope, Madbox.Bootstrap.Runtime");
             Assert.IsNotNull(type);
             return type;
-        }
-
-        private static Exception CaptureBuildLayerTreeException(Component scope)
-        {
-            try
-            {
-                InvokeBuildLayerTree(scope);
-                return null;
-            }
-            catch (TargetInvocationException exception)
-            {
-                return exception.InnerException;
-            }
         }
 
         private static LayerInstallerBase InvokeBuildLayerTree(Component scope)

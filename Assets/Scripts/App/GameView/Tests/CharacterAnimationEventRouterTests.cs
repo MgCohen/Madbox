@@ -13,10 +13,10 @@ namespace Madbox.App.GameView.Tests
         {
             using var host = new RouterTestHost();
             int calls = 0;
-            void Handler(CharacterAnimationEventContext ctx) => calls++;
+            void Handler(AnimationEventDefinition def) => calls++;
 
             host.Router.Register(host.Definition, Handler);
-            host.Fire(1001);
+            host.Fire(host.EventId);
 
             Assert.AreEqual(1, calls);
             host.Router.Unregister(host.Definition, Handler);
@@ -27,22 +27,22 @@ namespace Madbox.App.GameView.Tests
         {
             using var host = new RouterTestHost();
             int calls = 0;
-            void Handler(CharacterAnimationEventContext ctx) => calls++;
+            void Handler(AnimationEventDefinition def) => calls++;
 
             host.Router.Register(host.Definition, Handler);
-            host.Fire(9999);
+            host.Fire("unknown_event");
 
             Assert.AreEqual(0, calls);
             host.Router.Unregister(host.Definition, Handler);
         }
 
         [Test]
-        public void OnCharacterAnimationEvent_WhenIntParameterZero_DoesNotInvoke()
+        public void OnCharacterAnimationEvent_WhenEmptyString_DoesNotInvoke()
         {
             using var host = new RouterTestHost();
             int calls = 0;
             host.Router.Register(host.Definition, _ => calls++);
-            host.Fire(0);
+            host.Fire(string.Empty);
             Assert.AreEqual(0, calls);
         }
 
@@ -52,11 +52,11 @@ namespace Madbox.App.GameView.Tests
             using var host = new RouterTestHost();
             int a = 0;
             int b = 0;
-            void Ha(CharacterAnimationEventContext ctx) => a++;
-            void Hb(CharacterAnimationEventContext ctx) => b++;
+            void Ha(AnimationEventDefinition def) => a++;
+            void Hb(AnimationEventDefinition def) => b++;
             host.Router.Register(host.Definition, Ha);
             host.Router.Register(host.Definition, Hb);
-            host.Fire(1001);
+            host.Fire(host.EventId);
             Assert.AreEqual(1, a);
             Assert.AreEqual(1, b);
             host.Router.Unregister(host.Definition, Ha);
@@ -72,7 +72,8 @@ namespace Madbox.App.GameView.Tests
                 root.AddComponent<Animator>();
                 Router = root.AddComponent<CharacterAnimationEventRouter>();
                 Definition = ScriptableObject.CreateInstance<AnimationEventDefinition>();
-                SetStableIdViaReflection(Definition, 1001);
+                EventId = "test_attack_release";
+                SetEventIdViaReflection(Definition, EventId);
             }
 
             public GameObject gameObject { get; }
@@ -81,10 +82,11 @@ namespace Madbox.App.GameView.Tests
 
             public AnimationEventDefinition Definition { get; }
 
-            public void Fire(int intParameter)
+            public string EventId { get; }
+
+            public void Fire(string eventId)
             {
-                AnimationEvent evt = new AnimationEvent { intParameter = intParameter };
-                Router.OnCharacterAnimationEvent(evt);
+                Router.OnCharacterAnimationEvent(eventId);
             }
 
             public void Dispose()
@@ -93,9 +95,9 @@ namespace Madbox.App.GameView.Tests
                 UnityEngine.Object.DestroyImmediate(Definition);
             }
 
-            private static void SetStableIdViaReflection(AnimationEventDefinition def, int id)
+            private static void SetEventIdViaReflection(AnimationEventDefinition def, string id)
             {
-                FieldInfo field = typeof(AnimationEventDefinition).GetField("stableId", BindingFlags.Instance | BindingFlags.NonPublic);
+                FieldInfo field = typeof(AnimationEventDefinition).GetField("eventId", BindingFlags.Instance | BindingFlags.NonPublic);
                 Assert.NotNull(field);
                 field.SetValue(def, id);
             }

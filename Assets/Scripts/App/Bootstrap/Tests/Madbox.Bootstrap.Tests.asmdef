@@ -3,8 +3,12 @@
     "rootNamespace":  "Madbox.Bootstrap.Tests",
     "references":  [
                        "Madbox.Bootstrap.Runtime",
+                       "Madbox.GameView",
+                       "Madbox.Addressables",
+                       "Madbox.Levels",
                        "Madbox.SceneFlow",
                        "Madbox.Scope",
+                       "Unity.Addressables",
                        "VContainer",
                        "VContainer.Unity"
                    ],

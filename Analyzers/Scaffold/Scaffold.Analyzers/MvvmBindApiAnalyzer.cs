@@ -77,6 +77,8 @@ namespace Scaffold.Analyzers
             var filePath = sourceLocation.SourceTree?.FilePath ?? string.Empty;
             if (string.IsNullOrWhiteSpace(filePath)) return false;
 
+            if (ModuleConventions.IsExcludedThirdPartyVendorPath(filePath)) return false;
+
             var normalizedPath = filePath.Replace('\\', '/');
             if (normalizedPath.IndexOf("/Tests/", StringComparison.OrdinalIgnoreCase) >= 0) return false;
             if (normalizedPath.IndexOf("/Samples/", StringComparison.OrdinalIgnoreCase) >= 0) return false;
