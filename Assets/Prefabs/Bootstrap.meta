@@ -1,5 +1,9 @@
 fileFormatVersion: 2
+<<<<<<<< HEAD:Assets/Data/Player.meta
+guid: 461fc8d7a1170484bb2102506336b244
+========
 guid: b2c3d4e5f6a7980b1c2d3e4f5a6b7c8d
+>>>>>>>> cursor/cloud-agent-1774244401018-6fbja:Assets/Prefabs/Bootstrap.meta
 folderAsset: yes
 DefaultImporter:
   externalObjects: {}
