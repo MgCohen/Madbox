@@ -40,6 +40,13 @@ namespace Madbox.LiveOps
 
             return LoadInitialGameDataAsync(cancellationToken);
         }
+        private async Task LoadInitialGameDataAsync(CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            GameDataRequest request = new GameDataRequest();
+            GameDataResponse response = await CallAsync(request, cancellationToken).ConfigureAwait(false);
+            gameData = response?.GameData;
+        }
 
         public async Task<TResponse> CallAsync<TResponse>(ModuleRequest<TResponse> request, CancellationToken cancellationToken = default) where TResponse : ModuleResponse
         {
@@ -50,34 +57,7 @@ namespace Madbox.LiveOps
 
             cancellationToken.ThrowIfCancellationRequested();
             Dictionary<string, object> payload = new Dictionary<string, object> { { "request", request } };
-            Task<TResponse> endpointCall = cloudCodeModuleService.CallEndpointAsync<TResponse>(request.ModuleName, request.FunctionName, payload: payload, cancellationToken: cancellationToken);
-            TResponse response = await endpointCall.ConfigureAwait(false);
-            ApplyCompleteLevelSnapshot(response);
-            return response;
-        }
-
-        private void ApplyCompleteLevelSnapshot<TResponse>(TResponse response) where TResponse : ModuleResponse
-        {
-            if (gameData == null)
-            {
-                return;
-            }
-
-            if (response is not CompleteLevelResponse complete || complete.Data == null)
-            {
-                return;
-            }
-
-            gameData.ModulesData.RemoveAll(static m => m is LevelGameData);
-            gameData.AddModuleData(complete.Data);
-        }
-
-        private async Task LoadInitialGameDataAsync(CancellationToken cancellationToken)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            GameDataRequest request = new GameDataRequest();
-            GameDataResponse response = await CallAsync(request, cancellationToken).ConfigureAwait(false);
-            gameData = response?.GameData;
+            return await cloudCodeModuleService.CallEndpointAsync<TResponse>(request.ModuleName, request.FunctionName, payload: payload, cancellationToken: cancellationToken);
         }
     }
 }
