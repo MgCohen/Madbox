@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Serialization;
 
-namespace Madbox.App.Entity
+namespace Madbox.Entity
 {
     /// <summary>
     /// Runs ordered <see cref="IEntityBehavior{TData,TInput}"/> components; first accepting behavior wins each frame.

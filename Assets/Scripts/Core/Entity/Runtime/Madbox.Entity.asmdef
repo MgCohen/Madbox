@@ -1,9 +1,7 @@
 {
     "name": "Madbox.Entity",
-    "rootNamespace": "Madbox.App.Entity",
-    "references": [
-        "Madbox.Animation"
-    ],
+    "rootNamespace": "Madbox.Entity",
+    "references": [],
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,

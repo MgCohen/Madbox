@@ -89,7 +89,7 @@ Relevant baseline modules and files:
 - Battle rules consumption reference:
   - `Docs/Core/Battle.md`
 - Enemy runtime module (domain, non-Unity):
-  - `Assets/Scripts/Core/Enemies/Runtime/*`
+  - `Assets/Scripts/Meta/Enemies/Runtime/*`
 - Addressables infra contracts/runtime:
   - `Assets/Scripts/Infra/Addressables/Runtime/Contracts/*`
   - `Assets/Scripts/Infra/Addressables/Runtime/Implementation/*`

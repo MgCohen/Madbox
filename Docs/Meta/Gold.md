@@ -115,7 +115,7 @@ Assert.AreEqual(5, wallet.CurrentGold);
 
 ## Related
 
-- `Docs/Core/Battle.md`
+- `Docs/App/Battle.md`
 - `Docs/App/View.md`
 - `Architecture.md`
 - `Docs/Testing.md`

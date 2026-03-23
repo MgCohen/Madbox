@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-namespace Madbox.App.Entity
+namespace Madbox.Entity
 {
     /// <summary>
     /// Adds <see cref="Delta"/> to the effective value of <see cref="Attribute"/> on <see cref="EntityData"/>.

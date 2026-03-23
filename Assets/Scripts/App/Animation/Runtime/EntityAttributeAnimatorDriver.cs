@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
-using Madbox.App.Animation;
+using Madbox.Entity;
 using UnityEngine;
 using UnityEngine.Serialization;
 
-namespace Madbox.App.Entity
+namespace Madbox.App.Animation
 {
     /// <summary>
     /// Pushes <see cref="EntityData"/> attribute values into animator parameters when values change and on enable.

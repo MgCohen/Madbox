@@ -22,10 +22,10 @@ This polish plan is a follow-up to `Plans/Entity-Editor-Authoring/Entity-Editor-
 ## Surprises & Discoveries
 
 - Observation: `EnemyDefinitionSO` stores polymorphic behavior rules through `[SerializeReference]` using runtime behavior definition records.
-  Evidence: `Assets/Scripts/Core/Enemies/Authoring/Definitions/EnemyDefinitionSO.cs`.
+  Evidence: `Assets/Scripts/Meta/Enemies/Authoring/Definitions/EnemyDefinitionSO.cs`.
 
 - Observation: Editor-managed-reference add/remove flow is custom and should be proven across inspector apply/reload paths, not only reflection-driven tests.
-  Evidence: `Assets/Scripts/Core/Enemies/Editor/EnemyDefinitionSOEditor.cs` and `Assets/Scripts/Core/Levels/Tests/AuthoringDefinitionsTests.cs`.
+  Evidence: `Assets/Scripts/Meta/Enemies/Editor/EnemyDefinitionSOEditor.cs` and `Assets/Scripts/Core/Levels/Tests/AuthoringDefinitionsTests.cs`.
 
 - Observation: `.editorconfig` currently enables broad unknown-suffix placement for SCA0024, which can relax module asmdef placement constraints globally.
   Evidence: `.editorconfig` key `scaffold.SCA0024.allow_unknown_suffix_in_any_subfolder = true`.
@@ -73,13 +73,13 @@ This plan targets Unity-facing authoring modules introduced in the entity editor
 Primary files and modules:
 
 - Authoring definitions:
-  - `Assets/Scripts/Core/Enemies/Authoring/Definitions/EnemyDefinitionSO.cs`
+  - `Assets/Scripts/Meta/Enemies/Authoring/Definitions/EnemyDefinitionSO.cs`
   - `Assets/Scripts/Core/Levels/Authoring/Definitions/LevelDefinitionSO.cs`
   - `Assets/Scripts/Core/Levels/Authoring/Definitions/LevelEnemyEntrySO.cs`
   - `Assets/Scripts/Core/Levels/Authoring/Catalog/LevelCatalogSO.cs`
   - `Assets/Scripts/Core/Levels/Authoring/Catalog/AddressableLevelDefinitionProvider.cs`
 - Authoring custom editor:
-  - `Assets/Scripts/Core/Enemies/Editor/EnemyDefinitionSOEditor.cs`
+  - `Assets/Scripts/Meta/Enemies/Editor/EnemyDefinitionSOEditor.cs`
 - Domain behavior definitions consumed by authoring:
   - `Assets/Scripts/Core/Levels/Runtime/Behaviors/EnemyBehaviorDefinition.cs`
   - `Assets/Scripts/Core/Levels/Runtime/Behaviors/MovementBehaviorDefinition.cs`
@@ -90,7 +90,7 @@ Primary files and modules:
   - `Analyzers/Scaffold/Scaffold.Analyzers.Tests/ModuleAsmdefConventionAnalyzerTests.cs`
 - Tests and docs:
   - `Assets/Scripts/Core/Levels/Tests/AuthoringDefinitionsTests.cs`
-  - `Docs/Core/Enemies.md`
+  - `Docs/Meta/Enemies.md`
   - `Docs/Core/Levels.md`
   - `Docs/Analyzers/Analyzers.md`
 

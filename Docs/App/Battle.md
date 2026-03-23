@@ -1,8 +1,10 @@
-# Battle (Core)
+# Battle (App)
 
 ## Purpose
 
 Provides a Unity-native battle slice that runs from `LevelDefinition`: Addressables scene load, prefab-based enemies via `EnemyService`, and rule evaluation through `RuleHandlerRegistry`.
+
+- Location: `Assets/Scripts/App/Battle/Runtime/` (`Madbox.Battle`), tests in `Assets/Scripts/App/Battle/Tests/`.
 
 ## Public API
 

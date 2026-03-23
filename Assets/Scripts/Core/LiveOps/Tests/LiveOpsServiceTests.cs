@@ -90,7 +90,7 @@ namespace Madbox.LiveOps.Tests
             CountingGoldResponseHandler handler = new CountingGoldResponseHandler();
             ContainerBuilder builder = new ContainerBuilder();
             builder.RegisterInstance(cloudCode).As<ICloudCodeModuleService>();
-            builder.RegisterInstance(handler).As<IResponseHandler<GoldResponse>>();
+            builder.RegisterInstance(handler).AsImplementedInterfaces();
             builder.Register<LiveOpsService>(Lifetime.Scoped);
             using (IObjectResolver container = builder.Build())
             {
@@ -103,7 +103,7 @@ namespace Madbox.LiveOps.Tests
         }
 
         [Test]
-        public void CallAsync_DispatchesHandlersRecursivelyThroughNestedResponses()
+        public void CallAsync_DispatchesHandlersOnlyForRootLevelResponses()
         {
             GoldResponse inner = new GoldResponse(2);
             inner.Responses.Add(new GoldResponse(3));
@@ -113,7 +113,7 @@ namespace Madbox.LiveOps.Tests
             CountingGoldResponseHandler handler = new CountingGoldResponseHandler();
             ContainerBuilder builder = new ContainerBuilder();
             builder.RegisterInstance(cloudCode).As<ICloudCodeModuleService>();
-            builder.RegisterInstance(handler).As<IResponseHandler<GoldResponse>>();
+            builder.RegisterInstance(handler).AsImplementedInterfaces();
             builder.Register<LiveOpsService>(Lifetime.Scoped);
             using (IObjectResolver container = builder.Build())
             {
@@ -121,7 +121,8 @@ namespace Madbox.LiveOps.Tests
                 sut.CallAsync(new GameDataRequest()).GetAwaiter().GetResult();
             }
 
-            Assert.That(handler.InvocationCount, Is.EqualTo(2));
+            Assert.That(handler.InvocationCount, Is.EqualTo(1));
+            Assert.That(handler.LastGoldDelta, Is.EqualTo(2));
         }
 
         private sealed class NestedResponseCloudStub : ICloudCodeModuleService

@@ -123,7 +123,7 @@ void OnRelease(AnimationEventContext context)
 
 - `Architecture.md`
 - `Plans/AnimationEventsAndSpeed/AnimationEventsAndSpeed-ExecPlan.md`
-- `Docs/Core/Battle.md`
+- `Docs/App/Battle.md`
 
 ## Changelog
 

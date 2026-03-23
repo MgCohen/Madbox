@@ -80,9 +80,9 @@ Container/module dependency diagram:
 ```mermaid
 flowchart LR
     Infra[Infra Modules<br/>Scope / Events / Navigation / Model / BaseMVVM / Addressables]
-    Core[Core Modules<br/>LiveOps / Ads / Battle / Levels / Enemies / ViewModel]
-    Meta[Meta Modules<br/>Gold]
-    App[App Modules<br/>Bootstrap / MainMenu / View]
+    Core[Core Modules<br/>LiveOps / Ads / Levels / Entity / ViewModel]
+    Meta[Meta Modules<br/>Gold / Enemies]
+    App[App Modules<br/>Bootstrap / MainMenu / View / Battle]
     Tools[Tools Modules<br/>Maps / Records / Types]
 
     Infra --> Core
@@ -98,6 +98,7 @@ Current module documentation map:
 
 - `Docs/App/Bootstrap.md`
 - `Docs/App/Gameplay.md`
+- `Docs/App/Battle.md`
 - `Docs/App/GameView.md`
 - `Docs/App/View.md`
 - `Docs/Core/ViewModel.md`
@@ -112,20 +113,20 @@ Current module documentation map:
 - `Docs/Infra/Scope.md`
 - `Docs/Infra/SceneFlow.md`
 - `Docs/Meta/Gold.md`
+- `Docs/Meta/Enemies.md`
 - `Docs/Tools/Maps.md`
 - `Docs/Tools/Records.md`
 - `Docs/Tools/Types.md`
 - `Docs/Analyzers/Analyzers.md`
 - `Docs/Testing.md`
 - `Docs/AutomatedTesting.md`
-- `Docs/Core/Battle.md`
 - `Docs/Core/Levels.md`
-- `Docs/Core/Enemies.md`
+- `Docs/Core/Entity.md`
 
 ## Runtime Flows
 
 Intent: show critical runtime behavior for startup and gameplay lifecycle.
-Source of truth: `Research/Layers and flow/Layers and flow.md`, `Research/Battle/Battle-Research-and-Specs.md`, `Research/Core-Loop/Core-Loop-Research-and-Specs.md`, `Assets/Scripts/Core/Battle/Runtime/`.
+Source of truth: `Research/Layers and flow/Layers and flow.md`, `Research/Battle/Battle-Research-and-Specs.md`, `Research/Core-Loop/Core-Loop-Research-and-Specs.md`, `Assets/Scripts/App/Battle/Runtime/`.
 Update trigger: any change to startup ordering, gameplay input pipeline, or navigation states.
 
 Startup sequence:
@@ -247,5 +248,6 @@ Architecture controls and policy files:
 
 ## Change Log
 
+- 2026-03-22: Moved `Madbox.Battle` from Core to App (`Assets/Scripts/App/Battle/`); updated module diagram and runtime source path.
 - 2026-03-18: Reorganized the document to match architecture documentation standard; added system context, module dependency, startup/battle/runtime state diagrams, invariants, and quality-tradeoff sections.
 - 2026-03-18: Synced docs map with current module docs and aligned startup/runtime language with research flow documents.

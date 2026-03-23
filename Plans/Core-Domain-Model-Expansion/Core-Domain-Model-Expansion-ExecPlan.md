@@ -1,4 +1,4 @@
-﻿# Core Domain Model Expansion for Combat Foundations
+# Core Domain Model Expansion for Combat Foundations
 
 This ExecPlan is a living document. The sections `Progress`, `Surprises & Discoveries`, `Decision Log`, and `Outcomes & Retrospective` must be kept up to date as work proceeds.
 
@@ -66,7 +66,7 @@ Milestones 1 through 5 are complete. Core now exposes lightweight state and cont
 
 ## Context and Orientation
 
-Current battle domain lives in `Assets/Scripts/Core/Battle/Runtime/` and is already event-driven through `Game`, `BattleEventRouter`, and command classes under `Runtime/Events/`. Enemy definitions and rule definitions are declared in `Assets/Scripts/Core/Levels/Runtime/` and enemy runtime state lives in `Assets/Scripts/Core/Enemies/Runtime/`.
+Current battle domain lives in `Assets/Scripts/Core/Battle/Runtime/` and is already event-driven through `Game`, `BattleEventRouter`, and command classes under `Runtime/Events/`. Enemy definitions and rule definitions are declared in `Assets/Scripts/Core/Levels/Runtime/` and enemy runtime state lives in `Assets/Scripts/Meta/Enemies/Runtime/`.
 
 In this plan, “intent” means an input command that asks the domain to update state (`player started moving`, `equip weapon`). “Event” means a domain output that reports state already updated (`weapon equipped`, `target changed`, `attack data updated`).
 

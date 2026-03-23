@@ -1,4 +1,5 @@
-using Madbox.App.Entity;
+using Madbox.App.Animation;
+using Madbox.Entity;
 
 namespace Madbox.App.GameView.Player
 {

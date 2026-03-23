@@ -1,4 +1,4 @@
-namespace Madbox.App.Entity
+namespace Madbox.Entity
 {
     /// <summary>
     /// Supplies per-frame input (or context) for an <see cref="EntityBehaviorRunner{TData,TInput}"/>.

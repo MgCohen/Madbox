@@ -27,6 +27,7 @@
 
 ## Related
 
+- `Docs/App/Battle.md`
 - `Plans/GameFlowNavigation/GameFlowNavigation-ExecPlan.md`
 - `Docs/App/MainMenu.md`
 - `Docs/Infra/SceneFlow.md`

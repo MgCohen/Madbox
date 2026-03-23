@@ -1,11 +1,11 @@
-# Entity (App)
+# Entity (Core)
 
 ## TL;DR
 
-- Purpose: Reusable entity view data (float attributes with additive modifiers), behavior runner (first-accept-wins stack), and animator sync from attribute changes.
-- Location: `Assets/Scripts/App/Entity/Runtime/` (`Madbox.Entity` assembly), tests in `Assets/Scripts/App/Entity/Tests/` (`Madbox.Entity.Tests`).
-- Depends on: `Madbox.Animation` (for `EntityAttributeAnimatorDriver`).
-- Used by: `Madbox.GameView` (`PlayerData`, `EnemyData`, `ProjectileData`, and thin subclasses of generic runners/drivers).
+- Purpose: Reusable entity view data (float attributes with additive modifiers), behavior runner (first-accept-wins stack), and contracts for per-frame input and behaviors.
+- Location: `Assets/Scripts/Core/Entity/Runtime/` (`Madbox.Entity` assembly), tests in `Assets/Scripts/Core/Entity/Tests/` (`Madbox.Entity.Tests`).
+- Depends on: Unity engine only (no App-layer assemblies).
+- Used by: `Madbox.Animation` (`EntityAttributeAnimatorDriver` bridges attributes to `AnimationController`), `Madbox.GameView` (`PlayerData`, `EnemyData`, `ProjectileData`, and thin subclasses of generic runners/drivers).
 
 ## Public API
 
@@ -18,7 +18,10 @@
 | `IEntityBehavior<TData,TInput>` | `TryAcceptControl`, `Execute`, `OnQuit` for ordered behaviors. |
 | `IEntityFrameInputProvider<TInput>` | `GetFrameInput()` for runners that need per-frame context. |
 | `EntityBehaviorRunner<TData,TInput>` | Runs behaviors in order; tracks active flow and `OnQuit` on switch. |
-| `EntityAttributeAnimatorDriver<TData>` | Maps `EntityAttribute` → `AnimationAttribute` on `AnimationController`. |
+
+## Integration
+
+- `EntityAttributeAnimatorDriver<TData>` lives in `Madbox.Animation` (`Assets/Scripts/App/Animation/Runtime/`): maps `EntityAttribute` → `AnimationAttribute` on `AnimationController`, and depends on `Madbox.Entity`.
 
 ## Testing
 

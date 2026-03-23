@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Madbox.App.Entity
+namespace Madbox.Entity
 {
     /// <summary>
     /// Float-backed attributes as <see cref="EntityAttribute"/> keys with storage in <see cref="attributeEntries"/>.

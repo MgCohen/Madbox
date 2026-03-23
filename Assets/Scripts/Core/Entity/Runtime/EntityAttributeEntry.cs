@@ -3,7 +3,7 @@ using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.Serialization;
 
-namespace Madbox.App.Entity
+namespace Madbox.Entity
 {
     /// <summary>
     /// One named attribute on <see cref="EntityData"/>; <see cref="Value"/> is base plus modifiers.
