@@ -19,8 +19,6 @@
         "Madbox.CloudCode.Container",
         "Madbox.Ads",
         "Madbox.Ads.Container",
-        "Madbox.Tutorial",
-        "Madbox.Tutorial.Container",
         "Madbox.Level.Container",
         "Madbox.Levels",
         "Madbox.LiveOps",

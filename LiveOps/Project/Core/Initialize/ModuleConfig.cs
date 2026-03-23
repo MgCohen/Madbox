@@ -10,7 +10,6 @@ using GameModule.Signal;
 using GameModule.Modules.Ads;
 using GameModule.Modules.Gold;
 using GameModule.Modules.Level;
-using GameModule.Modules.Tutorial;
 using GameModule.ModuleFetchData.Http;
 using GameModule.Modules.Global;
 
@@ -44,7 +43,6 @@ public partial class ModuleConfig : ICloudCodeSetup
         RegisterModuleScoped<AdsService>(config);
         RegisterModuleScoped<GoldModule>(config);
         RegisterModuleScoped<LevelService>(config);
-        RegisterModuleScoped<TutorialService>(config);
         RegisterModuleScoped<GlobalConfigModule>(config);
     }
 
