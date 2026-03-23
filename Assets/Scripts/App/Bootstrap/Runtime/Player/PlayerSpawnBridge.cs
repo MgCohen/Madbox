@@ -1,7 +1,7 @@
 using System.Threading;
 using System.Threading.Tasks;
-using Madbox.App.Bootstrap.Players;
 using Madbox.App.Gameplay;
+using Madbox.Players;
 using UnityEngine;
 
 namespace Madbox.App.Bootstrap

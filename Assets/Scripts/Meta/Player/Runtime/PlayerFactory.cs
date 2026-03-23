@@ -9,7 +9,7 @@ using Madbox.Players;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 
-namespace Madbox.App.Bootstrap.Players
+namespace Madbox.Players
 {
     public sealed class PlayerFactory
     {

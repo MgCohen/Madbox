@@ -3,6 +3,7 @@
     "rootNamespace":  "Madbox.Bootstrap.Tests",
     "references":  [
                        "Madbox.Bootstrap.Runtime",
+                       "Madbox.Player.Container",
                        "Madbox.Entities",
                        "Madbox.Player",
                        "Madbox.GameView",

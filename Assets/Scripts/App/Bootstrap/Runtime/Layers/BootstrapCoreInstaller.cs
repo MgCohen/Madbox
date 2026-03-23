@@ -1,5 +1,5 @@
-using Madbox.App.Bootstrap.Players;
 using Madbox.LiveOps.Container;
+using Madbox.Players.Container;
 using Madbox.Scope;
 using System;
 using VContainer;

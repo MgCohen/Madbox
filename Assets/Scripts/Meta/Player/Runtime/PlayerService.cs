@@ -1,7 +1,7 @@
 using System;
 using Madbox.Levels;
 
-namespace Madbox.App.Bootstrap.Players
+namespace Madbox.Players
 {
     public sealed class PlayerService
     {
