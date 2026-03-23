@@ -17,7 +17,7 @@ Separately, attack (or other) animations can play faster or slower based on stat
 - [x] (2026-03-22) Authored ExecPlan: animation event bridge, ScriptableObject identity, registry routing, service/battle integration shape, and per-animation speed strategy.
 - [x] (2026-03-22) Added explicit milestones and Progress checklist items (PLANS.md compliance).
 - [x] (2026-03-22) Execute Milestone 1: `AnimationEventDefinition` SO, sample assets under `Assets/Data/AnimationEvents/`, `Docs/App/GameView.md`.
-- [x] (2026-03-22) Execute Milestone 2: `CharacterAnimationEventRouter`, register/unregister, `Madbox.GameView.Tests` EditMode coverage.
+- [x] (2026-03-22) Execute Milestone 2: `AnimationEventRouter`, register/unregister, `Madbox.Animation.Tests` EditMode coverage.
 - [x] (2026-03-22) Execute Milestone 3: Hero `Alice` prefab wiring (router on Animator object), `HeroAttack.anim` event int 1001, `CombatAnimationEventResponse` + `DebugProjectile.prefab`.
 - [x] (2026-03-22) Execute Milestone 4: Bee + BeeEnemy prefabs: router + response + `AttackSpeedMultiplierDriver`; `BeeAttack.fbx` clip event int 1002; shared pattern documented in `Docs/App/GameView.md`.
 - [x] (2026-03-22) Execute Milestone 5: `AttackSpeedMultiplier` parameter on hero/bee controllers; attack states use speed parameter; `PlayerViewData.AttackSpeedStat` drives hero multiplier.
@@ -39,7 +39,7 @@ Milestone 6 is **closure**. Finish module documentation, run the repository qual
 
 ## Surprises & Discoveries
 
-- Observation: Unity dispatches animation events to components on the **same GameObject as the `Animator`**. The Hero prefab had the `Animator` on child `Alice` while scripts lived on root `Hero`; implementation moved `PlayerAnimationController`, `CharacterAnimationEventRouter`, and `CombatAnimationEventResponse` to `Alice` so clip callbacks resolve.
+- Observation: Unity dispatches animation events to components on the **same GameObject as the `Animator`**. The Hero prefab had the `Animator` on child `Alice` while scripts lived on root `Hero`; implementation moved `PlayerAnimationController`, `AnimationEventRouter`, and `CombatAnimationEventResponse` to `Alice` so clip callbacks resolve.
   Evidence: `ProjectSettings/ProjectVersion.txt` → `2022.3.50f1`; prefab structure in `Assets/Prefabs/Heroes/Hero.prefab`.
 
 - Observation: Hero `Weak` attack state uses clip `HeroAttack` (guid `8055cf7b50b7f1e4685a28e43661909d`); animation event was added to `HeroAttack.anim` at 0.25s with int `1001` matching `PlayerRangedAttack_Release.asset`.
@@ -126,7 +126,7 @@ Author one asset per logical moment (for example `PlayerRangedAttack_Release`, `
 
 ### B. Unity callback entry point
 
-Add a `MonoBehaviour` on the character prefab (for example `CharacterAnimationEventRouter`) that implements exactly one public method Unity can target from clips, for example `void OnAnimationEvent(AnimationEvent evt)`. In that method:
+Add a `MonoBehaviour` on the character prefab (for example `AnimationEventRouter`) that implements a public method Unity can target from clips, for example `void OnCharacterAnimationEvent(Object obj)` forwarding to `AnimationEventDefinition`. In that method:
 
 - Read the payload field chosen during authoring (recommended: `evt.intParameter` carrying the stable id).
 - Look up registered handlers for that id.
@@ -222,7 +222,7 @@ Example handler registration sketch:
 By the end of implementation, the following should exist (exact names flexible but concepts required):
 
 - `ScriptableObject` carrying stable animation event identity and designer-facing metadata.
-- `CharacterAnimationEventRouter` (or equivalent) `MonoBehaviour` with public void `OnAnimationEvent(AnimationEvent evt)` (or the exact signature Unity expects for your clip settings).
+- `AnimationEventRouter` (or equivalent) `MonoBehaviour` with public void `OnCharacterAnimationEvent(Object)` / `OnCharacterAnimationEvent(AnimationEventDefinition)` (or the exact signature Unity expects for your clip settings).
 - Registration API for `Action<AnimationEventContext>` (or `UnityAction`) keyed by the SO identity.
 - `AnimationEventContext` struct: minimally `Animator source`, `int intParameter`, `float floatParameter`, `string stringParameter`, and optional weak references to view services.
 - `IAttackAnimationSpeed` or behavior method that sets animator float `AttackSpeedMultiplier` (name fixed in implementation) from stats.

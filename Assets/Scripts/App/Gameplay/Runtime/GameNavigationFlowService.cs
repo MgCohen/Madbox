@@ -1,5 +1,5 @@
 using Madbox.Levels;
-using Scaffold.Navigation;
+using Scaffold.Navigation.Contracts;
 using VContainer;
 
 namespace Madbox.App.Gameplay

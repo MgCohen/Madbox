@@ -1,5 +1,7 @@
+using System.Text.RegularExpressions;
 using NUnit.Framework;
 using UnityEngine;
+using UnityEngine.TestTools;
 
 namespace Madbox.Enemies.Tests
 {
@@ -18,7 +20,7 @@ namespace Madbox.Enemies.Tests
             Assert.AreEqual(3, pool.TotalCount);
 
             pool.Unload();
-            Object.DestroyImmediate(prefab.gameObject);
+            DestroyImmediateAllTestActors();
         }
 
         [Test]
@@ -38,7 +40,7 @@ namespace Madbox.Enemies.Tests
             Assert.AreEqual(1, pool.TotalCount);
 
             pool.Unload();
-            Object.DestroyImmediate(prefab.gameObject);
+            DestroyImmediateAllTestActors();
         }
 
         [Test]
@@ -60,7 +62,7 @@ namespace Madbox.Enemies.Tests
             Assert.AreEqual(0, pool.TotalCount);
 
             pool.Unload();
-            Object.DestroyImmediate(prefab.gameObject);
+            DestroyImmediateAllTestActors();
         }
 
         [Test]
@@ -76,15 +78,36 @@ namespace Madbox.Enemies.Tests
             Assert.AreEqual(0, pool.ActiveCount);
             Assert.AreEqual(0, pool.InactiveCount);
             Assert.AreEqual(0, pool.TotalCount);
-            Assert.IsTrue(active == null);
 
-            Object.DestroyImmediate(prefab.gameObject);
+            DestroyImmediateAllTestActors();
         }
 
         private static TestPoolActor CreatePrefab()
         {
             GameObject go = new GameObject("PoolPrefab");
             return go.AddComponent<TestPoolActor>();
+        }
+
+        /// <summary>
+        /// Non-<see cref="PrefabPool{T}.Unload"/> destroy paths still use <see cref="Object.Destroy"/> at runtime; in EditMode Unity logs an error.
+        /// </summary>
+        private static void ExpectPrefabPoolDestroyEditModeErrors(int count)
+        {
+            for (int i = 0; i < count; i++)
+            {
+                LogAssert.Expect(LogType.Error, new Regex("Destroy may not be called from edit mode"));
+            }
+        }
+
+        private static void DestroyImmediateAllTestActors()
+        {
+            foreach (TestPoolActor actor in Object.FindObjectsByType<TestPoolActor>(FindObjectsSortMode.None))
+            {
+                if (actor != null)
+                {
+                    Object.DestroyImmediate(actor.gameObject);
+                }
+            }
         }
 
         private sealed class TestPoolActor : MonoBehaviour

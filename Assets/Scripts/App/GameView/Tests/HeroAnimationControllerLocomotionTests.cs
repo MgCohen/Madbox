@@ -32,7 +32,7 @@ namespace Madbox.App.GameView.Tests
             var controller = AssetDatabase.LoadAssetAtPath<AnimatorController>(HeroControllerPath);
             Assert.IsNotNull(controller, $"Missing asset at {HeroControllerPath}");
 
-            const string attackingParameterName = "attacking";
+            const string attackingParameterName = "Attacking";
             AnimatorControllerParameter attacking = controller.parameters.FirstOrDefault(p => p.name == attackingParameterName);
             Assert.IsNotNull(attacking, $"Animator controller must define bool parameter '{attackingParameterName}' for attacks.");
             Assert.AreEqual(AnimatorControllerParameterType.Bool, attacking.type);

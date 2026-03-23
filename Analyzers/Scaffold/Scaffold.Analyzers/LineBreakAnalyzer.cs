@@ -15,7 +15,7 @@ namespace Scaffold.Analyzers
 
         private static readonly LocalizableString Title = "Avoid line breaks in signatures and method bodies";
         private static readonly LocalizableString MessageFormat = "Error SCA0005: Line breaks found inside a single statement/signature. Collapse the statement back onto a single line without newlines.";
-        private static readonly LocalizableString Description = "Method signatures remain on one line. Inside methods, keep each statement or expression on one line.";
+        private static readonly LocalizableString Description = "Method and generic type signatures remain on one line. Inside methods, keep each statement or expression on one line.";
 
         private static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(
             DiagnosticId,
@@ -35,6 +35,12 @@ namespace Scaffold.Analyzers
 
             context.RegisterSyntaxNodeAction(AnalyzeMethodSignature, SyntaxKind.MethodDeclaration);
             context.RegisterSyntaxNodeAction(AnalyzeConstructorSignature, SyntaxKind.ConstructorDeclaration);
+            context.RegisterSyntaxNodeAction(
+                AnalyzeTypeDeclarationSignature,
+                SyntaxKind.InterfaceDeclaration,
+                SyntaxKind.ClassDeclaration,
+                SyntaxKind.StructDeclaration,
+                SyntaxKind.RecordDeclaration);
             // Basic statement blocks
             context.RegisterSyntaxNodeAction(AnalyzeExpressionStatement, SyntaxKind.ExpressionStatement);
             context.RegisterSyntaxNodeAction(AnalyzeLocalDeclarationStatement, SyntaxKind.LocalDeclarationStatement);
@@ -57,6 +63,35 @@ namespace Scaffold.Analyzers
                 (methodDeclaration.ParameterList.Parameters.Count > 0 || methodDeclaration.ConstraintClauses.Count > 0))
             {
                 var diagnostic = Diagnostic.Create(rule, methodDeclaration.Identifier.GetLocation());
+                context.ReportDiagnostic(diagnostic);
+            }
+        }
+
+        private void AnalyzeTypeDeclarationSignature(SyntaxNodeAnalysisContext context)
+        {
+            if (ModuleConventions.IsExcludedThirdPartyVendorPath(context.Node.SyntaxTree.FilePath)) return;
+
+            var options = context.Options.AnalyzerConfigOptionsProvider.GetOptions(context.Node.SyntaxTree);
+            if (AnalyzerConfig.ShouldSuppress(options, DiagnosticId)) return;
+            var rule = AnalyzerConfig.GetEffectiveDescriptor(options, DiagnosticId, Rule);
+
+            var typeDeclaration = (TypeDeclarationSyntax)context.Node;
+
+            var typeParameterList = typeDeclaration.TypeParameterList;
+            var hasTypeParameters = typeParameterList != null && typeParameterList.Parameters.Count > 0;
+            var hasConstraints = typeDeclaration.ConstraintClauses.Count > 0;
+
+            if (!hasTypeParameters && !hasConstraints)
+            {
+                return;
+            }
+
+            var startLine = typeDeclaration.GetLocation().GetLineSpan().StartLinePosition.Line;
+            var signatureEndLine = GetTypeSignatureEndLine(typeDeclaration);
+
+            if (startLine != signatureEndLine)
+            {
+                var diagnostic = Diagnostic.Create(rule, typeDeclaration.Identifier.GetLocation());
                 context.ReportDiagnostic(diagnostic);
             }
         }
@@ -153,6 +188,23 @@ namespace Scaffold.Analyzers
             }
 
             return methodDeclaration.ParameterList.GetLocation().GetLineSpan().EndLinePosition.Line;
+        }
+
+        private static int GetTypeSignatureEndLine(TypeDeclarationSyntax typeDeclaration)
+        {
+            if (typeDeclaration.ConstraintClauses.Count > 0)
+            {
+                var lastClause = typeDeclaration.ConstraintClauses[typeDeclaration.ConstraintClauses.Count - 1];
+                return lastClause.GetLocation().GetLineSpan().EndLinePosition.Line;
+            }
+
+            var typeParameterList = typeDeclaration.TypeParameterList;
+            if (typeParameterList != null)
+            {
+                return typeParameterList.GetLocation().GetLineSpan().EndLinePosition.Line;
+            }
+
+            return typeDeclaration.Identifier.GetLocation().GetLineSpan().EndLinePosition.Line;
         }
     }
 }

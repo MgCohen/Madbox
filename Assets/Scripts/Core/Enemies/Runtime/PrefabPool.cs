@@ -83,7 +83,14 @@ namespace Madbox.Enemies
             if (canReuse(instance) == false)
             {
                 knownInstances.Remove(instance);
-                UnityEngine.Object.Destroy(instance.gameObject);
+                if (!Application.isPlaying)
+                {
+                    UnityEngine.Object.DestroyImmediate(instance.gameObject);
+                }
+                else
+                {
+                    UnityEngine.Object.Destroy(instance.gameObject);
+                }
                 return true;
             }
 
@@ -97,7 +104,14 @@ namespace Madbox.Enemies
             {
                 if (instance != null)
                 {
-                    UnityEngine.Object.Destroy(instance.gameObject);
+                    if (!Application.isPlaying)
+                    {
+                        UnityEngine.Object.DestroyImmediate(instance.gameObject);
+                    }
+                    else
+                    {
+                        UnityEngine.Object.Destroy(instance.gameObject);
+                    }
                 }
             }
 
@@ -106,7 +120,14 @@ namespace Madbox.Enemies
                 T instance = inactive.Pop();
                 if (instance != null)
                 {
-                    UnityEngine.Object.Destroy(instance.gameObject);
+                    if (!Application.isPlaying)
+                    {
+                        UnityEngine.Object.DestroyImmediate(instance.gameObject);
+                    }
+                    else
+                    {
+                        UnityEngine.Object.Destroy(instance.gameObject);
+                    }
                 }
             }
 
@@ -127,7 +148,14 @@ namespace Madbox.Enemies
                 if (canReuse(instance) == false)
                 {
                     knownInstances.Remove(instance);
-                    UnityEngine.Object.Destroy(instance.gameObject);
+                    if (!Application.isPlaying)
+                    {
+                        UnityEngine.Object.DestroyImmediate(instance.gameObject);
+                    }
+                    else
+                    {
+                        UnityEngine.Object.Destroy(instance.gameObject);
+                    }
                     continue;
                 }
 

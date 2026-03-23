@@ -3,14 +3,14 @@ using Madbox.App.Gameplay;
 using Madbox.Battle;
 using Madbox.Enemies;
 using Madbox.Levels.Rules;
-using Madbox.Scope;
 using VContainer;
+using VContainer.Unity;
 
 namespace Madbox.App.Bootstrap
 {
-    internal sealed class BattleGameplayInstaller : LayerInstallerBase
+    internal sealed class BattleGameplayInstaller : IInstaller
     {
-        protected override void Install(IContainerBuilder builder)
+        public void Install(IContainerBuilder builder)
         {
             if (builder == null)
             {

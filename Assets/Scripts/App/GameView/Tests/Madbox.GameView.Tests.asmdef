@@ -3,6 +3,7 @@
     "rootNamespace": "Madbox.App.GameView.Tests",
     "references": [
         "Madbox.Animation",
+        "Madbox.Entity",
         "Madbox.GameView"
     ],
     "includePlatforms": [

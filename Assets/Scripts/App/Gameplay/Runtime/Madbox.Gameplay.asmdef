@@ -10,6 +10,8 @@
         "Madbox.Battle",
         "Madbox.SceneFlow",
         "Madbox.GameView",
+        "Madbox.Enemies",
+        "Unity.Addressables",
         "VContainer",
         "Unity.TextMeshPro",
         "UnityEngine.UI"

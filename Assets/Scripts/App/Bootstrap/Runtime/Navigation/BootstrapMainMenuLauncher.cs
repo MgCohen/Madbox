@@ -1,6 +1,6 @@
 using Madbox.App.Gameplay;
 using Madbox.App.MainMenu;
-using Scaffold.Navigation;
+using Scaffold.Navigation.Contracts;
 
 namespace Madbox.App.Bootstrap
 {

@@ -74,7 +74,7 @@ namespace Madbox.App.MainMenu.Tests
             Assert.IsNotNull(item);
             item.Button.onClick.Invoke();
             Assert.AreSame(def, flow.LastDefinition);
-            Object.DestroyImmediate(def);
+            UnityEngine.Object.DestroyImmediate(def);
         }
 
         [Test]
@@ -108,7 +108,7 @@ namespace Madbox.App.MainMenu.Tests
             }
             finally
             {
-                Object.DestroyImmediate(def);
+                UnityEngine.Object.DestroyImmediate(def);
             }
         }
 

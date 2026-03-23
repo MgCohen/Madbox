@@ -86,9 +86,9 @@ ModelImporter:
       - time: 0.35
         functionName: OnCharacterAnimationEvent
         data: 
-        objectReferenceParameter: {fileID: 0}
+        objectReferenceParameter: {fileID: 11400000, guid: e2f3d4c5b6a79888796a5b4c3d2e1f0a, type: 2}
         floatParameter: 0
-        intParameter: 1002
+        intParameter: 0
         messageOptions: 0
       transformMask: []
       maskType: 3

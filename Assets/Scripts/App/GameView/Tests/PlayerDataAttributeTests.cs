@@ -1,3 +1,4 @@
+using Madbox.App.Entity;
 using Madbox.App.GameView.Player;
 using NUnit.Framework;
 using UnityEditor;
@@ -45,7 +46,7 @@ namespace Madbox.App.GameView.Tests
             entry.FindPropertyRelative("baseValue").floatValue = 1f;
             dataSo.ApplyModifiedPropertiesWithoutUndo();
 
-            PlayerAttribute changedAttr = null;
+            EntityAttribute changedAttr = null;
             float changedValue = -1f;
             data.AttributeValueChanged += (a, v) =>
             {

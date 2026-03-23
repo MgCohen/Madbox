@@ -195,6 +195,69 @@ namespace Demo
     }
 
     [Fact]
+    public async Task Diagnostic_WhenInterfaceWhereClauseSpansMultipleLines()
+    {
+        const string source = @"
+namespace Demo
+{
+    public interface IEntityBehavior<TData, TInput>
+        where TData : class
+    {
+    }
+}";
+
+        var diagnostics = await AnalyzerTestHarness.GetDiagnosticsByIdAsync(
+            source,
+            @"C:\Repo\Assets\Scripts\Core\Sample.cs",
+            new LineBreakAnalyzer(),
+            LineBreakAnalyzer.DiagnosticId);
+
+        Assert.Single(diagnostics);
+    }
+
+    [Fact]
+    public async Task Diagnostic_WhenClassGenericTypeParameterListSpansMultipleLines()
+    {
+        const string source = @"
+namespace Demo
+{
+    public class Sample<
+        TData,
+        TInput>
+    {
+    }
+}";
+
+        var diagnostics = await AnalyzerTestHarness.GetDiagnosticsByIdAsync(
+            source,
+            @"C:\Repo\Assets\Scripts\Core\Sample.cs",
+            new LineBreakAnalyzer(),
+            LineBreakAnalyzer.DiagnosticId);
+
+        Assert.Single(diagnostics);
+    }
+
+    [Fact]
+    public async Task NoDiagnostic_ForSingleLineGenericInterfaceWithConstraints()
+    {
+        const string source = @"
+namespace Demo
+{
+    public interface IEntityBehavior<TData, TInput> where TData : class
+    {
+    }
+}";
+
+        var diagnostics = await AnalyzerTestHarness.GetDiagnosticsByIdAsync(
+            source,
+            @"C:\Repo\Assets\Scripts\Core\Sample.cs",
+            new LineBreakAnalyzer(),
+            LineBreakAnalyzer.DiagnosticId);
+
+        Assert.Empty(diagnostics);
+    }
+
+    [Fact]
     public async Task NoDiagnostic_ForMultilineCollectionInitializerLocalDeclaration()
     {
         const string source = @"

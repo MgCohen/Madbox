@@ -26,6 +26,7 @@
         "Madbox.LiveOps",
         "Madbox.LiveOps.Container",
         "Madbox.GameView",
+        "Madbox.Entity",
         "Madbox.Gameplay",
         "Madbox.Battle",
         "Madbox.Enemies",
