@@ -17,12 +17,12 @@ namespace GameModule.Sample
     /// </summary>
     public class ReactiveModule : GameModule<ReactiveModuleData>
     {
-        public ReactiveModule(ILogger<ReactiveModule> logger, ModuleRequestHandler moduleRequestHandler, IExecutionContext context, IPlayerData playerData, SignalModule signalModule)
+        public ReactiveModule(ILogger<ReactiveModule> logger, ModuleRequestHandler moduleRequestHandler, IExecutionContext context, IPlayerData Player, SignalModule signalModule)
         {
             _logger = logger;
             _moduleRequestHandler = moduleRequestHandler;
             _signalModule = signalModule;
-            _playerData = playerData;
+            _playerData = Player;
             _context = context;
         }
 
@@ -32,10 +32,10 @@ namespace GameModule.Sample
         private readonly IPlayerData _playerData;
         private readonly IExecutionContext _context;
 
-        public override async Task<IGameModuleData> Initialize(IExecutionContext context, IPlayerData playerData, IGameState gameState, IRemoteConfig remoteConfig)
+        public override async Task<IGameModuleData> Initialize(IExecutionContext context, IPlayerData Player, IGameState gameState, IRemoteConfig remoteConfig)
         {
             _signalModule.Subscribe<IncrementCounterRequest>(OnCounterRequestResolve);
-            return await playerData.GetOrSet<ReactiveModuleData>(context, new ReactiveModuleData());
+            return await Player.GetOrSet<ReactiveModuleData>(context, new ReactiveModuleData());
         }
 
         private async void OnCounterRequestResolve(IncrementCounterRequest request)

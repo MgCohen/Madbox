@@ -24,17 +24,17 @@ namespace GameModule.Sample
         private readonly ILogger<CounterModule> _logger;
         private readonly ModuleRequestHandler _moduleRequestHandler;
 
-        public override async Task<IGameModuleData> Initialize(IExecutionContext context, IPlayerData playerData, IGameState gameState, IRemoteConfig remoteConfig)
+        public override async Task<IGameModuleData> Initialize(IExecutionContext context, IPlayerData Player, IGameState gameState, IRemoteConfig remoteConfig)
         {
-            return await playerData.GetOrSet<CounterModuleData>(context, new CounterModuleData());
+            return await Player.GetOrSet<CounterModuleData>(context, new CounterModuleData());
         }
 
         [CloudCodeFunction(nameof(IncrementCounterRequest))]
-        public async Task<IncrementCounterResponse> IncrementCounter(IExecutionContext context, IPlayerData playerData, IncrementCounterRequest request)
+        public async Task<IncrementCounterResponse> IncrementCounter(IExecutionContext context, IPlayerData Player, IncrementCounterRequest request)
         {
             _logger.LogInformation("[IncrementCounterRequest] Starting");
-            CounterModuleData counterData = await playerData.GetOrSet<CounterModuleData>(context, new CounterModuleData());
-            playerData.AddToCache(counterData);
+            CounterModuleData counterData = await Player.GetOrSet<CounterModuleData>(context, new CounterModuleData());
+            Player.AddToCache(counterData);
 
             int valueToIncrement = 1;
             counterData.IncreaseValue(valueToIncrement);

@@ -1,16 +1,16 @@
 using System;
 using System.Collections.Generic;
-using Madbox.Entity;
+using Madbox.Entities;
 using UnityEngine;
 using UnityEngine.Serialization;
 
 namespace Madbox.App.Animation
 {
     /// <summary>
-    /// Pushes <see cref="EntityData"/> attribute values into animator parameters when values change and on enable.
+    /// Pushes <see cref="Entity"/> attribute values into animator parameters when values change and on enable.
     /// </summary>
     public class EntityAttributeAnimatorDriver<TData> : MonoBehaviour
-        where TData : EntityData
+        where TData : Entity
     {
         [Serializable]
         private sealed class EntityAttributeAnimatorLink
@@ -46,8 +46,8 @@ namespace Madbox.App.Animation
 
         [SerializeField]
         [FormerlySerializedAs("viewData")]
-        [FormerlySerializedAs("playerData")]
-        private TData entityData;
+        [FormerlySerializedAs("Player")]
+        private TData Entity;
 
         [SerializeField]
         private AnimationController animationController;
@@ -62,17 +62,17 @@ namespace Madbox.App.Animation
                 animationController = GetComponent<AnimationController>();
             }
 
-            if (entityData == null)
+            if (Entity == null)
             {
-                entityData = GetComponentInParent<TData>();
+                Entity = GetComponentInParent<TData>();
             }
         }
 
         private void OnEnable()
         {
-            if (entityData != null)
+            if (Entity != null)
             {
-                entityData.AttributeValueChanged += OnAttributeValueChanged;
+                Entity.AttributeValueChanged += OnAttributeValueChanged;
             }
 
             PushAll();
@@ -80,9 +80,9 @@ namespace Madbox.App.Animation
 
         private void OnDisable()
         {
-            if (entityData != null)
+            if (Entity != null)
             {
-                entityData.AttributeValueChanged -= OnAttributeValueChanged;
+                Entity.AttributeValueChanged -= OnAttributeValueChanged;
             }
         }
 
@@ -93,7 +93,7 @@ namespace Madbox.App.Animation
 
         private void PushAll()
         {
-            if (entityData == null || animationController == null)
+            if (Entity == null || animationController == null)
             {
                 return;
             }
@@ -106,7 +106,7 @@ namespace Madbox.App.Animation
                     continue;
                 }
 
-                float v = entityData.GetFloatAttribute(link.EntityAttribute);
+                float v = Entity.GetFloatAttribute(link.EntityAttribute);
                 link.Apply(animationController, v);
             }
         }

@@ -28,7 +28,7 @@ namespace Madbox.App.Bootstrap
 
         private void RegisterProvider<T>(IContainerBuilder builder) where T: IAssetPreloader
         {
-            builder.Register<T>(Lifetime.Scoped).AsImplementedInterfaces().AsSelf();
+            builder.Register<T>(Lifetime.Singleton).AsImplementedInterfaces().AsSelf();
         }
 
         protected override async Task OnCompletedAsync(IObjectResolver resolver, CancellationToken cancellationToken)

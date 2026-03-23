@@ -6,7 +6,8 @@ using System.Threading.Tasks;
 using Madbox.Addressables.Contracts;
 using Madbox.App.Bootstrap.Player;
 using Madbox.App.GameView.Player;
-using Madbox.Entity;
+using Madbox.Entities;
+using Madbox.Player;
 using Madbox.Levels;
 using NUnit.Framework;
 using UnityEditor;
@@ -44,8 +45,8 @@ namespace Madbox.App.Bootstrap.Tests
             var playerService = new PlayerService(loadout);
             var factory = new PlayerFactory(playerService, fake);
 
-            Task<PlayerData> task = factory.CreateReadyPlayerAsync(null, Vector3.zero, Quaternion.identity);
-            PlayerData player = task.GetAwaiter().GetResult();
+            Task<Player> task = factory.CreateReadyPlayerAsync(null, Vector3.zero, Quaternion.identity);
+            Player player = task.GetAwaiter().GetResult();
 
             Assert.IsNotNull(player);
             WeaponVisualController visual = player.GetComponentInChildren<WeaponVisualController>(true);
@@ -69,8 +70,8 @@ namespace Madbox.App.Bootstrap.Tests
         private static GameObject BuildPlayerPrefabWithSockets(int socketCount, EntityAttribute baseAttribute, float baseValue)
         {
             GameObject root = new GameObject("playerPrefab");
-            PlayerData data = root.AddComponent<PlayerData>();
-            SetBaseAttributeEntry(data, baseAttribute, baseValue);
+            Player player = root.AddComponent<Player>();
+            SetBaseAttributeEntry(player, baseAttribute, baseValue);
             WeaponVisualController visual = root.AddComponent<WeaponVisualController>();
             root.AddComponent<PlayerWeaponController>();
             var sockets = new List<Transform>();
@@ -99,9 +100,9 @@ namespace Madbox.App.Bootstrap.Tests
                 ?.SetValue(loadout, list);
         }
 
-        private static void SetBaseAttributeEntry(PlayerData playerData, EntityAttribute attribute, float baseValue)
+        private static void SetBaseAttributeEntry(Player player, EntityAttribute attribute, float baseValue)
         {
-            SerializedObject dataSo = new SerializedObject(playerData);
+            SerializedObject dataSo = new SerializedObject(player);
             SerializedProperty list = dataSo.FindProperty("attributeEntries");
             list.arraySize = 1;
             SerializedProperty entry = list.GetArrayElementAtIndex(0);

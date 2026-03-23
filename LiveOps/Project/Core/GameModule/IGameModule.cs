@@ -18,10 +18,10 @@ namespace GameModule.GameModule
         /// Initializes the module by fetching the relevant data from the game state.
         /// </summary>
         /// <param name="context">The execution context.</param>
-        /// <param name="playerData">The active player data.</param>
+        /// <param name="Player">The active player data.</param>
         /// <param name="gameState">The current game state.</param>
         /// <param name="remoteConfig">The remote configuration settings.</param>
         /// <returns>The populated module data.</returns>
-        public Task<IGameModuleData> Initialize(IExecutionContext context, IPlayerData playerData, IGameState gameState, IRemoteConfig remoteConfig);
+        public Task<IGameModuleData> Initialize(IExecutionContext context, IPlayerData Player, IGameState gameState, IRemoteConfig remoteConfig);
     }
 }

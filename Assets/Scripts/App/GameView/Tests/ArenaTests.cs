@@ -1,4 +1,4 @@
-using Madbox.App.GameView.Arena;
+using Madbox.App.GameView.Arenas;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEditor.SceneManagement;

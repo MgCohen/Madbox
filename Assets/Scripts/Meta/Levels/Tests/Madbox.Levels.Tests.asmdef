@@ -2,6 +2,7 @@
     "name": "Madbox.Levels.Tests",
     "rootNamespace": "Madbox.Levels.Tests",
     "references": [
+        "Madbox.Enemies",
         "Madbox.Levels",
         "Madbox.Enemies",
         "Madbox.LiveOps",

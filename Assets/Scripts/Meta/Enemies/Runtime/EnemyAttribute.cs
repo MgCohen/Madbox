@@ -1,7 +1,7 @@
-using Madbox.Entity;
+using Madbox.Entities;
 using UnityEngine;
 
-namespace Madbox.App.GameView.Enemy
+namespace Madbox.Enemies
 {
     /// <summary>
     /// Enemy-specific <see cref="EntityAttribute"/> asset for stats used by enemy view logic.

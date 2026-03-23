@@ -45,8 +45,8 @@ namespace Madbox.Enemies
 
         private void Update()
         {
-            EnemyActor actor = GetComponent<EnemyActor>();
-            if (actor != null && actor.IsInitialized == false)
+            Enemy data = GetComponent<Enemy>();
+            if (data != null && data.IsInitialized == false)
             {
                 return;
             }

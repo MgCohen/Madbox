@@ -2,14 +2,14 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Madbox.Entity
+namespace Madbox.Entities
 {
     /// <summary>
     /// Float-backed attributes as <see cref="EntityAttribute"/> keys with storage in <see cref="attributeEntries"/>.
     /// Effective values are base + sum of <see cref="attributeModifiers"/>; recomputed when modifiers or bases change.
     /// Subclasses add typed accessors and game-specific rules.
     /// </summary>
-    public class EntityData : MonoBehaviour, ISerializationCallbackReceiver
+    public class Entity : MonoBehaviour, ISerializationCallbackReceiver
     {
         [SerializeField]
         private List<EntityAttributeEntry> attributeEntries = new List<EntityAttributeEntry>();
@@ -161,7 +161,7 @@ namespace Madbox.Entity
             }
 
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
-            Debug.LogWarning($"{nameof(EntityData)}: no entry for attribute '{attribute.name}'.", this);
+            Debug.LogWarning($"{nameof(Entity)}: no entry for attribute '{attribute.name}'.", this);
 #endif
         }
 

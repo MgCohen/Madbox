@@ -49,7 +49,7 @@ namespace GameModule.ModuleFetchData.Unity
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"[PlayerData.FetchData] An error occurred while fetching player data: PlayerId:'{_playerId}'");
+                _logger.LogError(ex, $"[Player.FetchData] An error occurred while fetching player data: PlayerId:'{_playerId}'");
                 throw;
             }
         }

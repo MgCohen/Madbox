@@ -23,21 +23,21 @@ namespace Madbox.Enemies
 
         private readonly EnemyFactory factory;
 
-        private readonly HashSet<EnemyActor> alive = new HashSet<EnemyActor>();
+        private readonly HashSet<Enemy> alive = new HashSet<Enemy>();
 
-        public EnemyActor Spawn(EnemyActor prefab, Vector3 position, Quaternion rotation, Transform parent = null)
+        public Enemy Spawn(Enemy prefab, Vector3 position, Quaternion rotation, Transform parent = null)
         {
             if (prefab == null)
             {
                 throw new ArgumentNullException(nameof(prefab));
             }
 
-            EnemyActor enemy = factory.Create(prefab, position, rotation, parent);
+            Enemy enemy = factory.Create(prefab, position, rotation, parent);
             Register(enemy);
             return enemy;
         }
 
-        public bool Register(EnemyActor enemy)
+        public bool Register(Enemy enemy)
         {
             if (enemy == null || enemy.IsInitialized == false)
             {
@@ -47,7 +47,7 @@ namespace Madbox.Enemies
             return alive.Add(enemy);
         }
 
-        public bool Unregister(EnemyActor enemy)
+        public bool Unregister(Enemy enemy)
         {
             if (enemy == null)
             {
@@ -57,7 +57,7 @@ namespace Madbox.Enemies
             return alive.Remove(enemy);
         }
 
-        public IReadOnlyCollection<EnemyActor> GetAllAlive()
+        public IReadOnlyCollection<Enemy> GetAllAlive()
         {
             return alive;
         }

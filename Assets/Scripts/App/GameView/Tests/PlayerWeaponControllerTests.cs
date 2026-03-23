@@ -1,7 +1,8 @@
 using System.Collections.Generic;
 using System.Reflection;
 using Madbox.App.GameView.Player;
-using Madbox.Entity;
+using Madbox.Entities;
+using Madbox.Player;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
@@ -16,7 +17,7 @@ namespace Madbox.App.GameView.Tests
             EntityAttribute moveSpeed = ScriptableObject.CreateInstance<EntityAttribute>();
             moveSpeed.name = "MoveSpeed";
             GameObject playerGo = new GameObject("player");
-            PlayerData playerData = playerGo.AddComponent<PlayerData>();
+            Player playerData = playerGo.AddComponent<Player>();
             SetAttributeEntry(playerData, moveSpeed, 10f);
 
             GameObject root = new GameObject("root");

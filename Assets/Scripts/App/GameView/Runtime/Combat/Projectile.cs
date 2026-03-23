@@ -1,5 +1,5 @@
-using Madbox.App.GameView.Projectile;
 using Madbox.Enemies;
+using Madbox.App.GameView.Projectile;
 using UnityEngine;
 
 namespace Madbox.App.GameView.Combat
@@ -69,8 +69,7 @@ namespace Madbox.App.GameView.Combat
                 return;
             }
 
-            Enemy enemy = other.GetComponent<Enemy>();
-            if (enemy != null)
+            if (other.GetComponent<Enemy>() != null)
             {
                 // TODO: Apply damage (use ProjectileData.Damage when projectileData is assigned) when the battle damage pipeline exists.
             }

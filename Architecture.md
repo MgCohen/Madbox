@@ -80,7 +80,7 @@ Container/module dependency diagram:
 ```mermaid
 flowchart LR
     Infra[Infra Modules<br/>Scope / Events / Navigation / Model / BaseMVVM / Addressables]
-    Core[Core Modules<br/>LiveOps / Ads / Levels / Entity / ViewModel]
+    Core[Core Modules<br/>LiveOps / Ads / Levels / Entities / ViewModel]
     Meta[Meta Modules<br/>Gold / Enemies]
     App[App Modules<br/>Bootstrap / MainMenu / View / Battle]
     Tools[Tools Modules<br/>Maps / Records / Types]
@@ -114,6 +114,7 @@ Current module documentation map:
 - `Docs/Infra/SceneFlow.md`
 - `Docs/Meta/Gold.md`
 - `Docs/Meta/Enemies.md`
+- `Docs/Meta/Player.md`
 - `Docs/Tools/Maps.md`
 - `Docs/Tools/Records.md`
 - `Docs/Tools/Types.md`
@@ -121,7 +122,7 @@ Current module documentation map:
 - `Docs/Testing.md`
 - `Docs/AutomatedTesting.md`
 - `Docs/Core/Levels.md`
-- `Docs/Core/Entity.md`
+- `Docs/Core/Entities.md`
 
 ## Runtime Flows
 

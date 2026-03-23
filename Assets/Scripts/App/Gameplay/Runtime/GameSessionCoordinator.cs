@@ -1,7 +1,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Madbox.App.GameView.Arena;
+using Madbox.App.GameView.Arenas;
 using Madbox.Battle;
 using Madbox.Enemies;
 using Madbox.SceneFlow;

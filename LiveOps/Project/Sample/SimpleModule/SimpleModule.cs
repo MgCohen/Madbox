@@ -21,9 +21,9 @@ namespace GameModule.Sample
 
         private readonly ILogger<SimpleModule> _logger;
 
-        public override async Task<IGameModuleData> Initialize(IExecutionContext context, IPlayerData playerData, IGameState gameState, IRemoteConfig remoteConfig)
+        public override async Task<IGameModuleData> Initialize(IExecutionContext context, IPlayerData Player, IGameState gameState, IRemoteConfig remoteConfig)
         {
-            return await playerData.GetOrSet<SimpleModuleData>(context, new SimpleModuleData());
+            return await Player.GetOrSet<SimpleModuleData>(context, new SimpleModuleData());
         }
     }
 }

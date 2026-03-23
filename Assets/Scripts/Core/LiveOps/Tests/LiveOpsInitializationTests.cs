@@ -18,7 +18,7 @@ namespace Madbox.LiveOps.Tests
         {
             ContainerBuilder builder = new ContainerBuilder();
             builder.RegisterInstance(new GameDataResponseCloudStub()).As<ICloudCodeModuleService>();
-            builder.Register<LiveOpsService>(Lifetime.Scoped).As<ILiveOpsService>().As<IAsyncLayerInitializable>();
+            builder.Register<LiveOpsService>(Lifetime.Singleton).As<ILiveOpsService>().As<IAsyncLayerInitializable>();
 
             using (IObjectResolver container = builder.Build())
             {

@@ -20,10 +20,10 @@ namespace GameModule.GameModule
         /// Initiates the module and delegates logic handling.
         /// </summary>
         /// <param name="context">The execution context.</param>
-        /// <param name="playerData">The player active session logic.</param>
+        /// <param name="Player">The player active session logic.</param>
         /// <param name="gameState">The game state logic wrapper.</param>
         /// <param name="remoteConfig">The remote configuration dependencies.</param>
         /// <returns>A mapped execution promise payload.</returns>
-        public abstract Task<IGameModuleData> Initialize(IExecutionContext context, IPlayerData playerData, IGameState gameState, IRemoteConfig remoteConfig);
+        public abstract Task<IGameModuleData> Initialize(IExecutionContext context, IPlayerData Player, IGameState gameState, IRemoteConfig remoteConfig);
     }
 }

@@ -1,14 +1,15 @@
+using Madbox.Entities;
+using UnityEngine;
 using System;
 using System.Collections.Generic;
-using Madbox.Entity;
-using UnityEngine;
+using Madbox.App.GameView.Player;
 
-namespace Madbox.App.GameView.Player
+namespace Madbox.Player
 {
     /// <summary>
     /// Player entity data: <see cref="IsAlive"/> and <see cref="CanMove"/> use dedicated attributes and must have matching entries in the inherited list.
     /// </summary>
-    public sealed class PlayerData : EntityData
+    public sealed class Player : Entity
     {
         public event Action<Weapon, Weapon> EquippedWeaponChanged;
 

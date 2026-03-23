@@ -1,9 +1,9 @@
-namespace Madbox.Entity
+namespace Madbox.Entities
 {
     /// <summary>
     /// Ordered entity view behavior; first <see cref="TryAcceptControl"/> wins for the frame.
     /// </summary>
-    public interface IEntityBehavior<TData, TInput> where TData : EntityData
+    public interface IEntityBehavior<TData, TInput> where TData : Entity
     {
         bool TryAcceptControl(TData data, in TInput input);
 

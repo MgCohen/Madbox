@@ -2,6 +2,7 @@
     "name": "Madbox.Addressables.Tests",
     "rootNamespace": "Madbox.Addressables.Tests",
     "references": [
+        "Madbox.Addressables.Container",
         "Madbox.Addressables",
         "Scaffold.Types",
         "Madbox.Scope",

@@ -10,7 +10,6 @@ GameObject:
   m_Component:
   - component: {fileID: 297763066410921876}
   - component: {fileID: 1985765257376077446}
-  - component: {fileID: 1985765257376077445}
   - component: {fileID: 1985765257376077448}
   - component: {fileID: 1985765257376077449}
   m_Layer: 0
@@ -51,20 +50,6 @@ CapsuleCollider:
   m_Height: 1.2
   m_Direction: 1
   m_Center: {x: 0, y: 0.5, z: 0}
---- !u!114 &1985765257376077445
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1358921057130329688}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0f8c8fba8efa9784db101624badec1cd, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  enemyTypeId: enemy-default
-  teamId: 0
 --- !u!114 &1985765257376077448
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -96,9 +81,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 1358921057130329688}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e4c8a2f91d0b4e6c9a7f3b5d1e8c2047, type: 3}
+  m_Script: {fileID: 11500000, guid: 3b39c096841437244935d7659e767652, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  attributeEntries: []
+  attributeModifiers: []
 --- !u!1 &6926839794863368101
 GameObject:
   m_ObjectHideFlags: 0

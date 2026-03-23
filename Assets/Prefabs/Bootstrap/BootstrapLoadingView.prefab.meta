@@ -1,6 +1,12 @@
 fileFormatVersion: 2
+<<<<<<<< HEAD:Assets/Scripts/App/GameView/Runtime/Input.meta
+guid: 1885470bba38e0b46a6ab49a6db9b32e
+folderAsset: yes
+DefaultImporter:
+========
 guid: c8e7d6b5a4938271605f4e3d2c1b0a9f
 PrefabImporter:
+>>>>>>>> cursor/cloud-agent-1774244401018-6fbja:Assets/Prefabs/Bootstrap/BootstrapLoadingView.prefab.meta
   externalObjects: {}
   userData: 
   assetBundleName: 

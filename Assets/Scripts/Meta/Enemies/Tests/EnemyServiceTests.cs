@@ -10,11 +10,11 @@ namespace Madbox.Enemies.Tests
         {
             EnemyFactory factory = new EnemyFactory();
             EnemyService service = new EnemyService(factory);
-            EnemyActor prefab = CreateEnemyPrefab();
+            Enemy prefab = CreateEnemyPrefab();
             Vector3 position = new Vector3(1f, 0f, 3f);
             Quaternion rotation = Quaternion.Euler(0f, 90f, 0f);
 
-            EnemyActor enemy = service.Spawn(prefab, position, rotation);
+            Enemy enemy = service.Spawn(prefab, position, rotation);
 
             Assert.IsNotNull(enemy);
             Assert.IsTrue(enemy.IsInitialized);
@@ -29,8 +29,8 @@ namespace Madbox.Enemies.Tests
         {
             EnemyFactory factory = new EnemyFactory();
             EnemyService service = new EnemyService(factory);
-            EnemyActor prefab = CreateEnemyPrefab();
-            EnemyActor enemy = service.Spawn(prefab, Vector3.zero, Quaternion.identity);
+            Enemy prefab = CreateEnemyPrefab();
+            Enemy enemy = service.Spawn(prefab, Vector3.zero, Quaternion.identity);
 
             bool removed = service.Unregister(enemy);
 
@@ -41,10 +41,10 @@ namespace Madbox.Enemies.Tests
             Object.DestroyImmediate(prefab.gameObject);
         }
 
-        private static void AssertContainsEnemy(EnemyService service, EnemyActor enemy, bool expectPresent = true)
+        private static void AssertContainsEnemy(EnemyService service, Enemy enemy, bool expectPresent = true)
         {
             bool found = false;
-            foreach (EnemyActor alive in service.GetAllAlive())
+            foreach (Enemy alive in service.GetAllAlive())
             {
                 if (alive == enemy)
                 {
@@ -56,12 +56,12 @@ namespace Madbox.Enemies.Tests
             Assert.AreEqual(expectPresent, found);
         }
 
-        private static EnemyActor CreateEnemyPrefab()
+        private static Enemy CreateEnemyPrefab()
         {
             GameObject go = new GameObject("EnemyPrefab");
             go.AddComponent<EnemyMoveForwardBehaviour>();
-            EnemyActor actor = go.AddComponent<EnemyActor>();
-            return actor;
+            Enemy data = go.AddComponent<Enemy>();
+            return data;
         }
     }
 }

@@ -1,9 +1,9 @@
 using UnityEngine;
 
-namespace Madbox.Entity
+namespace Madbox.Entities
 {
     /// <summary>
-    /// Identifies a float-backed stat or flag on an <see cref="EntityData"/>; behaviors reference this asset instead of string literals.
+    /// Identifies a float-backed stat or flag on an <see cref="Entity"/>; behaviors reference this asset instead of string literals.
     /// The logical id is the Unity asset name (filename without extension), exposed via <see cref="AttributeName"/>.
     /// </summary>
     [CreateAssetMenu(menuName = "Madbox/Entity/Entity Attribute", fileName = "EntityAttribute")]

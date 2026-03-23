@@ -1,6 +1,6 @@
 {
-    "name": "Madbox.Entity",
-    "rootNamespace": "Madbox.Entity",
+    "name": "Madbox.Entities",
+    "rootNamespace": "Madbox.Entities",
     "references": [],
     "includePlatforms": [],
     "excludePlatforms": [],

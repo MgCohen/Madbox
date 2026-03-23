@@ -35,7 +35,7 @@ namespace Madbox.App.GameView.Player
             }
         }
 
-        public bool TryAcceptControl(PlayerData data, in PlayerInputContext _)
+        public bool TryAcceptControl(Player data, in PlayerInputContext _)
         {
             if (data == null || !data.IsAlive)
             {
@@ -72,7 +72,7 @@ namespace Madbox.App.GameView.Player
             return false;
         }
 
-        public void Execute(PlayerData data, in PlayerInputContext _, float deltaTime)
+        public void Execute(Player data, in PlayerInputContext _, float deltaTime)
         {
             if (currentAttackTarget != null)
             {
@@ -80,7 +80,7 @@ namespace Madbox.App.GameView.Player
             }
         }
 
-        public void OnQuit(PlayerData data)
+        public void OnQuit(Player data)
         {
             currentAttackTarget = null;
             SetAttacking(false);
