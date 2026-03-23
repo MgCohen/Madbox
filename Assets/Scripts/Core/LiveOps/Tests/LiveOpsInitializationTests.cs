@@ -25,7 +25,7 @@ namespace Madbox.LiveOps.Tests
                 IAsyncLayerInitializable init = container.Resolve<IAsyncLayerInitializable>();
                 init.InitializeAsync(container, CancellationToken.None).GetAwaiter().GetResult();
                 ILiveOpsService liveOps = container.Resolve<ILiveOpsService>();
-                Assert.That(liveOps.GetModuleData<AdsGameData>(), Is.Not.Null);
+                Assert.That(liveOps.GetModuleData<AdData>(), Is.Not.Null);
             }
         }
 
@@ -36,7 +36,7 @@ namespace Madbox.LiveOps.Tests
                 if (typeof(T) == typeof(GameDataResponse))
                 {
                     GameData gameData = new GameData();
-                    gameData.AddModuleData(AdsGameData.From(new AdsPersistence(), new AdsConfig()));
+                    gameData.AddModuleData(new AdData(new AdsPersistence(), new AdsConfig()));
                     GameDataResponse response = new GameDataResponse(gameData);
                     return Task.FromResult((T)(object)response);
                 }

@@ -20,7 +20,7 @@ Cloud Code backend under `LiveOps/` (Unity repo root): **DTO** (`LiveOps.DTO/`) 
 
 
 
-Build everything with **`LiveOps/LiveOps.sln`** (two projects: DTO + main).
+Build the shared contracts with **`LiveOps/LiveOps.sln`** (DTO project **`Madbox.LiveOps.DTO`**). The Cloud Code host under **`LiveOps/Project/`** is built with your Unity Cloud Code / deployment pipeline when applicable.
 
 
 

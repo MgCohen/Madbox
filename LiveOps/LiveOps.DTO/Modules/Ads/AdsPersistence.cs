@@ -1,65 +1,52 @@
 using System;
-using System.Globalization;
 using GameModuleDTO.GameModule;
 using Newtonsoft.Json;
 
 namespace GameModuleDTO.Modules.Ads
 {
     /// <summary>
-    /// Player-persisted ads cooldown state (player data cache).
+    /// Player-persisted ads state: last successful watch time only (cooldown duration comes from remote config).
     /// </summary>
-    public class AdsPersistence : IGameModuleData
+    public sealed class AdsPersistence : IGameModuleData
     {
         /// <inheritdoc />
         public string Key => typeof(AdsPersistence).Name;
 
         [JsonProperty]
-        private string _nextAdAvailableTime = string.Empty;
+        private long _lastAdWatchedAtUtcUnix;
 
-        /// <summary>Gets the ISO format string of the future time when an ad becomes available.</summary>
+        /// <summary>Unix seconds (UTC) of the last successful ad watch; <c>0</c> means never watched.</summary>
         [JsonIgnore]
-        public string NextAdAvailableTime => _nextAdAvailableTime;
+        public long LastAdWatchedAtUtcUnix => _lastAdWatchedAtUtcUnix;
 
-        /// <summary>Sets the next available time from a cooldown in seconds (after a successful watch).</summary>
-        public void SetNextAdAvailableTime(float cooldownSeconds)
+        /// <summary>Whether another ad can be watched given the configured cooldown (server clock).</summary>
+        public bool IsCooldownElapsed(float cooldownSeconds)
         {
-            if (IsAdAvailable())
-            {
-                _nextAdAvailableTime = DateTime.UtcNow.AddSeconds(cooldownSeconds).ToString("O");
-            }
-        }
-
-        /// <summary>Whether an ad can be watched now.</summary>
-        public bool IsAdAvailable()
-        {
-            if (string.IsNullOrEmpty(_nextAdAvailableTime))
+            if (_lastAdWatchedAtUtcUnix <= 0)
             {
                 return true;
             }
 
-            if (DateTime.TryParse(_nextAdAvailableTime, null, DateTimeStyles.AdjustToUniversal | DateTimeStyles.AssumeUniversal, out DateTime lastTime))
-            {
-                return DateTime.UtcNow >= lastTime;
-            }
-
-            return true;
+            double elapsed = DateTimeOffset.UtcNow.ToUnixTimeSeconds() - _lastAdWatchedAtUtcUnix;
+            return elapsed >= cooldownSeconds;
         }
 
-        /// <summary>Remaining cooldown before the next ad.</summary>
-        public TimeSpan GetRemainingCooldown()
+        /// <summary>Records a successful watch at the current UTC instant.</summary>
+        public void RecordAdWatched()
         {
-            if (string.IsNullOrEmpty(_nextAdAvailableTime))
+            _lastAdWatchedAtUtcUnix = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        }
+
+        /// <summary>ISO UTC instant when the ad becomes available again, or empty if available now.</summary>
+        internal string ComputeNextAdAvailableUtcIso(float cooldownSeconds)
+        {
+            if (_lastAdWatchedAtUtcUnix <= 0 || IsCooldownElapsed(cooldownSeconds))
             {
-                return TimeSpan.Zero;
+                return string.Empty;
             }
 
-            if (DateTime.TryParse(_nextAdAvailableTime, null, DateTimeStyles.AdjustToUniversal | DateTimeStyles.AssumeUniversal, out DateTime lastTime))
-            {
-                TimeSpan diff = lastTime - DateTime.UtcNow;
-                return diff > TimeSpan.Zero ? diff : TimeSpan.Zero;
-            }
-
-            return TimeSpan.Zero;
+            DateTime next = DateTimeOffset.FromUnixTimeSeconds(_lastAdWatchedAtUtcUnix).UtcDateTime.AddSeconds(cooldownSeconds);
+            return next.ToString("O");
         }
     }
 }

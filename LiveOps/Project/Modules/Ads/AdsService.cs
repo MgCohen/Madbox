@@ -11,9 +11,9 @@ using Unity.Services.CloudCode.Core;
 namespace GameModule.Modules.Ads
 {
     /// <summary>
-    /// Cloud Code ads module: persistence + remote config merged into <see cref="AdsGameData"/>.
+    /// Cloud Code ads module: persistence + remote config merged into <see cref="AdData"/>.
     /// </summary>
-    public class AdsService : GameModule<AdsGameData>
+    public class AdsService : GameModule<AdData>
     {
         private readonly ILogger<AdsService> _logger;
         private readonly ModuleRequestHandler _moduleRequestHandler;
@@ -28,7 +28,7 @@ namespace GameModule.Modules.Ads
         {
             AdsPersistence persistence = await playerData.GetOrSet(context, new AdsPersistence());
             AdsConfig config = await remoteConfig.Get(context, new AdsConfig());
-            return AdsGameData.From(persistence, config);
+            return new AdData(persistence, config);
         }
 
         [CloudCodeFunction(nameof(WatchAdRequest))]
@@ -38,19 +38,19 @@ namespace GameModule.Modules.Ads
             AdsConfig config = await remoteConfig.Get(context, new AdsConfig());
             AdsPersistence persistence = await playerData.GetOrSet(context, new AdsPersistence());
 
-            if (persistence.IsAdAvailable())
+            if (persistence.IsCooldownElapsed(config.Cooldown))
             {
-                persistence.SetNextAdAvailableTime(config.Cooldown);
+                persistence.RecordAdWatched();
                 playerData.AddToCache(persistence);
-                _logger.LogInformation("[AdsService] Ad watched successfully. Next available at: {NextAdAvailableTime}", persistence.NextAdAvailableTime);
+                _logger.LogInformation("[AdsService] Ad watched successfully.");
             }
             else
             {
-                _logger.LogWarning("[AdsService] Cannot watch ad yet. Remaining cooldown: {RemainingCooldown}", persistence.GetRemainingCooldown());
+                _logger.LogWarning("[AdsService] Cannot watch ad yet. Remaining cooldown: {RemainingCooldown}", new AdData(persistence, config).GetRemainingCooldown());
             }
 
-            AdsGameData gameData = AdsGameData.From(persistence, config);
-            WatchAdResponse response = new WatchAdResponse(gameData);
+            AdData adData = new AdData(persistence, config);
+            WatchAdResponse response = new WatchAdResponse(adData);
             return await _moduleRequestHandler.ResolveResponse(context, request, response);
         }
     }

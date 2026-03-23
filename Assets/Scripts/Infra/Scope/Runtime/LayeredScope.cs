@@ -20,6 +20,7 @@ namespace Madbox.Scope
 
         private async void Start()
         {
+            Debug.Log($"[{GetType().Name}] Starting LayeredScope Bootstrap...");
             CreateStartupCancellation();
 
             try
@@ -75,8 +76,10 @@ namespace Madbox.Scope
             }
 
             rootInstaller.Reset();
+            Debug.Log($"[{GetType().Name}] Executing root installer BuildAsRootAsync...");
             await rootInstaller.BuildAsRootAsync(this, cancellationToken, GetLayerProgressListener());
             LifetimeScope finalScope = rootInstaller.GetFinalScope();
+            Debug.Log($"[{GetType().Name}] Bootstrap BuildAsRootAsync complete, invoking OnBootstrapCompleted...");
             OnBootstrapCompleted(finalScope ?? this);
         }
     }

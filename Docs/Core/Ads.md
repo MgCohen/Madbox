@@ -2,20 +2,20 @@
 
 ## TL;DR
 
-- Purpose: sample **client** module for `AdsGameData` and `WatchAdRequest` / `WatchAdResponse` using LiveOps.
+- Purpose: sample **client** module for `AdData` and `WatchAdRequest` / `WatchAdResponse` using LiveOps.
 - Location: `Assets/Scripts/Core/Ads/Runtime/` (`Madbox.Ads`), installer `Madbox.Ads.Container`.
 - Depends on: `Madbox.LiveOps`, DTO plugin.
 - Used by: bootstrap (`AdsInstaller` on Core layer); `WatchAdAsync` takes `ILiveOpsService` as an argument to avoid a DI cycle with `LiveOpsService`.
 
 ## Responsibilities
 
-- `AdsClientModule` extends `GameClientModuleBase<AdsGameData>`.
-- `WatchAdAsync(ILiveOpsService liveOps, ...)` calls Cloud Code via `CallAsync(new WatchAdRequest())` and assigns returned `AdsGameData` to `data`.
+- `AdsClientModule` extends `GameClientModuleBase<AdData>`.
+- `WatchAdAsync(ILiveOpsService liveOps, ...)` calls Cloud Code via `CallAsync(new WatchAdRequest())` and assigns returned `AdData` to `data`.
 - `IsAdAvailable()` delegates to DTO when `data` is present.
 
 ## Notes
 
-- Server `GameData` supplies `AdsGameData` from the Ads Cloud Code module (`AdsService`); persistence and remote config are merged in `Initialize` on the server.
+- Server `GameData` supplies `AdData` from the Ads Cloud Code module (`AdsService`); persistence and remote config are merged in `Initialize` on the server.
 
 ## Registration
 

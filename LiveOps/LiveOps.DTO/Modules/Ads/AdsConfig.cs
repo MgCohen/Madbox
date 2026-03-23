@@ -6,7 +6,7 @@ namespace GameModuleDTO.Modules.Ads
     /// <summary>
     /// Remote configuration for the Ads module (merged from remote config service).
     /// </summary>
-    public class AdsConfig : IGameModuleData
+    public sealed class AdsConfig : IGameModuleData
     {
         /// <inheritdoc />
         public string Key => typeof(AdsConfig).Name;

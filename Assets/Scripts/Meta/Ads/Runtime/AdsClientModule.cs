@@ -10,7 +10,7 @@ namespace Madbox.Ads
     /// <summary>
     /// Client module for ads runtime data from LiveOps <see cref="GameDataRequest"/> and <see cref="WatchAdRequest"/>.
     /// </summary>
-    public sealed class AdsClientModule : GameClientModuleBase<AdsGameData>
+    public sealed class AdsClientModule : GameClientModuleBase<AdData>
     {
         public async Task WatchAdAsync(ILiveOpsService liveOps, CancellationToken cancellationToken = default)
         {

@@ -41,12 +41,11 @@ ExportedObj/
 *.csproj
 *.sln
 
-# Keep solution versioned so dotnet build / check-analyzers work in CI and worktrees
-!Madbox.sln
-
-# Keep analyzer projects versioned so analyzer gates work in all worktrees
-!Analyzers/Scaffold/Scaffold.Analyzers/Scaffold.Analyzers.csproj
-!Analyzers/Scaffold/Scaffold.Analyzers.Tests/Scaffold.Analyzers.Tests.csproj
+# Track only Analyzers/ and LiveOps/ tooling projects (Unity-generated root sln/csproj stay untracked)
+!Analyzers/**/*.csproj
+!Analyzers/**/*.sln
+!LiveOps/**/*.csproj
+!LiveOps/**/*.sln
 
 # /!\ DO NOT TOUCH THIS FILE UNLESS YOUR TOOL ASKED YOU TO /!\
 

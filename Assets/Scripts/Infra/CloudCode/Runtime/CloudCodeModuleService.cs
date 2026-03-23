@@ -26,6 +26,7 @@ namespace Madbox.CloudCode
 
         internal async Task<T> CallAsync<T>(string module, string endpoint, int maxRetries = 2, int retryCall = 2, Dictionary<string, object> payload = null, CancellationToken cancellationToken = default)
         {
+            UnityEngine.Debug.Log($"[CloudCode] Calling module '{module}' endpoint '{endpoint}'...");
             cancellationToken.ThrowIfCancellationRequested();
             Dictionary<string, object> finalPayload = payload ?? new Dictionary<string, object>();
             string response = await CloudCodeService.Instance.CallModuleEndpointAsync(module, endpoint, finalPayload).ConfigureAwait(false);
@@ -34,6 +35,7 @@ namespace Madbox.CloudCode
 
         private T Deserialize<T>(string response)
         {
+            UnityEngine.Debug.Log($"[CloudCode] Deserializing response to '{typeof(T).Name}'... Raw '{response}'");
             var settings = new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.Auto };
             return JsonConvert.DeserializeObject<T>(response, settings);
         }

@@ -1,46 +1,88 @@
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using GameModuleDTO.GameModule;
-using GameModuleDTO.Modules.Common;
 using Newtonsoft.Json;
 
 namespace GameModuleDTO.Modules.Tutorial
 {
     /// <summary>
-    /// Aggregated tutorial payload returned in <see cref="GameModuleDTO.GameModule.GameData"/> (built from persistence + config).
+    /// Aggregated tutorial payload returned in <see cref="GameModuleDTO.GameModule.GameData"/>.
     /// </summary>
-    public class TutorialGameData : MultiProgressModuleData
+    public sealed class TutorialGameData : IGameModuleData
     {
         /// <inheritdoc />
-        public override string Key => typeof(TutorialGameData).Name;
+        public string Key => typeof(TutorialGameData).Name;
 
         [JsonProperty]
-        private long _rewardSnapshot;
+        private List<TutorialStepEntry> _steps = new List<TutorialStepEntry>();
 
         [JsonProperty]
-        private List<int> _tutorialsSnapshot = new List<int>();
+        private long _rewardPerStep;
 
-        /// <summary>Gets the configured reward amount snapshot for the client.</summary>
+        /// <summary>One entry per tutorial step ID in config order.</summary>
         [JsonIgnore]
-        public long Reward => _rewardSnapshot;
+        public IReadOnlyList<TutorialStepEntry> Steps => _steps;
 
-        /// <summary>Gets the valid tutorial step IDs snapshot for the client.</summary>
+        /// <summary>Gold reward for completing one tutorial step (from remote config).</summary>
         [JsonIgnore]
-        public List<int> Tutorials => _tutorialsSnapshot;
+        public long RewardPerStep => _rewardPerStep;
 
-        /// <summary>
-        /// Builds game data from persisted progress and remote config.
-        /// </summary>
-        public static TutorialGameData From(TutorialPersistence persistence, TutorialConfig config)
+        private TutorialGameData()
         {
-            TutorialGameData gameData = new TutorialGameData();
-            foreach (ModuleProgress progress in persistence.Progress)
+        }
+
+        /// <summary>Build from persistence + config (server).</summary>
+        public TutorialGameData(TutorialPersistence persistence, TutorialConfig config)
+        {
+            if (persistence == null)
             {
-                gameData.SetProgress(progress.Id, progress.Status, progress.State);
+                throw new ArgumentNullException(nameof(persistence));
             }
 
-            gameData._rewardSnapshot = config.Reward;
-            gameData._tutorialsSnapshot = config.Tutorials != null ? new List<int>(config.Tutorials) : new List<int>();
-            return gameData;
+            if (config == null)
+            {
+                throw new ArgumentNullException(nameof(config));
+            }
+
+            _rewardPerStep = config.Reward;
+            IReadOnlyList<int> order = config.Tutorials ?? (IReadOnlyList<int>)Array.Empty<int>();
+            HashSet<int> completed = new HashSet<int>(persistence.CompletedTutorialIds);
+            int nextExpected = NextExpectedStepId(order, completed);
+
+            _steps = order.Select(id =>
+                    new TutorialStepEntry(id, StateForStep(id, nextExpected, completed)))
+                .ToList();
+        }
+
+        private static TutorialStepState StateForStep(int tutorialId, int nextExpectedId, HashSet<int> completed)
+        {
+            if (completed.Contains(tutorialId))
+            {
+                return TutorialStepState.Complete;
+            }
+
+            if (nextExpectedId >= 0 && tutorialId == nextExpectedId)
+            {
+                return TutorialStepState.Unlocked;
+            }
+
+            return TutorialStepState.Blocked;
+        }
+
+        /// <summary>First step ID in config order that is not completed, or <c>-1</c> when all are complete.</summary>
+        private static int NextExpectedStepId(IReadOnlyList<int> order, HashSet<int> completed)
+        {
+            for (int i = 0; i < order.Count; i++)
+            {
+                int id = order[i];
+                if (!completed.Contains(id))
+                {
+                    return id;
+                }
+            }
+
+            return -1;
         }
     }
 }
