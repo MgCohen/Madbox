@@ -13,7 +13,7 @@
 |--------|------|
 | `AnimationController` | Thin `Animator` wrapper: cross-fade play, bool/float parameters (string or `AnimationAttribute`). |
 | `AnimationAttribute` | ScriptableObject id for an animator parameter name (`ParameterName` == asset name). |
-| `AnimationEventDefinition` | ScriptableObject with string `EventId` for clip event payloads. |
+| `AnimationEventDefinition` | ScriptableObject; `EventId` is the asset `name` (rename the file to change the clip string). |
 | `CharacterAnimationEventRouter` | Single Unity animation callback → multicast handlers registered by `AnimationEventDefinition`. |
 
 ## Testing

@@ -1,5 +1,4 @@
 using System;
-using System.Reflection;
 using Madbox.App.Animation;
 using NUnit.Framework;
 using UnityEngine;
@@ -73,7 +72,7 @@ namespace Madbox.App.Animation.Tests
                 Router = root.AddComponent<CharacterAnimationEventRouter>();
                 Definition = ScriptableObject.CreateInstance<AnimationEventDefinition>();
                 EventId = "test_attack_release";
-                SetEventIdViaReflection(Definition, EventId);
+                Definition.name = EventId;
             }
 
             public GameObject gameObject { get; }
@@ -93,13 +92,6 @@ namespace Madbox.App.Animation.Tests
             {
                 UnityEngine.Object.DestroyImmediate(gameObject);
                 UnityEngine.Object.DestroyImmediate(Definition);
-            }
-
-            private static void SetEventIdViaReflection(AnimationEventDefinition def, string id)
-            {
-                FieldInfo field = typeof(AnimationEventDefinition).GetField("eventId", BindingFlags.Instance | BindingFlags.NonPublic);
-                Assert.NotNull(field);
-                field.SetValue(def, id);
             }
         }
     }

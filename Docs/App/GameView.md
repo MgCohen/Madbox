@@ -37,7 +37,7 @@
 1. Add `Madbox.GameView` (and transitively `Madbox.Animation`, `Madbox.Entity`) reference to consuming assemblies if needed (prefabs only do not require code references).
 2. **Weapon loadout**: Create a **`PlayerLoadoutDefinition`** (see **`Docs/Core/Levels.md`**, menu **Create > Madbox > Levels > Player Loadout**). Assign Addressables for the player prefab (must include `WeaponVisualController` with the same number of sockets as weapon entries) and a list of weapon prefabs. Register the definition asset under the address **`Player Loadout`** (see `PlayerLoadoutAssetProvider`) so bootstrap preload registers it and **`PlayerService`** receives it in its constructor. Call `PlayerFactory.CreateReadyPlayerAsync` from **`Madbox.App.Bootstrap.Player`** (scoped in bootstrap). Switch visible weapon with `WeaponVisualController.SetSelectedWeaponIndex` (weapons stay instantiated; inactive slots are disabled).
 3. On the **same GameObject as the `Animator`**, add `CharacterAnimationEventRouter` (from **`Madbox.Animation`**).
-4. Create `AnimationEventDefinition` assets under `Assets/Data/AnimationEvents/`; set `EventId` (or rely on asset name) and use that same string as the clip event **String** parameter.
+4. Create `AnimationEventDefinition` assets under `Assets/Data/AnimationEvents/`; the clip string must match the asset **name** (same pattern as `AnimationAttribute.ParameterName`). Rename the `.asset` file if you need a different id.
 5. In each clip (Animation window), add an event: **Function** = `OnCharacterAnimationEvent`, **String** = definition `EventId`.
 6. For attack speed scaling: add float parameter `AttackSpeedMultiplier` (default 1) on the Animator Controller; enable **Speed Parameter** on attack states only, set to `AttackSpeedMultiplier`. Create an `AnimationAttribute` asset with that parameter name. On the player, add a `PlayerAttribute` for attack speed, list it on `PlayerData`, and add `PlayerAttributeAnimatorDriver` with a link from that attribute to the `AttackSpeedMultiplier` `AnimationAttribute`. For non-player animators, set the float on `AnimationController` manually or via a small view script.
 7. Clip events: call `CharacterAnimationEventRouter.OnCharacterAnimationEvent` with the **string** parameter equal to the release asset’s `EventId`. Register handlers from a `MonoBehaviour` using `CharacterAnimationEventRouter.Register` (see examples below).
@@ -46,7 +46,7 @@ Common mistakes: placing `CharacterAnimationEventRouter` on the player root whil
 
 ## How to Use
 
-1. **Author an event id**: Create `AnimationEventDefinition`, note `EventId` (e.g. `attack_release`).
+1. **Author an event id**: Create `AnimationEventDefinition` named for the id (e.g. asset `attack_release` → `EventId` is `attack_release`).
 2. **Tag the clip**: Add animation event at the desired time with function `OnCharacterAnimationEvent` and string `attack_release`.
 3. **React in code**: From a `MonoBehaviour` on the character, `GetComponent<CharacterAnimationEventRouter>()` and `Register(definition, def => { ... })`; unregister in `OnDisable`.
 4. **Tune attack speed**: Change `PlayerData` attribute entries (e.g. attack speed stat) on the hero; idle/run states should keep speed parameter inactive so only attack accelerates.
@@ -113,7 +113,7 @@ void OnRelease(AnimationEventDefinition definition)
 - Invariants: router lives on Animator object; `EventId` must be non-empty; handlers multicast per definition.
 - Allowed: Unity types only in this module; prefab YAML edits for wiring.
 - Forbidden: new Core assembly references from `Madbox.GameView`.
-- Change checklist: update clip string if SO `EventId` changes; revalidate Hero/Bee prefabs; run GameView tests.
+- Change checklist: update clip string if the definition asset is renamed; revalidate Hero/Bee prefabs; run GameView tests.
 
 ## Related
 
