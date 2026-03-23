@@ -13,17 +13,24 @@ namespace Madbox.LiveOps
 {
     internal sealed class LiveOpsService : ILiveOpsService, IAsyncLayerInitializable
     {
-        public LiveOpsService(ICloudCodeModuleService cloudCodeModuleService)
+        public LiveOpsService(ICloudCodeModuleService cloudCodeModuleService, IObjectResolver objectResolver)
         {
             if (cloudCodeModuleService == null)
             {
                 throw new ArgumentNullException(nameof(cloudCodeModuleService));
             }
 
+            if (objectResolver == null)
+            {
+                throw new ArgumentNullException(nameof(objectResolver));
+            }
+
             this.cloudCodeModuleService = cloudCodeModuleService;
+            this.objectResolver = objectResolver;
         }
 
         private readonly ICloudCodeModuleService cloudCodeModuleService;
+        private readonly IObjectResolver objectResolver;
         private GameData gameData;
 
         public T GetModuleData<T>() where T : class, IGameModuleData
@@ -40,13 +47,6 @@ namespace Madbox.LiveOps
 
             return LoadInitialGameDataAsync(cancellationToken);
         }
-        private async Task LoadInitialGameDataAsync(CancellationToken cancellationToken)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            GameDataRequest request = new GameDataRequest();
-            GameDataResponse response = await CallAsync(request, cancellationToken).ConfigureAwait(false);
-            gameData = response?.GameData;
-        }
 
         public async Task<TResponse> CallAsync<TResponse>(ModuleRequest<TResponse> request, CancellationToken cancellationToken = default) where TResponse : ModuleResponse
         {
@@ -57,7 +57,35 @@ namespace Madbox.LiveOps
 
             cancellationToken.ThrowIfCancellationRequested();
             Dictionary<string, object> payload = new Dictionary<string, object> { { "request", request } };
-            return await cloudCodeModuleService.CallEndpointAsync<TResponse>(request.ModuleName, request.FunctionName, payload: payload, cancellationToken: cancellationToken);
+            Task<TResponse> endpointCall = cloudCodeModuleService.CallEndpointAsync<TResponse>(request.ModuleName, request.FunctionName, payload: payload, cancellationToken: cancellationToken);
+            TResponse response = await endpointCall.ConfigureAwait(false);
+            ApplyCompleteLevelSnapshot(response);
+            ModuleResponseHandlerDispatch.DispatchNestedResponses(objectResolver, response);
+            return response;
+        }
+
+        private void ApplyCompleteLevelSnapshot<TResponse>(TResponse response) where TResponse : ModuleResponse
+        {
+            if (gameData == null)
+            {
+                return;
+            }
+
+            if (response is not CompleteLevelResponse complete || complete.Data == null)
+            {
+                return;
+            }
+
+            gameData.ModulesData.RemoveAll(static m => m is LevelGameData);
+            gameData.AddModuleData(complete.Data);
+        }
+
+        private async Task LoadInitialGameDataAsync(CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            GameDataRequest request = new GameDataRequest();
+            GameDataResponse response = await CallAsync(request, cancellationToken).ConfigureAwait(false);
+            gameData = response?.GameData;
         }
     }
 }
