@@ -5,7 +5,7 @@ using UnityEngine;
 namespace Madbox.App.GameView.Player
 {
     /// <summary>
-    /// Overlap sphere using attack range for colliders with <see cref="Enemies"/>; drives the attack animator bool while a target is held.
+    /// Overlap sphere using attack range for colliders with <see cref="EnemyData"/>; drives the attack animator bool while a target is held.
     /// Facing runs in <see cref="Execute"/> while a target is held.
     /// </summary>
     public sealed class PlayerAttackViewBehavior : MonoBehaviour, IPlayerBehavior
@@ -128,7 +128,7 @@ namespace Madbox.App.GameView.Player
             for (int i = 0; i < hits.Length; i++)
             {
                 Collider c = hits[i];
-                if (c == null || c.GetComponent<Enemy>() == null)
+                if (c == null || c.GetComponent<EnemyData>() == null)
                 {
                     continue;
                 }

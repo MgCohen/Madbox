@@ -4,19 +4,19 @@
 
 - Purpose: Unity-facing player and combat presentation helpers (animation event routing, simple player behaviors, debug projectile spawn, weapon socket and visibility via `WeaponVisualController`), plus level-scene **`Arena`** markers for spawn positions and optional play bounds.
 - Location: `Assets/Scripts/App/GameView/Runtime/` (`Madbox.GameView` assembly), tests in `Assets/Scripts/App/GameView/Tests/`.
-- Depends on: Unity engine only. Loadout authoring asset `PlayerLoadoutDefinition` lives in **`Madbox.Levels`**; **`PlayerService`** and **`PlayerFactory`** live in **`Madbox.Bootstrap.Runtime`** and reference this assembly for `WeaponVisualController`. Preload is via **`PlayerLoadoutAssetProvider`** on the asset layer (see `BootstrapAssetInstaller`).
+- Depends on: **`Madbox.Entities`**, **`Madbox.Player`**, **`Madbox.Enemies`** (prefab components and targeting), Unity engine. Loadout authoring asset `PlayerLoadoutDefinition` lives in **`Madbox.Levels`**; **`PlayerService`** and **`PlayerFactory`** live in **`Madbox.Bootstrap.Runtime`** and reference this assembly for `WeaponVisualController`. Preload is via **`PlayerLoadoutAssetProvider`** on the asset layer (see `BootstrapAssetInstaller`).
 - Used by: Hero and enemy prefabs; optional scene wiring for joystick via `VirtualJoystickInput` / `PlayerInputProvider`; bootstrap registers `PlayerService` and `PlayerFactory` (see `BootstrapCoreInstaller`). `PlayerLoadoutDefinition` is registered into the layer scope after asset preload so `PlayerService` receives it by constructor injection.
-- Keywords: animation events, animator speed multiplier, player behavior runner, weapon loadout, `WeaponVisualController`, `Arena`, `PlayerAttribute` (see **`Docs/App/PlayerAttributes.md`**).
+- Keywords: animation events, animator speed multiplier, player behavior runner, weapon loadout, `WeaponVisualController`, `Arena` (see **`Docs/App/PlayerAttributes.md`**, **`Docs/Meta/Player.md`**).
 
 ## Responsibilities
 
 - Uses `AnimationEventRouter` and optional `AnimationEventDefinition` ScriptableObjects for clip event ids (string `EventId`); see `Docs/App/Animation.md`.
-- Owns lightweight player view data, behavior runner, movement/attack view behaviors, and generic `AnimationController` (cross-fade by state name, bool/float parameters).
+- Owns player **view** behaviors (runner, movement/attack), and generic `AnimationController` (cross-fade by state name, bool/float parameters). Player **entity** types (`PlayerData`, `PlayerAttribute`) live in **`Madbox.Player`**; enemy **entity** types (`EnemyData`, `EnemyAttribute`) live in **`Madbox.Enemies`**.
 - Owns `WeaponVisualController` (serialized list of socket transforms, spawned weapon instances, visible slot via `GameObject.SetActive`). Authoring asset `PlayerLoadoutDefinition` is in **`Madbox.Levels`**; `PlayerService` and `PlayerFactory` are in **`Madbox.Bootstrap.Runtime`**.
 - Owns `PlayerAttackViewBehavior` for range-based attack targeting and animator bools (not authoritative battle logic).
 - Owns `Arena` for level scenes: optional `BoxCollider` world bounds, optional enemy/player spawn `Transform`s, and `TryFindInScene` / `TryFindInLoadedScenes` helpers for code that runs after additive scene load.
 - Does not own domain simulation, damage resolution, or networking.
-- Does not reference `Assets/Scripts/Core/*` assemblies (keeps Unity presentation out of core).
+- References **`Madbox.Entities`** only for shared `EntityData` patterns on view-layer components (e.g. `ProjectileData`); does not own core simulation.
 
 ## Public API
 
@@ -25,12 +25,11 @@
 | `AnimationEventDefinition` | SO marker with string `EventId` for clip payloads | Asset authoring | `EventId` | Empty `EventId` is invalid for registration |
 | `AnimationEventRouter` | Single Unity animation callback → multicast handlers | Clip calls `OnCharacterAnimationEvent` with Object ref to `AnimationEventDefinition` | Invokes `Action<AnimationEventContext>` | Missing / unregistered definition logs in dev/editor builds; no throw |
 | `AnimationController` | `Play` / `GetBool` / `SetBool` / `SetFloat` on an `Animator` (string or `AnimationAttribute`) | View behaviours | Cross-fade, parameters | `Play` uses state hash internally |
-| `PlayerData` | `IsAlive` / `CanMove` via `PlayerAttribute` plus `attributeEntries` | Inspector | `GetFloatAttribute` / `SetFloatAttribute`, `IsAlive` / `CanMove` | Missing attribute entry logs in dev/editor |
-| `PlayerAttribute` | ScriptableObject id for a stat | Asset | `AttributeName` | n/a |
+| *(see `Madbox.Player`)* | `PlayerData` / `PlayerAttribute` are defined in **`Docs/Meta/Player.md`** | | | |
 | `AnimationAttribute` | ScriptableObject id for an animator parameter name | Asset | `ParameterName` | n/a |
 | `PlayerAttributeAnimatorDriver` | Maps `PlayerAttribute` → `AnimationAttribute` | `PlayerData.AttributeValueChanged` | `AnimationController` parameters | No-op if link or controller missing |
 | `PlayerBehaviorRunner` | Ordered `IPlayerBehavior` first-accept-wins | `Update` | Runs one behavior per frame | No-op if `PlayerData` missing |
-| `Projectile` | Optional forward motion, `ScheduleDestroyAfterSeconds`, trigger impact self-destruct; `GetComponent<Enemy>` + damage TODO | Start/Update/trigger | Moves along forward when enabled | Trigger collider + Rigidbody; targets expose `Enemy`; use **Projectile** layer |
+| `Projectile` | Optional forward motion, `ScheduleDestroyAfterSeconds`, trigger impact self-destruct; `GetComponent<EnemyData>` + damage TODO | Start/Update/trigger | Moves along forward when enabled | Trigger collider + Rigidbody; targets expose `EnemyData`; use **Projectile** layer |
 | `WeaponVisualController` | List of socket `Transform`s and matching weapon roots; selection by index | `SetWeaponInstances`, `SetSelectedWeaponIndex` | `SelectedWeaponIndex` | Throws if socket/instance counts mismatch or instances not set |
 | `Arena` | Level-scene marker for bounds and spawns | Inspector: optional box collider, spawn transforms | `TryGetWorldBounds`, spawn world positions, `TryFindInScene` | Bounds false when no box collider; spawns fall back to arena transform |
 
@@ -38,7 +37,7 @@
 
 1. Add `Madbox.GameView` reference to consuming assemblies if needed (prefabs only do not require code references).
 2. **Arena (level scenes)**: Add `Arena` to a root or child in each Addressable level scene. Optionally assign a `BoxCollider` on the same object (or drag one into **Area Bounds Source**) for `TryGetWorldBounds`. Set **Enemy Spawn Point** / **Player Spawn Point** for explicit spawn transforms; otherwise the arena transform position is used. After `SceneManager` / Addressables loads the level scene, call `Arena.TryFindInScene(loadedScene, out var arena)` to read positions and bounds.
-3. **Weapon loadout**: Create a **`PlayerLoadoutDefinition`** (see **`Docs/Core/Levels.md`**, menu **Create > Madbox > Levels > Player Loadout**). Assign Addressables for the player prefab (must include `WeaponVisualController` with the same number of sockets as weapon entries) and a list of weapon prefabs. Register the definition asset under the address **`Player Loadout`** (see `PlayerLoadoutAssetProvider`) so bootstrap preload registers it and **`PlayerService`** receives it in its constructor. Call `PlayerFactory.CreateReadyPlayerAsync` from **`Madbox.App.Bootstrap.Player`** (scoped in bootstrap). Switch visible weapon with `WeaponVisualController.SetSelectedWeaponIndex` (weapons stay instantiated; inactive slots are disabled).
+3. **Weapon loadout**: Create a **`PlayerLoadoutDefinition`** (see **`Docs/Core/Levels.md`**, menu **Create > Madbox > Player > PlayerLoadout**). Assign Addressables for the player prefab (must include `WeaponVisualController` with the same number of sockets as weapon entries) and a list of weapon prefabs. Register the definition asset under the address **`Player Loadout`** (see `PlayerLoadoutAssetProvider`) so bootstrap preload registers it and **`PlayerService`** receives it in its constructor. Call `PlayerFactory.CreateReadyPlayerAsync` from **`Madbox.App.Bootstrap.Player`** (scoped in bootstrap). Switch visible weapon with `WeaponVisualController.SetSelectedWeaponIndex` (weapons stay instantiated; inactive slots are disabled).
 4. On the **same GameObject as the `Animator`**, add `AnimationEventRouter`.
 5. Create `AnimationEventDefinition` assets under `Assets/Data/AnimationEvents/`; set `EventId` (or rely on asset name) and use that same string as the clip event **String** parameter.
 6. In each clip (Animation window), add an event: **Function** = `OnCharacterAnimationEvent`, **Object** = the `AnimationEventDefinition` asset (not the string field).

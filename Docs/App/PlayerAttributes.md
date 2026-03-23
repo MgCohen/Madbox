@@ -1,8 +1,8 @@
-# Player attributes (GameView)
+# Player attributes
 
 ## Purpose
 
-Named numeric stats use `PlayerAttribute` ScriptableObject assets (subclass of **`EntityAttribute`**, asset name as id) plus float storage on `PlayerData` (subclass of **`EntityData`**). `IsAlive` and `CanMove` are the same pattern: dedicated `PlayerAttribute` assets plus entries in the inherited **`attributeEntries`**. Behaviors reference the same assets as the data entries so values stay aligned without duplicated string identifiers.
+Types **`PlayerData`** and **`PlayerAttribute`** live in **`Madbox.Player`** (see **`Docs/Meta/Player.md`**). Named numeric stats use `PlayerAttribute` ScriptableObject assets (subclass of **`EntityAttribute`**, asset name as id) plus float storage on `PlayerData` (subclass of **`EntityData`**). `IsAlive` and `CanMove` are the same pattern: dedicated `PlayerAttribute` assets plus entries in the inherited **`attributeEntries`**. Game View behaviors reference the same assets as the data entries so values stay aligned without duplicated string identifiers.
 
 ## Types
 

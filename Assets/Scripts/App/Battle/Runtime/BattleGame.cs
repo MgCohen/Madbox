@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Madbox.Enemies;
+using Madbox.Enemies;
 using Madbox.Levels;
 using Madbox.Levels.Rules;
 using UnityEngine;
@@ -38,7 +39,7 @@ namespace Madbox.Battle
 
         public event Action<GameEndReason> OnCompleted;
 
-        public void SpawnEnemyCopies(EnemyActor prefab, int count, Vector3 origin, float spacingPerIndex)
+        public void SpawnEnemyCopies(EnemyData prefab, int count, Vector3 origin, float spacingPerIndex)
         {
             if (prefab == null)
             {
@@ -53,7 +54,7 @@ namespace Madbox.Battle
             SpawnEnemyCopiesCore(prefab, count, origin, spacingPerIndex);
         }
 
-        private void SpawnEnemyCopiesCore(EnemyActor prefab, int count, Vector3 origin, float spacingPerIndex)
+        private void SpawnEnemyCopiesCore(EnemyData prefab, int count, Vector3 origin, float spacingPerIndex)
         {
             for (int i = 0; i < count; i++)
             {

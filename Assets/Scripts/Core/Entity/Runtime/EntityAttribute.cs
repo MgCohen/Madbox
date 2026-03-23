@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Madbox.Entity
+namespace Madbox.Entities
 {
     /// <summary>
     /// Identifies a float-backed stat or flag on an <see cref="EntityData"/>; behaviors reference this asset instead of string literals.

@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using Madbox.Entity;
+using Madbox.Entities;
 using UnityEngine;
 using UnityEngine.Serialization;
 

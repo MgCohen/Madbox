@@ -2,7 +2,8 @@
     "name": "Madbox.Enemies.Tests",
     "rootNamespace": "Madbox.Enemies.Tests",
     "references": [
-        "Madbox.Enemies"
+        "Madbox.Enemies",
+        "Madbox.Entities"
     ],
     "includePlatforms": [
         "Editor"

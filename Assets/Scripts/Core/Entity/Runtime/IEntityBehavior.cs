@@ -1,4 +1,4 @@
-namespace Madbox.Entity
+namespace Madbox.Entities
 {
     /// <summary>
     /// Ordered entity view behavior; first <see cref="TryAcceptControl"/> wins for the frame.

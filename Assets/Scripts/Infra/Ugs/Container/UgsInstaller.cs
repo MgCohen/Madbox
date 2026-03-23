@@ -9,7 +9,7 @@ namespace Madbox.Ugs.Container
     {
         public void Install(IContainerBuilder builder)
         {
-            builder.Register<Ugs>(Lifetime.Scoped).AsSelf().As<IAsyncLayerInitializable>();
+            builder.Register<Ugs>(Lifetime.Singleton).AsSelf().As<IAsyncLayerInitializable>();
         }
     }
 }

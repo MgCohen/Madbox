@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Madbox.Addressables.Contracts;
 using Madbox.App.Bootstrap.Player;
 using Madbox.App.GameView.Player;
+using Madbox.Player;
 using Madbox.Levels;
 using NUnit.Framework;
 using UnityEngine;

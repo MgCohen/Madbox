@@ -1,11 +1,11 @@
-# Entity (Core)
+# Entities (Core)
 
 ## TL;DR
 
 - Purpose: Reusable entity view data (float attributes with additive modifiers), behavior runner (first-accept-wins stack), and contracts for per-frame input and behaviors.
-- Location: `Assets/Scripts/Core/Entity/Runtime/` (`Madbox.Entity` assembly), tests in `Assets/Scripts/Core/Entity/Tests/` (`Madbox.Entity.Tests`).
+- Location: `Assets/Scripts/Core/Entity/Runtime/` (`Madbox.Entities` assembly), tests in `Assets/Scripts/Core/Entity/Tests/` (`Madbox.Entities.Tests`). *(Folder name `Entity` may be renamed to `Entities` in the editor; assembly is `Madbox.Entities`.)*
 - Depends on: Unity engine only (no App-layer assemblies).
-- Used by: `Madbox.Animation` (`EntityAttributeAnimatorDriver` bridges attributes to `AnimationController`), `Madbox.GameView` (`PlayerData`, `EnemyData`, `ProjectileData`, and thin subclasses of generic runners/drivers).
+- Used by: `Madbox.Animation` (`EntityAttributeAnimatorDriver` bridges attributes to `AnimationController`), `Madbox.Player` (`PlayerData` / `PlayerAttribute`), `Madbox.Enemies` (`EnemyData` / `EnemyAttribute`), `Madbox.GameView` (`ProjectileData` and thin subclasses of generic runners/drivers).
 
 ## Public API
 
@@ -21,14 +21,16 @@
 
 ## Integration
 
-- `EntityAttributeAnimatorDriver<TData>` lives in `Madbox.Animation` (`Assets/Scripts/App/Animation/Runtime/`): maps `EntityAttribute` → `AnimationAttribute` on `AnimationController`, and depends on `Madbox.Entity`.
+- `EntityAttributeAnimatorDriver<TData>` lives in `Madbox.Animation` (`Assets/Scripts/App/Animation/Runtime/`): maps `EntityAttribute` → `AnimationAttribute` on `AnimationController`, and depends on `Madbox.Entities`.
 
 ## Testing
 
-- Assembly: `Madbox.Entity.Tests` (EditMode) for base `EntityData` attribute behavior.
+- Assembly: `Madbox.Entities.Tests` (EditMode) for base `EntityData` attribute behavior.
 
 ## Related
 
 - `Docs/App/Animation.md`
 - `Docs/App/GameView.md`
+- `Docs/Meta/Player.md`
+- `Docs/Meta/Enemies.md`
 - `Docs/App/PlayerAttributes.md`

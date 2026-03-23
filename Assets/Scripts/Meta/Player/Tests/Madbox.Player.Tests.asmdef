@@ -1,0 +1,22 @@
+{
+    "name": "Madbox.Player.Tests",
+    "rootNamespace": "Madbox.Player.Tests",
+    "references": [
+        "Madbox.Entities",
+        "Madbox.Player"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false,
+    "optionalUnityReferences": [
+        "TestAssemblies"
+    ]
+}

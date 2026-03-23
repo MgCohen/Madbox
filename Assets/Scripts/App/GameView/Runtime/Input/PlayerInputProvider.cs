@@ -1,4 +1,4 @@
-using Madbox.Entity;
+using Madbox.Entities;
 using Madbox.App.GameView.Player;
 using UnityEngine;
 

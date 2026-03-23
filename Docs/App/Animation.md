@@ -4,7 +4,7 @@
 
 - Purpose: Unity-facing animator helpers (`AnimationController`, `AnimationAttribute`) and clip event routing (`AnimationEventRouter`, optional `AnimationEventDefinition`).
 - Location: `Assets/Scripts/App/Animation/Runtime/` (`Madbox.Animation` assembly), tests in `Assets/Scripts/App/Animation/Tests/` (`Madbox.Animation.Tests`).
-- Depends on: `Madbox.Entity`, Unity engine.
+- Depends on: `Madbox.Entities`, Unity engine.
 - Used by: `Madbox.GameView` (player behaviors, combat presentation, attribute → animator drivers).
 
 ## Public API
@@ -25,4 +25,4 @@
 ## Related
 
 - `Docs/App/GameView.md`
-- `Docs/Core/Entity.md`
+- `Docs/Core/Entities.md`

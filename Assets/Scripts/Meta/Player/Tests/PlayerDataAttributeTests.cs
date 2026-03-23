@@ -1,10 +1,10 @@
-using Madbox.Entity;
-using Madbox.App.GameView.Player;
+using Madbox.Entities;
+using Madbox.Player;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
 
-namespace Madbox.App.GameView.Tests
+namespace Madbox.Player.Tests
 {
     public sealed class PlayerDataAttributeTests
     {

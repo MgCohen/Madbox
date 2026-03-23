@@ -18,7 +18,7 @@ namespace Madbox.LiveOps.Tests
 
             ContainerBuilder builder = new ContainerBuilder();
             builder.RegisterInstance(liveOps).As<ILiveOpsService>();
-            builder.Register<DummyClientModule>(Lifetime.Scoped).AsSelf().As<IAsyncLayerInitializable>();
+            builder.Register<DummyClientModule>(Lifetime.Singleton).AsSelf().As<IAsyncLayerInitializable>();
 
             using (IObjectResolver container = builder.Build())
             {

@@ -5,7 +5,7 @@ using UnityEngine.AddressableAssets;
 
 namespace Madbox.Levels
 {
-    [CreateAssetMenu(menuName = "Madbox/Levels/Player Loadout", fileName = "PlayerLoadoutDefinition")]
+    [CreateAssetMenu(menuName = "Madbox/Player/PlayerLoadout", fileName = "PlayerLoadoutDefinition")]
     public sealed class PlayerLoadoutDefinition : ScriptableObject
     {
         public AssetReference PlayerPrefab => playerPrefab;

@@ -1,8 +1,8 @@
 {
-    "name": "Madbox.Entity.Tests",
-    "rootNamespace": "Madbox.Entity.Tests",
+    "name": "Madbox.Entities.Tests",
+    "rootNamespace": "Madbox.Entities.Tests",
     "references": [
-        "Madbox.Entity"
+        "Madbox.Entities"
     ],
     "includePlatforms": [
         "Editor"

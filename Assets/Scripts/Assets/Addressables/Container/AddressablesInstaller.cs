@@ -1,4 +1,4 @@
-﻿using Madbox.Addressables.Contracts;
+using Madbox.Addressables.Contracts;
 using Madbox.Scope.Contracts;
 using VContainer;
 using VContainer.Unity;
@@ -16,7 +16,8 @@ namespace Madbox.Addressables.Container
 
         private void RegisterGateway(IContainerBuilder builder, IAddressablesAssetClient assetClient, IAssetReferenceHandler assetReferenceHandler)
         {
-            builder.Register<IAddressablesGateway, AddressablesGateway>(Lifetime.Scoped)
+            // Singleton: layered bootstrap calls CreateScope per layer; Scoped would allocate one gateway per scope and run catalog sync multiple times.
+            builder.Register<IAddressablesGateway, AddressablesGateway>(Lifetime.Singleton)
                 .WithParameter<IAddressablesAssetClient>(assetClient)
                 .WithParameter<IAssetReferenceHandler>(assetReferenceHandler)
                 .AsImplementedInterfaces();

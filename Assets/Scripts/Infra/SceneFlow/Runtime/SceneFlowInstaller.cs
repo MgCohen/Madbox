@@ -22,8 +22,8 @@ namespace Madbox.SceneFlow
                 builder.RegisterInstance(bootstrapShell).As<ISceneFlowBootstrapShell>();
             }
 
-            builder.Register<IAddressablesSceneOperations, AddressablesSceneOperations>(Lifetime.Scoped);
-            builder.Register<ISceneFlowService, SceneFlowService>(Lifetime.Scoped);
+            builder.Register<IAddressablesSceneOperations, AddressablesSceneOperations>(Lifetime.Singleton);
+            builder.Register<ISceneFlowService, SceneFlowService>(Lifetime.Singleton);
         }
     }
 }

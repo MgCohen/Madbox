@@ -1,9 +1,9 @@
-using Madbox.Entity;
+using Madbox.Entities;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
 
-namespace Madbox.Entity.Tests
+namespace Madbox.Entities.Tests
 {
     public sealed class EntityDataAttributeTests
     {

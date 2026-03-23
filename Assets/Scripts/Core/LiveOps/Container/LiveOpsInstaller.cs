@@ -9,7 +9,7 @@ namespace Madbox.LiveOps.Container
     {
         public void Install(IContainerBuilder builder)
         {
-            builder.Register<LiveOpsService>(Lifetime.Scoped)
+            builder.Register<LiveOpsService>(Lifetime.Singleton)
                 .As<ILiveOpsService>()
                 .As<IAsyncLayerInitializable>();
         }

@@ -1,5 +1,6 @@
 using Madbox.App.Animation;
-using Madbox.Entity;
+using Madbox.Player;
+using Madbox.Entities;
 
 namespace Madbox.App.GameView.Player
 {
