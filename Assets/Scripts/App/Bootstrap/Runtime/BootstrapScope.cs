@@ -23,11 +23,11 @@ namespace Madbox.App.Bootstrap
             Debug.Log("[BootstrapScope] Building Layer Tree");
             BootstrapAssetInstaller asset = new BootstrapAssetInstaller();
             BootstrapInfraInstaller infra = new BootstrapInfraInstaller(viewHolder, sceneFlowBootstrapShell);
-            BootstrapMetaInstaller meta = new BootstrapMetaInstaller();
             BootstrapCoreInstaller core = new BootstrapCoreInstaller();
+            BootstrapMetaInstaller meta = new BootstrapMetaInstaller();
             asset.AddChild(infra);
-            infra.AddChild(meta);
-            meta.AddChild(core);
+            infra.AddChild(core);
+            core.AddChild(meta);
             return asset;
         }
 
@@ -36,35 +36,35 @@ namespace Madbox.App.Bootstrap
             bootstrapLoadingView?.Hide();
             Debug.Log("Bootstrap completed");
 
-            try
-            {
-                var gateway = finalScope.Container.Resolve<Madbox.Addressables.Contracts.IAddressablesGateway>();
+            //try
+            //{
+            //    var gateway = finalScope.Container.Resolve<Madbox.Addressables.Contracts.IAddressablesGateway>();
                 
-                // DUMP ALL KEYS IN ADDRESSABLES TO PROVE WHAT'S AVAILABLE
-                System.Text.StringBuilder sb = new System.Text.StringBuilder();
-                sb.AppendLine("<color=yellow>--- LIST OF ALL LOADED ADDRESSABLE KEYS ---</color>");
-                foreach (var locator in UnityEngine.AddressableAssets.Addressables.ResourceLocators)
-                {
-                    foreach (object key in locator.Keys)
-                    {
-                        if (key is string s && !s.EndsWith(".bundle") && !s.EndsWith(".hash") && !s.EndsWith(".json"))
-                        {
-                            sb.AppendLine(" - " + s);
-                        }
-                    }
-                }
-                sb.AppendLine("<color=yellow>-------------------------------------------</color>");
-                Debug.Log(sb.ToString());
+            //    // DUMP ALL KEYS IN ADDRESSABLES TO PROVE WHAT'S AVAILABLE
+            //    System.Text.StringBuilder sb = new System.Text.StringBuilder();
+            //    sb.AppendLine("<color=yellow>--- LIST OF ALL LOADED ADDRESSABLE KEYS ---</color>");
+            //    foreach (var locator in UnityEngine.AddressableAssets.Addressables.ResourceLocators)
+            //    {
+            //        foreach (object key in locator.Keys)
+            //        {
+            //            if (key is string s && !s.EndsWith(".bundle") && !s.EndsWith(".hash") && !s.EndsWith(".json"))
+            //            {
+            //                sb.AppendLine(" - " + s);
+            //            }
+            //        }
+            //    }
+            //    sb.AppendLine("<color=yellow>-------------------------------------------</color>");
+            //    Debug.Log(sb.ToString());
 
-                // FIX THE KEY TO THE PROPER ADDRESSABLE NAME
-                Debug.Log("[Test] Starting to load GreatSword from Addressables...");
-                var handle = await gateway.LoadAsync<GameObject>(new UnityEngine.AddressableAssets.AssetReference("GreatSword"));
-                Debug.Log($"<color=green>[Test] SUCCESSFULLY LOADED ADDRESSABLE: {handle.Asset?.name}</color>");
-            }
-            catch (System.Exception e)
-            {
-                Debug.LogError($"[Test] FAILED to load addressable: {e.Message}");
-            }
+            //    // FIX THE KEY TO THE PROPER ADDRESSABLE NAME
+            //    Debug.Log("[Test] Starting to load GreatSword from Addressables...");
+            //    var handle = await gateway.LoadAsync<GameObject>(new UnityEngine.AddressableAssets.AssetReference("GreatSword"));
+            //    Debug.Log($"<color=green>[Test] SUCCESSFULLY LOADED ADDRESSABLE: {handle.Asset?.name}</color>");
+            //}
+            //catch (System.Exception e)
+            //{
+            //    Debug.LogError($"[Test] FAILED to load addressable: {e.Message}");
+            //}
 
             OpenMainMenu(finalScope);
         }

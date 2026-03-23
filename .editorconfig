@@ -9,6 +9,7 @@ root = true
 dotnet_diagnostic.SCA0001.severity = warning   # No comments on methods
 dotnet_diagnostic.SCA0002.severity = warning   # Methods in order of usage
 dotnet_diagnostic.SCA0003.severity = warning   # No nested function calls
+scaffold.SCA0003.max_nesting_depth = 1         # 1 = no nesting (default); 2 = allow one constructor/call in arguments
 dotnet_diagnostic.SCA0004.severity = warning   # Use curly brackets for methods
 dotnet_diagnostic.SCA0005.severity = warning   # Avoid line breaks in signatures
 dotnet_diagnostic.SCA0006.severity = warning   # Methods should be small

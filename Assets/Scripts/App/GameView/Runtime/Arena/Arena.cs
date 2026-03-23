@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-namespace Madbox.App.GameView.Arena
+namespace Madbox.App.GameView.Arenas
 {
     /// <summary>
     /// Place on a root or manager object in a level (Addressable) scene. After the scene loads, resolve it with
