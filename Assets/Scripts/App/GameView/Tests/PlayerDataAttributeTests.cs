@@ -20,7 +20,7 @@ namespace Madbox.App.GameView.Tests
             list.arraySize = 1;
             SerializedProperty entry = list.GetArrayElementAtIndex(0);
             entry.FindPropertyRelative("attribute").objectReferenceValue = attr;
-            entry.FindPropertyRelative("value").floatValue = 2.5f;
+            entry.FindPropertyRelative("baseValue").floatValue = 2.5f;
             dataSo.ApplyModifiedPropertiesWithoutUndo();
 
             Assert.That(data.GetFloatAttribute(attr), Is.EqualTo(2.5f).Within(0.0001f));
@@ -42,7 +42,7 @@ namespace Madbox.App.GameView.Tests
             list.arraySize = 1;
             SerializedProperty entry = list.GetArrayElementAtIndex(0);
             entry.FindPropertyRelative("attribute").objectReferenceValue = attr;
-            entry.FindPropertyRelative("value").floatValue = 1f;
+            entry.FindPropertyRelative("baseValue").floatValue = 1f;
             dataSo.ApplyModifiedPropertiesWithoutUndo();
 
             PlayerAttribute changedAttr = null;
@@ -76,7 +76,7 @@ namespace Madbox.App.GameView.Tests
             list.arraySize = 1;
             SerializedProperty entry = list.GetArrayElementAtIndex(0);
             entry.FindPropertyRelative("attribute").objectReferenceValue = attr;
-            entry.FindPropertyRelative("value").floatValue = 0f;
+            entry.FindPropertyRelative("baseValue").floatValue = 0f;
             dataSo.ApplyModifiedPropertiesWithoutUndo();
 
             Assert.IsFalse(data.GetBoolAttribute(attr));
