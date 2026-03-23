@@ -7,12 +7,12 @@ namespace GameModuleDTO.ModuleRequests
     /// </summary>
     public class WatchAdResponse : ModuleResponse
     {
-        public WatchAdResponse(AdsGameData data)
+        public WatchAdResponse(AdData data)
         {
             Data = data;
         }
 
-        /// <summary>Gets the updated ads game data.</summary>
-        public AdsGameData Data { get; protected set; }
+        /// <summary>Gets the updated ads payload.</summary>
+        public AdData Data { get; protected set; }
     }
 }

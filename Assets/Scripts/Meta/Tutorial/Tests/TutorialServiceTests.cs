@@ -15,7 +15,7 @@ namespace Madbox.Tutorial.Tests
         [Test]
         public void InitializeAsync_LoadsTutorialGameDataFromLiveOps()
         {
-            TutorialGameData expected = TutorialGameData.From(new TutorialPersistence(), new TutorialConfig());
+            TutorialGameData expected = new TutorialGameData(new TutorialPersistence(), new TutorialConfig());
             ContainerBuilder builder = new ContainerBuilder();
             builder.RegisterInstance(new StubLiveOps(expected)).As<ILiveOpsService>();
             builder.Register<TestTutorialService>(Lifetime.Scoped).AsSelf().As<IAsyncLayerInitializable>();

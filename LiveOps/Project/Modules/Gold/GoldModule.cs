@@ -12,9 +12,9 @@ using Unity.Services.CloudCode.Core;
 namespace GameModule.Modules.Gold
 {
     /// <summary>
-    /// Module handling client-side Gold (player-specific data).
+    /// Cloud Code gold module: persistence + remote config merged into <see cref="GoldGameData"/>.
     /// </summary>
-    public class GoldModule : GameModule<GoldModuleData>
+    public class GoldModule : GameModule<GoldGameData>
     {
         private readonly ILogger<GoldModule> _logger;
         private readonly ModuleRequestHandler _handler;
@@ -29,17 +29,18 @@ namespace GameModule.Modules.Gold
         {
             _logger.LogInformation("Initializing GoldModule");
 
-            GoldConfigData config = await remoteConfig.Get(context, new GoldConfigData());
-            GoldModuleData data = await playerData.GetOrSet(context, new GoldModuleData());
+            GoldConfig config = await remoteConfig.Get(context, new GoldConfig());
+            GoldRewardModuleData rewardConfig = await remoteConfig.Get(context, new GoldRewardModuleData());
+            GoldPersistence persistence = await playerData.GetOrSet(context, new GoldPersistence());
 
-            long clampedValue = Math.Clamp(data.Current, config.Min, config.Max);
-            if (clampedValue != data.Current)
+            long clamped = Math.Clamp(persistence.Current, config.Min, config.Max);
+            if (clamped != persistence.Current)
             {
-                data.SetCurrent(clampedValue);
-                await playerData.Set(context, data);
+                persistence.SetCurrent(clamped);
+                await playerData.Set(context, persistence);
             }
 
-            return data;
+            return new GoldGameData(persistence, config, rewardConfig);
         }
 
         public async Task AddGoldToPlayer(IExecutionContext context, IPlayerData playerData, IRemoteConfig remoteConfig, long amount = 0)
@@ -48,16 +49,18 @@ namespace GameModule.Modules.Gold
 
             if (amount == 0)
             {
-                GoldRewardModuleData configData = await remoteConfig.Get(context, new GoldRewardModuleData());
-                amount = configData.Reward;
+                GoldRewardModuleData rewardDefaults = await remoteConfig.Get(context, new GoldRewardModuleData());
+                amount = rewardDefaults.Reward;
             }
 
-            GoldModuleData goldData = await playerData.GetOrSet(context, new GoldModuleData());
-            goldData.SetCurrent(goldData.Current + amount);
-            playerData.AddToCache(goldData);
+            GoldConfig config = await remoteConfig.Get(context, new GoldConfig());
+            GoldPersistence goldPersistence = await playerData.GetOrSet(context, new GoldPersistence());
+            long next = goldPersistence.Current + amount;
+            goldPersistence.SetCurrent(Math.Clamp(next, config.Min, config.Max));
+            playerData.AddToCache(goldPersistence);
 
             _handler.AddResponse(new GoldResponse(amount));
-            _logger.LogInformation("[GoldModule] Added {Amount} gold to player {PlayerId}. New total: {Total}", amount, context.PlayerId, goldData.Current);
+            _logger.LogInformation("[GoldModule] Added {Amount} gold to player {PlayerId}. New total: {Total}", amount, context.PlayerId, goldPersistence.Current);
         }
     }
 }

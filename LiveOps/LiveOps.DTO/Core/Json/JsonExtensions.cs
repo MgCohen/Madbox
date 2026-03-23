@@ -20,7 +20,7 @@ namespace GameModuleDTO.Json
         /// <typeparam name="T">The target generic parameter type.</typeparam>
         /// <param name="json">A standard JSON string literal.</param>
         /// <returns>An extracted representation assigned the desired underlying format.</returns>
-        public static T FromJson<T>(this string? json)
+        public static T FromJson<T>(this string json)
         {
             // Return directly if the string is a simple literal
             if (string.IsNullOrWhiteSpace(json) || (!json.TrimStart().StartsWith("{") && !json.TrimStart().StartsWith("[")))
