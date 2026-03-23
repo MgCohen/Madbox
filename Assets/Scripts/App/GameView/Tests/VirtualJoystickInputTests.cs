@@ -1,5 +1,5 @@
 using Madbox.App.GameView.Input;
-using Madbox.App.GameView.Players;
+using Madbox.Players;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;

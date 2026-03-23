@@ -1,9 +1,9 @@
 using UnityEngine;
 
-namespace Madbox.App.GameView.Players
+namespace Madbox.Players
 {
     /// <summary>
-    /// Snapshot of player input for one frame, produced by <see cref="Madbox.App.GameView.Input.PlayerInputProvider"/>.
+    /// Snapshot of player input for one frame, produced by input providers.
     /// </summary>
     public readonly struct PlayerInputContext
     {

@@ -16,6 +16,9 @@ namespace Madbox.Scope
 
         protected override void Configure(IContainerBuilder builder)
         {
+            builder.Register<CrossLayerObjectResolver>(Lifetime.Singleton)
+                .As<ICrossLayerObjectResolver>()
+                .AsSelf();
         }
 
         private async void Start()
@@ -49,7 +52,7 @@ namespace Madbox.Scope
 
         protected virtual ILayeredScopeProgress GetLayerProgressListener()
         {
-            return GetComponent<ILayeredScopeProgress>();
+            return GetComponentInChildren<ILayeredScopeProgress>();
         }
 
         protected override void OnDestroy()
@@ -69,6 +72,8 @@ namespace Madbox.Scope
 
         private async Task RunStartupAsync(CancellationToken cancellationToken)
         {
+            InitializeCrossLayerResolver();
+
             LayerInstallerBase rootInstaller = BuildLayerTree();
             if (rootInstaller == null)
             {
@@ -81,6 +86,18 @@ namespace Madbox.Scope
             LifetimeScope finalScope = rootInstaller.GetFinalScope();
             Debug.Log($"[{GetType().Name}] Bootstrap BuildAsRootAsync complete, invoking OnBootstrapCompleted...");
             OnBootstrapCompleted(finalScope ?? this);
+        }
+
+        private void InitializeCrossLayerResolver()
+        {
+            if (Container == null)
+            {
+                return;
+            }
+
+            ICrossLayerObjectResolver crossLayerResolver = Container.Resolve<ICrossLayerObjectResolver>();
+            crossLayerResolver.Reset();
+            crossLayerResolver.RegisterScope(Container);
         }
     }
 }

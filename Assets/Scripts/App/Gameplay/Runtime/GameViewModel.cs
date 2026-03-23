@@ -2,6 +2,7 @@ using System.Collections;
 using System.Threading;
 using System.Threading.Tasks;
 using Madbox.Levels;
+using Madbox.Players;
 using Scaffold.MVVM;
 using UnityEngine;
 using VContainer;
@@ -21,14 +22,14 @@ namespace Madbox.App.Gameplay
         private GameSessionCoordinator sessionCoordinator;
 
         [Inject]
-        private IPlayerSpawnService playerSpawnService;
+        private PlayerFactory playerFactory;
 
         [Inject]
         private IMainMenuLauncher mainMenuLauncher;
 
         public void BeginSessionLoad(MonoBehaviour coroutineHost)
         {
-            if (coroutineHost == null || sessionCoordinator == null || playerSpawnService == null)
+            if (coroutineHost == null || sessionCoordinator == null || playerFactory == null)
             {
                 return;
             }
@@ -38,7 +39,7 @@ namespace Madbox.App.Gameplay
 
         private IEnumerator LoadSessionRoutine(MonoBehaviour host)
         {
-            Task sessionTask = sessionCoordinator.RunSessionAsync(selectedLevel, playerSpawnService, CancellationToken.None);
+            Task sessionTask = sessionCoordinator.RunSessionAsync(selectedLevel, playerFactory, CancellationToken.None);
             yield return new WaitUntil(() => sessionTask.IsCompleted);
             if (sessionTask.IsFaulted && sessionTask.Exception != null)
             {

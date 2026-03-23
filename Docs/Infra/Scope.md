@@ -33,6 +33,7 @@ This order allows a parent installer to prepare data in `OnCompletedAsync` befor
 |---|---|---|---|---|
 | `LayeredScope` | Coordinates startup with one root layer tree. | Root installer tree + cancellation token. | Initialized final scope and startup completion signal. | Throws on null tree root or startup failures. |
 | `LayerInstallerBase` | Recursive installer with deterministic pipeline. | Parent scope and cancellation token. | Built child scope subtree. | Throws on invalid tree topology or initializer failures. |
+| `ICrossLayerObjectResolver` | Resolves services and performs injection across all built layer scopes. | Registered layer resolvers + requested type or target instance. | Instance from deepest matching scope or injected object graph. | Throws when `Resolve*` cannot find the type in any registered layer or `Inject` fails in all layers. |
 | `IAsyncLayerInitializable.InitializeAsync(IObjectResolver, CancellationToken)` | Async startup contract for layer services. | Resolver and cancellation token. | Startup completion signal. | Cancellation propagates; non-cancellation failures are wrapped by startup orchestration. |
 | `ILayeredScopeProgress.OnLayerPipelineStep(int completedLayerIndex, int totalLayers)` | Optional UI or telemetry hook for layered build progress. | 1-based step index and total layer count. | None. | Must be cheap; implementations that touch Unity UI should marshal to the main thread. |
 
@@ -63,6 +64,7 @@ Run:
 
 ## Changelog
 
+- 2026-03-23: Added `ICrossLayerObjectResolver` for resolving services from any built layer scope (deepest-first).
 - 2026-03-22: Documented optional `ILayeredScopeProgress` and pipeline step after `OnCompletedAsync` before `BuildChildrenAsync`.
 - 2026-03-21: Updated pipeline order to `InitializeAsync -> OnCompletedAsync -> BuildChildrenAsync` to support parent completion data before child creation.
 - 2026-03-21: Kept recursive installer model and initialization contracts unchanged.

@@ -1,12 +1,10 @@
 {
-    "name": "Madbox.Player",
-    "rootNamespace": "Madbox.Players",
+    "name": "Madbox.Player.Container",
+    "rootNamespace": "Madbox.Players.Container",
     "references": [
-        "Madbox.Entities",
-        "Madbox.Animation",
-        "Madbox.Enemies",
-        "Madbox.Addressables",
-        "Madbox.Levels"
+        "Madbox.Player",
+        "VContainer",
+        "VContainer.Unity"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

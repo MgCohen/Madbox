@@ -2,17 +2,16 @@
 
 ## TL;DR
 
-- Purpose: Unity-facing player and combat presentation helpers (animation event routing, simple player behaviors, debug projectile spawn, weapon socket and visibility via `WeaponVisualController`), plus level-scene **`Arena`** markers for spawn positions and optional play bounds.
+- Purpose: Unity-facing player and combat presentation helpers (animation event routing, simple player behaviors, debug projectile spawn), plus level-scene **`Arena`** markers for spawn positions and optional play bounds.
 - Location: `Assets/Scripts/App/GameView/Runtime/` (`Madbox.GameView` assembly), tests in `Assets/Scripts/App/GameView/Tests/`.
-- Depends on: **`Madbox.Entities`**, **`Madbox.Player`**, **`Madbox.Enemies`** (prefab components and targeting), Unity engine. Loadout authoring asset `PlayerLoadoutDefinition` lives in **`Madbox.Levels`**; **`PlayerService`** and **`PlayerFactory`** live in **`Madbox.Bootstrap.Runtime`** and reference this assembly for `WeaponVisualController`. Preload is via **`PlayerLoadoutAssetProvider`** on the asset layer (see `BootstrapAssetInstaller`).
+- Depends on: **`Madbox.Animation`**, **`Madbox.Player`**, **`Madbox.Enemies`** (prefab components and targeting), Unity engine. Loadout authoring asset `PlayerLoadoutDefinition` lives in **`Madbox.Levels`**; **`PlayerService`** and **`PlayerFactory`** live in **`Madbox.Bootstrap.Runtime`** and wire Player module weapon visual types (`WeaponVisualController`, `PlayerWeaponController`). Preload is via **`PlayerLoadoutAssetProvider`** on the asset layer (see `BootstrapAssetInstaller`).
 - Used by: Hero and enemy prefabs; optional scene wiring for joystick via `VirtualJoystickInput` / `PlayerInputProvider`; bootstrap registers `PlayerService` and `PlayerFactory` (see `BootstrapCoreInstaller`). `PlayerLoadoutDefinition` is registered into the layer scope after asset preload so `PlayerService` receives it by constructor injection.
 - Keywords: animation events, animator speed multiplier, player behavior runner, weapon loadout, `WeaponVisualController`, `Arena` (see **`Docs/App/PlayerAttributes.md`**, **`Docs/Meta/Player.md`**).
 
 ## Responsibilities
 
 - Uses `AnimationEventRouter` and optional `AnimationEventDefinition` ScriptableObjects for clip event ids (string `EventId`); see `Docs/App/Animation.md`.
-- Owns player **view** behaviors (runner, movement/attack), and generic `AnimationController` (cross-fade by state name, bool/float parameters). Player **entity** types (`Player`, `PlayerAttribute`) live in **`Madbox.Player`**; enemy **entity** types (`Enemy`, `EnemyAttribute`) live in **`Madbox.Enemies`**.
-- Owns `WeaponVisualController` (serialized list of socket transforms, spawned weapon instances, visible slot via `GameObject.SetActive`). Authoring asset `PlayerLoadoutDefinition` is in **`Madbox.Levels`**; `PlayerService` and `PlayerFactory` are in **`Madbox.Bootstrap.Runtime`**.
+- Owns player **view** behaviors that are GameView-specific (movement/attack + `PlayerAttributeAnimatorDriver`), and generic `AnimationController` (cross-fade by state name, bool/float parameters). Player **entity** types (`Player`, `PlayerAttribute`) and shared player orchestration types (`PlayerBehaviorRunner`, `IPlayerBehavior`, `PlayerInputContext`, `WeaponVisualController`, `PlayerWeaponController`) live in **`Madbox.Player`**; enemy **entity** types (`Enemy`, `EnemyAttribute`) live in **`Madbox.Enemies`**.
 - Owns `PlayerAttackViewBehavior` for range-based attack targeting and animator bools (not authoritative battle logic).
 - Owns `Arena` for level scenes: optional `BoxCollider` world bounds, optional enemy/player spawn `Transform`s, and `TryFindInScene` / `TryFindInLoadedScenes` helpers for code that runs after additive scene load.
 - Does not own domain simulation, damage resolution, or networking.
@@ -28,9 +27,8 @@
 | *(see `Madbox.Player`)* | `Player` / `PlayerAttribute` are defined in **`Docs/Meta/Player.md`** | | | |
 | `AnimationAttribute` | ScriptableObject id for an animator parameter name | Asset | `ParameterName` | n/a |
 | `PlayerAttributeAnimatorDriver` | Maps `PlayerAttribute` → `AnimationAttribute` | `Player.AttributeValueChanged` | `AnimationController` parameters | No-op if link or controller missing |
-| `PlayerBehaviorRunner` | Ordered `IPlayerBehavior` first-accept-wins | `Update` | Runs one behavior per frame | No-op if `Player` missing |
 | `Projectile` | Optional forward motion, `ScheduleDestroyAfterSeconds`, trigger impact self-destruct; `GetComponent<Enemy>` + damage TODO | Start/Update/trigger | Moves along forward when enabled | Trigger collider + Rigidbody; targets expose `Enemy`; use **Projectile** layer |
-| `WeaponVisualController` | List of socket `Transform`s and matching weapon roots; selection by index | `SetWeaponInstances`, `SetSelectedWeaponIndex` | `SelectedWeaponIndex` | Throws if socket/instance counts mismatch or instances not set |
+| *(see `Madbox.Player`)* | `PlayerBehaviorRunner`, `IPlayerBehavior`, `PlayerInputContext`, `WeaponVisualController`, `PlayerWeaponController` are defined in **`Docs/Meta/Player.md`** | | | |
 | `Arena` | Level-scene marker for bounds and spawns | Inspector: optional box collider, spawn transforms | `TryGetWorldBounds`, spawn world positions, `TryFindInScene` | Bounds false when no box collider; spawns fall back to arena transform |
 
 ## Setup / Integration
@@ -126,5 +124,6 @@ void OnRelease(AnimationEventContext context)
 
 ## Changelog
 
+- 2026-03-23: Moved safe shared player orchestration/weapon types (`PlayerBehaviorRunner`, `IPlayerBehavior`, `PlayerInputContext`, `WeaponVisualController`, `PlayerWeaponController`) to `Madbox.Player`; kept GameView-specific player view behaviors (`PlayerMovementViewBehavior`, `PlayerAttackViewBehavior`, `PlayerAttributeAnimatorDriver`) in `Madbox.GameView`.
 - 2026-03-23: Documented `WeaponVisualController` and pointed loadout authoring (`PlayerLoadoutDefinition` in `Madbox.Levels`) + `PlayerService` / `PlayerFactory` in bootstrap to keep `Madbox.GameView` free of Addressables references.
 - 2026-03-22: Initial module doc for animation event routing, player view behaviors, and attack speed multiplier.
