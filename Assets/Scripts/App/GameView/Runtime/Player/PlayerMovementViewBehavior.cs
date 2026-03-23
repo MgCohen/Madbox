@@ -1,7 +1,8 @@
 using Madbox.App.Animation;
+using PlayerAttribute = Madbox.Players.PlayerAttribute;
 using UnityEngine;
 
-namespace Madbox.App.GameView.Player
+namespace Madbox.App.GameView.Players
 {
     /// <summary>
     /// Moves the player root from resolved move input; sets the animator locomotion bool so transitions can drive idle/run.
@@ -30,7 +31,7 @@ namespace Madbox.App.GameView.Player
         [SerializeField]
         private float rotateLerpSpeed = 12f;
 
-        public bool TryAcceptControl(Player data, in PlayerInputContext input)
+        public bool TryAcceptControl(Madbox.Players.Player data, in PlayerInputContext input)
         {
             if (data == null || !data.CanMove || !data.IsAlive)
             {
@@ -46,7 +47,7 @@ namespace Madbox.App.GameView.Player
             return true;
         }
 
-        public void Execute(Player data, in PlayerInputContext input, float deltaTime)
+        public void Execute(Madbox.Players.Player data, in PlayerInputContext input, float deltaTime)
         {
             Vector2 move = input.MoveDirection;
             if (invertMovementInput)
@@ -63,7 +64,7 @@ namespace Madbox.App.GameView.Player
             }
         }
 
-        private void Move(Player data, float deltaTime, Vector3 world)
+        private void Move(Madbox.Players.Player data, float deltaTime, Vector3 world)
         {
             float speed = data.GetFloatAttribute(moveSpeedAttribute);
             transform.position += world * (speed * deltaTime);
@@ -81,7 +82,7 @@ namespace Madbox.App.GameView.Player
             transform.rotation = Quaternion.Slerp(transform.rotation, target, 1f - Mathf.Exp(-rotateLerpSpeed * deltaTime));
         }
 
-        public void OnQuit(Player data)
+        public void OnQuit(Madbox.Players.Player data)
         {
             if (animationController != null && movingParameter != null)
             {

@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using System.Reflection;
-using Madbox.App.GameView.Player;
+using Madbox.App.GameView.Players;
 using NUnit.Framework;
 using UnityEngine;
 

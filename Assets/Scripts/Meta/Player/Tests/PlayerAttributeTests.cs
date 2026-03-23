@@ -1,12 +1,11 @@
 using System.Collections.Generic;
-using Madbox.App.GameView.Player;
 using Madbox.Entities;
-using Madbox.Player;
+using Madbox.Players;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
 
-namespace Madbox.Player.Tests
+namespace Madbox.Players.Tests
 {
     public sealed class PlayerAttributeTests
     {

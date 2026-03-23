@@ -2,6 +2,7 @@
     "name": "Madbox.Battle",
     "rootNamespace": "Madbox.Battle",
     "references": [
+        "Madbox.Entities",
         "Madbox.Levels",
         "Madbox.Enemies",
         "Unity.Addressables",

@@ -1,7 +1,7 @@
 using Madbox.Entities;
 using UnityEngine;
 
-namespace Madbox.Player
+namespace Madbox.Players
 {
     /// <summary>
     /// Player-specific <see cref="EntityAttribute"/> asset; use for stats referenced by player view behaviors.

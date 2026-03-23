@@ -1,5 +1,5 @@
 using System;
-using Madbox.App.Bootstrap.Player;
+using Madbox.App.Bootstrap.Players;
 using Madbox.Levels;
 using NUnit.Framework;
 using UnityEngine;

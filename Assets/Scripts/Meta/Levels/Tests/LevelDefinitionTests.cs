@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Reflection;
-using Madbox.Enemies;
 using Madbox.Levels.Rules;
 using NUnit.Framework;
 using UnityEngine;
@@ -14,7 +13,7 @@ namespace Madbox.Levels.Tests
         public void EnemyEntries_AreExposedFromSerializedLevel()
         {
             AssetReference sceneAssetReference = CreateSceneReference("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
-            AssetReferenceT<Enemy> enemyAssetReference = CreateEnemyReference("bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb");
+            AssetReference enemyAssetReference = CreateEnemyReference("bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb");
             LevelEnemySpawnEntry entry = CreateEnemyEntry(enemyAssetReference, 3);
             LevelDefinition level = CreateLevel(7, sceneAssetReference, entry);
 
@@ -36,7 +35,7 @@ namespace Madbox.Levels.Tests
             return level;
         }
 
-        private static LevelEnemySpawnEntry CreateEnemyEntry(AssetReferenceT<Enemy> enemyAssetReference, int count)
+        private static LevelEnemySpawnEntry CreateEnemyEntry(AssetReference enemyAssetReference, int count)
         {
             LevelEnemySpawnEntry entry = new LevelEnemySpawnEntry();
             SetPrivateField(entry, "enemyAssetReference", enemyAssetReference);
@@ -49,9 +48,9 @@ namespace Madbox.Levels.Tests
             return new AssetReference(guid);
         }
 
-        private static AssetReferenceT<Enemy> CreateEnemyReference(string guid)
+        private static AssetReference CreateEnemyReference(string guid)
         {
-            return new AssetReferenceT<Enemy>(guid);
+            return new AssetReference(guid);
         }
 
         private static void SetPrivateField(object target, string fieldName, object value)

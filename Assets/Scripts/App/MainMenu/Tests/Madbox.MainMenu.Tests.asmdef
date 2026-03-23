@@ -2,6 +2,7 @@
     "name": "Madbox.MainMenu.Tests",
     "rootNamespace": "Madbox.App.MainMenu.Tests",
     "references": [
+        "Unity.TextMeshPro",
         "Madbox.MainMenu.Runtime",
         "Madbox.Gameplay",
         "Madbox.Gold",

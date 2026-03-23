@@ -2,9 +2,8 @@ using Madbox.Entities;
 using UnityEngine;
 using System;
 using System.Collections.Generic;
-using Madbox.App.GameView.Player;
 
-namespace Madbox.Player
+namespace Madbox.Players
 {
     /// <summary>
     /// Player entity data: <see cref="IsAlive"/> and <see cref="CanMove"/> use dedicated attributes and must have matching entries in the inherited list.

@@ -47,19 +47,19 @@ namespace Madbox.Levels
 
             CompleteLevelRequest request = new CompleteLevelRequest(levelId);
             CompleteLevelResponse response = await liveOpsService.CallAsync(request, cancellationToken).ConfigureAwait(false);
-            RefreshFromLiveOps();
+            ApplyCompletionResponse(response);
             return response;
         }
 
-        private void RefreshFromLiveOps()
+        private void ApplyCompletionResponse(CompleteLevelResponse response)
         {
-            LevelGameData refreshed = liveOpsService.GetModuleData<LevelGameData>();
-            if (refreshed == null)
+            if (data == null || response == null || !response.Succeeded || !response.CompletedLevelId.HasValue)
             {
                 return;
             }
-            data = refreshed;
-            BuildAvailableLevels(refreshed);
+
+            data.ApplyCompletedLevel(response.CompletedLevelId.Value);
+            BuildAvailableLevels(data);
         }
 
         protected override Task OnInitializedAsync(LevelGameData moduleData)

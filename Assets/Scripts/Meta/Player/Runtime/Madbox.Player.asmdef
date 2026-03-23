@@ -1,6 +1,6 @@
 {
     "name": "Madbox.Player",
-    "rootNamespace": "Madbox.Player",
+    "rootNamespace": "Madbox.Players",
     "references": [
         "Madbox.Entities"
     ],

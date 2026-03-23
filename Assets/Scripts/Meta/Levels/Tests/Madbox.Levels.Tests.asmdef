@@ -4,27 +4,28 @@
     "references": [
         "Madbox.Enemies",
         "Madbox.Levels",
-        "Madbox.Enemies",
         "Madbox.LiveOps",
         "Madbox.Addressables",
         "Madbox.Scope",
         "Unity.Addressables",
-        "VContainer"
+        "VContainer",
+        "UnityEngine.TestRunner",
+        "UnityEditor.TestRunner"
     ],
     "includePlatforms": [
         "Editor"
     ],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
-    "overrideReferences": false,
+    "overrideReferences": true,
     "precompiledReferences": [
-        "Madbox.LiveOps.DTO.dll"
+        "Madbox.LiveOps.DTO.dll",
+        "nunit.framework.dll"
     ],
     "autoReferenced": false,
-    "defineConstraints": [],
+    "defineConstraints": [
+        "UNITY_INCLUDE_TESTS"
+    ],
     "versionDefines": [],
-    "noEngineReferences": false,
-    "optionalUnityReferences": [
-        "TestAssemblies"
-    ]
+    "noEngineReferences": false
 }

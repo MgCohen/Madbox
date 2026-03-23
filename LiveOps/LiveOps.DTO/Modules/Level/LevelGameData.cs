@@ -56,6 +56,34 @@ namespace GameModuleDTO.Modules.Level
             }
         }
 
+        /// <summary>
+        /// Applies a successful completion response locally by marking the completed level as complete
+        /// and unlocking the next level when it is currently blocked.
+        /// </summary>
+        public void ApplyCompletedLevel(int completedLevelId)
+        {
+            if (_states == null || _states.Count == 0)
+            {
+                return;
+            }
+
+            int index = _states.FindIndex(state => state.LevelId == completedLevelId);
+            if (index < 0)
+            {
+                return;
+            }
+
+            LevelStateEntry current = _states[index];
+            _states[index] = new LevelStateEntry(current.LevelId, LevelAvailabilityState.Complete);
+
+            int nextIndex = index + 1;
+            if (nextIndex < _states.Count && _states[nextIndex].State == LevelAvailabilityState.Blocked)
+            {
+                LevelStateEntry next = _states[nextIndex];
+                _states[nextIndex] = new LevelStateEntry(next.LevelId, LevelAvailabilityState.Unlocked);
+            }
+        }
+
         private static LevelAvailabilityState InitialState(int id, HashSet<int> completed)
         {
             return completed.Contains(id) ? LevelAvailabilityState.Complete : LevelAvailabilityState.Blocked;

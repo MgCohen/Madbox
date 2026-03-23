@@ -1,7 +1,7 @@
 using VContainer;
 using VContainer.Unity;
 
-namespace Madbox.App.Bootstrap.Player
+namespace Madbox.App.Bootstrap.Players
 {
     public sealed class PlayerInstaller : IInstaller
     {

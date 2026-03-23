@@ -1,8 +1,9 @@
 using Madbox.App.Animation;
 using Madbox.Enemies;
+using PlayerAttribute = Madbox.Players.PlayerAttribute;
 using UnityEngine;
 
-namespace Madbox.App.GameView.Player
+namespace Madbox.App.GameView.Players
 {
     /// <summary>
     /// Overlap sphere using attack range for colliders with <see cref="Enemy"/>; drives the attack animator bool while a target is held.
@@ -35,7 +36,7 @@ namespace Madbox.App.GameView.Player
             }
         }
 
-        public bool TryAcceptControl(Player data, in PlayerInputContext _)
+        public bool TryAcceptControl(Madbox.Players.Player data, in PlayerInputContext _)
         {
             if (data == null || !data.IsAlive)
             {
@@ -72,7 +73,7 @@ namespace Madbox.App.GameView.Player
             return false;
         }
 
-        public void Execute(Player data, in PlayerInputContext _, float deltaTime)
+        public void Execute(Madbox.Players.Player data, in PlayerInputContext _, float deltaTime)
         {
             if (currentAttackTarget != null)
             {
@@ -80,7 +81,7 @@ namespace Madbox.App.GameView.Player
             }
         }
 
-        public void OnQuit(Player data)
+        public void OnQuit(Madbox.Players.Player data)
         {
             currentAttackTarget = null;
             SetAttacking(false);

@@ -1,6 +1,6 @@
 using System.Threading;
 using System.Threading.Tasks;
-using Madbox.App.Bootstrap.Player;
+using Madbox.App.Bootstrap.Players;
 using Madbox.App.Gameplay;
 using UnityEngine;
 

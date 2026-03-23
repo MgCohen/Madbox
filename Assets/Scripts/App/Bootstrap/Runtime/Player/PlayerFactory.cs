@@ -3,14 +3,13 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Madbox.Addressables.Contracts;
-using Madbox.App.GameView.Player;
-using Madbox.Player;
+using Madbox.App.GameView.Players;
 using Madbox.Entities;
 using Madbox.Levels;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 
-namespace Madbox.App.Bootstrap.Player
+namespace Madbox.App.Bootstrap.Players
 {
     public sealed class PlayerFactory
     {
@@ -24,7 +23,7 @@ namespace Madbox.App.Bootstrap.Player
 
         private readonly IAddressablesGateway gateway;
 
-        public async Task<Player> CreateReadyPlayerAsync(Transform parent, Vector3 position, Quaternion rotation, CancellationToken cancellationToken = default)
+        public async Task<Madbox.Players.Player> CreateReadyPlayerAsync(Transform parent, Vector3 position, Quaternion rotation, CancellationToken cancellationToken = default)
         {
             PlayerLoadoutDefinition loadout = playerService.Loadout;
             GameObject playerInstance = null;
@@ -32,7 +31,7 @@ namespace Madbox.App.Bootstrap.Player
             {
                 playerInstance = await InstantiatePlayerFromReferenceAsync(loadout.PlayerPrefab, parent, position, rotation, cancellationToken);
                 await AttachWeaponsAsync(loadout, playerInstance, cancellationToken);
-                Player data = playerInstance.GetComponentInChildren<Player>(true);
+                Madbox.Players.Player data = playerInstance.GetComponentInChildren<Madbox.Players.Player>(true);
                 if (data == null)
                 {
                     throw new InvalidOperationException("Player prefab must contain a Player (including inactive children).");
@@ -54,7 +53,7 @@ namespace Madbox.App.Bootstrap.Player
         private async Task AttachWeaponsAsync(PlayerLoadoutDefinition loadout, GameObject playerInstance, CancellationToken cancellationToken)
         {
             WeaponVisualController visual = playerInstance.GetComponentInChildren<WeaponVisualController>(true);
-            Player playerData = playerInstance.GetComponentInChildren<Player>(true);
+            Madbox.Players.Player playerData = playerInstance.GetComponentInChildren<Madbox.Players.Player>(true);
             PlayerWeaponController playerWeaponController = playerInstance.GetComponentInChildren<PlayerWeaponController>(true);
             IReadOnlyList<AssetReference> weaponRefs = loadout.WeaponPrefabs;
             int count = weaponRefs.Count;

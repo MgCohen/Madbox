@@ -31,6 +31,33 @@ namespace Madbox.Levels.Tests
         }
 
         [Test]
+        public void CompleteLevelAsync_UsesCompletedLevelIdToUpdateLocalStates()
+        {
+            LevelConfig config = CreateConfig(1, 2, 3);
+            LevelGameData initialData = new LevelGameData(new LevelPersistence(), config);
+            CompleteLevelResponse response = new CompleteLevelResponse(true, 1);
+            StubLiveOpsForComplete stub = new StubLiveOpsForComplete(response, initialData);
+            FakeGroupProvider provider = new FakeGroupProvider(new[] { CreateLevelDefinition(1), CreateLevelDefinition(2) });
+            ContainerBuilder builder = new ContainerBuilder();
+            builder.RegisterInstance<ILiveOpsService>(stub);
+            builder.RegisterInstance<IAssetGroupProvider<LevelDefinition>>(provider);
+            builder.Register<LevelService>(Lifetime.Singleton).AsSelf().As<IAsyncLayerInitializable>();
+
+            using (IObjectResolver container = builder.Build())
+            {
+                LevelService sut = container.Resolve<LevelService>();
+                ((IAsyncLayerInitializable)sut).InitializeAsync(container, CancellationToken.None).GetAwaiter().GetResult();
+
+                _ = sut.CompleteLevelAsync(1, CancellationToken.None).GetAwaiter().GetResult();
+
+                IReadOnlyList<AvailableLevel> levels = sut.GetAvailableLevels();
+                Assert.That(levels.Count, Is.EqualTo(2));
+                Assert.That(levels[0].AvailabilityState, Is.EqualTo(LevelAvailabilityState.Complete));
+                Assert.That(levels[1].AvailabilityState, Is.EqualTo(LevelAvailabilityState.Unlocked));
+            }
+        }
+
+        [Test]
         public void InitializeAsync_LoadsLevelGameDataFromLiveOps()
         {
             LevelGameData expected = new LevelGameData(new LevelPersistence(), CreateConfig(1, 2, 3, 4));
@@ -148,17 +175,19 @@ namespace Madbox.Levels.Tests
         private sealed class StubLiveOpsForComplete : ILiveOpsService
         {
             private readonly CompleteLevelResponse response;
+            private readonly LevelGameData moduleData;
 
-            public StubLiveOpsForComplete(CompleteLevelResponse response)
+            public StubLiveOpsForComplete(CompleteLevelResponse response, LevelGameData moduleData = null)
             {
                 this.response = response;
+                this.moduleData = moduleData;
             }
 
             public int? LastLevelId { get; private set; }
 
             public T GetModuleData<T>() where T : class, IGameModuleData
             {
-                return null;
+                return moduleData as T;
             }
 
             public Task<TResponse> CallAsync<TResponse>(ModuleRequest<TResponse> request, CancellationToken cancellationToken = default) where TResponse : ModuleResponse

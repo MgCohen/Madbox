@@ -1,8 +1,8 @@
 using System.Collections.Generic;
 using System.Reflection;
-using Madbox.App.GameView.Player;
+using Madbox.App.GameView.Players;
 using Madbox.Entities;
-using Madbox.Player;
+using Madbox.Players;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
@@ -51,7 +51,7 @@ namespace Madbox.App.GameView.Tests
             Object.DestroyImmediate(moveSpeed);
         }
 
-        private static void SetAttributeEntry(EntityData data, EntityAttribute attribute, float baseValue)
+        private static void SetAttributeEntry(Entity data, EntityAttribute attribute, float baseValue)
         {
             SerializedObject dataSo = new SerializedObject(data);
             SerializedProperty list = dataSo.FindProperty("attributeEntries");

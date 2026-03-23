@@ -1,3 +1,4 @@
+using Madbox.Addressables;
 using Madbox.Addressables.Contracts;
 using Madbox.Scope.Contracts;
 using VContainer;
@@ -17,10 +18,12 @@ namespace Madbox.Addressables.Container
         private void RegisterGateway(IContainerBuilder builder, IAddressablesAssetClient assetClient, IAssetReferenceHandler assetReferenceHandler)
         {
             // Singleton: layered bootstrap calls CreateScope per layer; Scoped would allocate one gateway per scope and run catalog sync multiple times.
-            builder.Register<IAddressablesGateway, AddressablesGateway>(Lifetime.Singleton)
+            // Register concrete type once; map interfaces explicitly — Register<TInterface,TImpl> + AsImplementedInterfaces duplicates IAddressablesGateway.
+            builder.Register<AddressablesGateway>(Lifetime.Singleton)
                 .WithParameter<IAddressablesAssetClient>(assetClient)
                 .WithParameter<IAssetReferenceHandler>(assetReferenceHandler)
-                .AsImplementedInterfaces();
+                .As<IAddressablesGateway>()
+                .As<IAsyncLayerInitializable>();
         }
     }
 }

@@ -1,21 +1,20 @@
-using Madbox.Player;
 using UnityEngine;
 
-namespace Madbox.App.GameView.Player
+namespace Madbox.App.GameView.Players
 {
     /// <summary>
     /// Bridges gameplay weapon equip state and weapon visuals.
-    /// Gameplay authority remains in <see cref="Player"/>; this controller updates view state.
+    /// Gameplay authority remains in <see cref="Madbox.Players.Player"/>; this controller updates view state.
     /// </summary>
     public sealed class PlayerWeaponController : MonoBehaviour
     {
         [SerializeField]
-        private Player playerData;
+        private Madbox.Players.Player playerData;
 
         [SerializeField]
         private WeaponVisualController weaponVisualController;
 
-        public void Bind(Player data, WeaponVisualController visual)
+        public void Bind(Madbox.Players.Player data, WeaponVisualController visual)
         {
             if (playerData != null)
             {
@@ -54,7 +53,7 @@ namespace Madbox.App.GameView.Player
             }
         }
 
-        private void OnEquippedWeaponChanged(Weapon previousWeapon, Weapon currentWeapon)
+        private void OnEquippedWeaponChanged(Madbox.Players.Weapon previousWeapon, Madbox.Players.Weapon currentWeapon)
         {
             if (weaponVisualController == null || currentWeapon == null)
             {

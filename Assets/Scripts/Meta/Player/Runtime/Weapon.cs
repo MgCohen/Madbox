@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using Madbox.Entities;
 using UnityEngine;
 
-namespace Madbox.App.GameView.Player
+namespace Madbox.Players
 {
     public sealed class Weapon : MonoBehaviour
     {
