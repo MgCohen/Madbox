@@ -34,12 +34,41 @@ namespace Madbox.Scope.Tests
                 Object.DestroyImmediate(go);
             }
         }
+
+        [Test]
+        public void BuildAsRootAsync_RegistersDeepResolvers_ForCrossLayerResolve()
+        {
+            ResolverAwareInstaller root = new ResolverAwareInstaller();
+            ChildRegistrationInstaller child = new ChildRegistrationInstaller();
+            root.AddChild(child);
+
+            GameObject go = new GameObject("TestCrossLayerScope");
+            try
+            {
+                TestLifetimeScope scope = go.AddComponent<TestLifetimeScope>();
+                scope.Build();
+                root.BuildAsRootAsync(scope, CancellationToken.None, null).GetAwaiter().GetResult();
+
+                ICrossLayerObjectResolver resolver = scope.Container.Resolve<ICrossLayerObjectResolver>();
+                bool resolved = resolver.TryResolve(out TestChildService service);
+
+                Assert.IsTrue(resolved);
+                Assert.IsNotNull(service);
+            }
+            finally
+            {
+                Object.DestroyImmediate(go);
+            }
+        }
     }
 
     internal sealed class TestLifetimeScope : LifetimeScope
     {
         protected override void Configure(IContainerBuilder builder)
         {
+            builder.Register<CrossLayerObjectResolver>(Lifetime.Singleton)
+                .As<ICrossLayerObjectResolver>()
+                .AsSelf();
         }
     }
 
@@ -48,6 +77,25 @@ namespace Madbox.Scope.Tests
         protected override void Install(IContainerBuilder builder)
         {
         }
+    }
+
+    internal sealed class ResolverAwareInstaller : LayerInstallerBase
+    {
+        protected override void Install(IContainerBuilder builder)
+        {
+        }
+    }
+
+    internal sealed class ChildRegistrationInstaller : LayerInstallerBase
+    {
+        protected override void Install(IContainerBuilder builder)
+        {
+            builder.Register<TestChildService>(Lifetime.Singleton).AsSelf();
+        }
+    }
+
+    internal sealed class TestChildService
+    {
     }
 
     internal sealed class StubProgressListener : ILayeredScopeProgress

@@ -213,8 +213,28 @@ namespace Madbox.Scope
                 currentScope.Build();
             }
 
+            RegisterCurrentScopeInCrossLayerResolver();
             await ExecuteBuildPipelineAsync(cancellationToken);
             return finalScope ?? currentScope;
+        }
+
+        private void RegisterCurrentScopeInCrossLayerResolver()
+        {
+            IObjectResolver resolver = currentScope?.Container;
+            if (resolver == null)
+            {
+                return;
+            }
+
+            try
+            {
+                ICrossLayerObjectResolver crossLayerResolver = resolver.Resolve<ICrossLayerObjectResolver>();
+                crossLayerResolver.RegisterScope(resolver);
+            }
+            catch (VContainerException)
+            {
+                // Optional service for scopes that do not need cross-layer resolving.
+            }
         }
 
         private async Task ExecuteBuildPipelineAsync(CancellationToken cancellationToken)
