@@ -6,8 +6,10 @@ using System.Threading.Tasks;
 using Madbox.Addressables.Contracts;
 using Madbox.App.Bootstrap.Player;
 using Madbox.App.GameView.Player;
+using Madbox.Entity;
 using Madbox.Levels;
 using NUnit.Framework;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 
@@ -18,7 +20,9 @@ namespace Madbox.App.Bootstrap.Tests
         [Test]
         public void CreateReadyPlayerAsync_ReturnsPlayerWithWeaponsWired()
         {
-            GameObject playerPrefabRoot = BuildPlayerPrefabWithSockets(3);
+            EntityAttribute moveSpeed = ScriptableObject.CreateInstance<EntityAttribute>();
+            moveSpeed.name = "MoveSpeed";
+            GameObject playerPrefabRoot = BuildPlayerPrefabWithSockets(3, moveSpeed, 10f);
             GameObject weaponPrefab0 = new GameObject("weaponPrefab0");
             GameObject weaponPrefab1 = new GameObject("weaponPrefab1");
             GameObject weaponPrefab2 = new GameObject("weaponPrefab2");
@@ -30,6 +34,11 @@ namespace Madbox.App.Bootstrap.Tests
                 new AssetReference("bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"),
                 new AssetReference("cccccccccccccccccccccccccccccccc"),
                 new AssetReference("dddddddddddddddddddddddddddddddd"));
+            SetPrivateWeaponModifiers(
+                loadout,
+                new WeaponModifierSetBuilder().Add(moveSpeed, 1.5f).Build(),
+                new WeaponModifierSetBuilder().Build(),
+                new WeaponModifierSetBuilder().Build());
 
             var fake = new FakeAddressablesGateway();
             fake.Register(new AssetReference("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"), playerPrefabRoot);
@@ -47,11 +56,13 @@ namespace Madbox.App.Bootstrap.Tests
             WeaponVisualController visual = player.GetComponentInChildren<WeaponVisualController>(true);
             Assert.IsNotNull(visual);
             Assert.AreEqual(0, visual.SelectedWeaponIndex);
+            Assert.That(player.GetFloatAttribute(moveSpeed), Is.EqualTo(11.5f).Within(0.0001f));
             UnityEngine.Object.DestroyImmediate(player.gameObject);
             UnityEngine.Object.DestroyImmediate(playerPrefabRoot);
             UnityEngine.Object.DestroyImmediate(weaponPrefab0);
             UnityEngine.Object.DestroyImmediate(weaponPrefab1);
             UnityEngine.Object.DestroyImmediate(weaponPrefab2);
+            UnityEngine.Object.DestroyImmediate(moveSpeed);
         }
 
         [Test]
@@ -60,10 +71,11 @@ namespace Madbox.App.Bootstrap.Tests
             Assert.Throws<ArgumentNullException>(() => new PlayerService(null));
         }
 
-        private static GameObject BuildPlayerPrefabWithSockets(int socketCount)
+        private static GameObject BuildPlayerPrefabWithSockets(int socketCount, EntityAttribute baseAttribute, float baseValue)
         {
             GameObject root = new GameObject("playerPrefab");
-            root.AddComponent<PlayerData>();
+            PlayerData data = root.AddComponent<PlayerData>();
+            SetBaseAttributeEntry(data, baseAttribute, baseValue);
             WeaponVisualController visual = root.AddComponent<WeaponVisualController>();
             var sockets = new List<Transform>();
             for (int i = 0; i < socketCount; i++)
@@ -89,6 +101,43 @@ namespace Madbox.App.Bootstrap.Tests
             var list = new List<AssetReference>(refs);
             typeof(PlayerLoadoutDefinition).GetField("weaponPrefabs", BindingFlags.NonPublic | BindingFlags.Instance)
                 ?.SetValue(loadout, list);
+        }
+
+        private static void SetPrivateWeaponModifiers(PlayerLoadoutDefinition loadout, params WeaponModifierSet[] modifiers)
+        {
+            var list = new List<WeaponModifierSet>(modifiers);
+            typeof(PlayerLoadoutDefinition).GetField("weaponModifiers", BindingFlags.NonPublic | BindingFlags.Instance)
+                ?.SetValue(loadout, list);
+        }
+
+        private static void SetBaseAttributeEntry(PlayerData playerData, EntityAttribute attribute, float baseValue)
+        {
+            SerializedObject dataSo = new SerializedObject(playerData);
+            SerializedProperty list = dataSo.FindProperty("attributeEntries");
+            list.arraySize = 1;
+            SerializedProperty entry = list.GetArrayElementAtIndex(0);
+            entry.FindPropertyRelative("attribute").objectReferenceValue = attribute;
+            entry.FindPropertyRelative("baseValue").floatValue = baseValue;
+            dataSo.ApplyModifiedPropertiesWithoutUndo();
+        }
+
+        private sealed class WeaponModifierSetBuilder
+        {
+            private readonly List<EntityAttributeModifierEntry> entries = new List<EntityAttributeModifierEntry>();
+
+            public WeaponModifierSetBuilder Add(EntityAttribute attribute, float delta)
+            {
+                entries.Add(new EntityAttributeModifierEntry(attribute, delta));
+                return this;
+            }
+
+            public WeaponModifierSet Build()
+            {
+                WeaponModifierSet set = new WeaponModifierSet();
+                typeof(WeaponModifierSet).GetField("modifiers", BindingFlags.NonPublic | BindingFlags.Instance)
+                    ?.SetValue(set, new List<EntityAttributeModifierEntry>(entries));
+                return set;
+            }
         }
 
         private sealed class FakeAddressablesGateway : IAddressablesGateway
