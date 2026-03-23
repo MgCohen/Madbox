@@ -23,7 +23,7 @@ namespace Madbox.App.Bootstrap.Tests
             EntityAttribute moveSpeed = ScriptableObject.CreateInstance<EntityAttribute>();
             moveSpeed.name = "MoveSpeed";
             GameObject playerPrefabRoot = BuildPlayerPrefabWithSockets(3, moveSpeed, 10f);
-            GameObject weaponPrefab0 = new GameObject("weaponPrefab0");
+            GameObject weaponPrefab0 = BuildWeaponPrefab("weaponPrefab0", moveSpeed, 1.5f);
             GameObject weaponPrefab1 = new GameObject("weaponPrefab1");
             GameObject weaponPrefab2 = new GameObject("weaponPrefab2");
 
@@ -34,11 +34,6 @@ namespace Madbox.App.Bootstrap.Tests
                 new AssetReference("bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"),
                 new AssetReference("cccccccccccccccccccccccccccccccc"),
                 new AssetReference("dddddddddddddddddddddddddddddddd"));
-            SetPrivateWeaponModifiers(
-                loadout,
-                new WeaponModifierSetBuilder().Add(moveSpeed, 1.5f).Build(),
-                new WeaponModifierSetBuilder().Build(),
-                new WeaponModifierSetBuilder().Build());
 
             var fake = new FakeAddressablesGateway();
             fake.Register(new AssetReference("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"), playerPrefabRoot);
@@ -103,13 +98,6 @@ namespace Madbox.App.Bootstrap.Tests
                 ?.SetValue(loadout, list);
         }
 
-        private static void SetPrivateWeaponModifiers(PlayerLoadoutDefinition loadout, params WeaponModifierSet[] modifiers)
-        {
-            var list = new List<WeaponModifierSet>(modifiers);
-            typeof(PlayerLoadoutDefinition).GetField("weaponModifiers", BindingFlags.NonPublic | BindingFlags.Instance)
-                ?.SetValue(loadout, list);
-        }
-
         private static void SetBaseAttributeEntry(PlayerData playerData, EntityAttribute attribute, float baseValue)
         {
             SerializedObject dataSo = new SerializedObject(playerData);
@@ -121,23 +109,14 @@ namespace Madbox.App.Bootstrap.Tests
             dataSo.ApplyModifiedPropertiesWithoutUndo();
         }
 
-        private sealed class WeaponModifierSetBuilder
+        private static GameObject BuildWeaponPrefab(string name, EntityAttribute attribute, float delta)
         {
-            private readonly List<EntityAttributeModifierEntry> entries = new List<EntityAttributeModifierEntry>();
-
-            public WeaponModifierSetBuilder Add(EntityAttribute attribute, float delta)
-            {
-                entries.Add(new EntityAttributeModifierEntry(attribute, delta));
-                return this;
-            }
-
-            public WeaponModifierSet Build()
-            {
-                WeaponModifierSet set = new WeaponModifierSet();
-                typeof(WeaponModifierSet).GetField("modifiers", BindingFlags.NonPublic | BindingFlags.Instance)
-                    ?.SetValue(set, new List<EntityAttributeModifierEntry>(entries));
-                return set;
-            }
+            GameObject weapon = new GameObject(name);
+            Weapon weaponComponent = weapon.AddComponent<Weapon>();
+            var modifiers = new List<EntityAttributeModifierEntry> { new EntityAttributeModifierEntry(attribute, delta) };
+            typeof(Weapon).GetField("modifiers", BindingFlags.NonPublic | BindingFlags.Instance)
+                ?.SetValue(weaponComponent, modifiers);
+            return weapon;
         }
 
         private sealed class FakeAddressablesGateway : IAddressablesGateway

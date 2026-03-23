@@ -53,6 +53,7 @@ namespace Madbox.App.Bootstrap.Player
         {
             WeaponVisualController visual = playerInstance.GetComponentInChildren<WeaponVisualController>(true);
             PlayerData playerData = playerInstance.GetComponentInChildren<PlayerData>(true);
+            WeaponModifierBindingController modifierBinding = playerInstance.GetComponentInChildren<WeaponModifierBindingController>(true);
             IReadOnlyList<AssetReference> weaponRefs = loadout.WeaponPrefabs;
             int count = weaponRefs.Count;
             var spawned = new List<GameObject>(count);
@@ -61,28 +62,12 @@ namespace Madbox.App.Bootstrap.Player
                 spawned.Add(await InstantiateWeaponAtSocketAsync(weaponRefs[i], visual, i, cancellationToken));
             }
 
-            visual.SetModifierTarget(playerData);
-            visual.SetWeaponModifiers(BuildModifiersPerWeapon(loadout, count));
-            visual.SetWeaponInstances(spawned);
-        }
-
-        private static IReadOnlyList<IReadOnlyList<Madbox.Entity.EntityAttributeModifierEntry>> BuildModifiersPerWeapon(PlayerLoadoutDefinition loadout, int weaponCount)
-        {
-            IReadOnlyList<WeaponModifierSet> configured = loadout.WeaponModifiers;
-            var result = new List<IReadOnlyList<Madbox.Entity.EntityAttributeModifierEntry>>(weaponCount);
-            for (int i = 0; i < weaponCount; i++)
+            if (modifierBinding != null)
             {
-                if (i < configured.Count && configured[i] != null)
-                {
-                    result.Add(configured[i].Modifiers);
-                }
-                else
-                {
-                    result.Add(Array.Empty<Madbox.Entity.EntityAttributeModifierEntry>());
-                }
+                modifierBinding.Bind(visual, playerData, spawned);
             }
 
-            return result;
+            visual.SetWeaponInstances(spawned);
         }
 
         private async Task<GameObject> InstantiatePlayerFromReferenceAsync(
