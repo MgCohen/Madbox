@@ -2,6 +2,7 @@ using Madbox.App.Animation;
 using Madbox.Enemies;
 using PlayerAttribute = Madbox.Players.PlayerAttribute;
 using UnityEngine;
+using Madbox.Players;
 
 namespace Madbox.App.GameView.Players
 {

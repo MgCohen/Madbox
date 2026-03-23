@@ -1,4 +1,5 @@
 using Madbox.App.Animation;
+using Madbox.Players;
 using PlayerAttribute = Madbox.Players.PlayerAttribute;
 using UnityEngine;
 
