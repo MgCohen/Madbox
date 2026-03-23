@@ -24,24 +24,24 @@ namespace GameModule.Modules.Ads
             _moduleRequestHandler = moduleRequestHandler;
         }
 
-        public override async Task<IGameModuleData> Initialize(IExecutionContext context, IPlayerData playerData, IGameState gameState, IRemoteConfig remoteConfig)
+        public override async Task<IGameModuleData> Initialize(IExecutionContext context, IPlayerData Player, IGameState gameState, IRemoteConfig remoteConfig)
         {
-            AdsPersistence persistence = await playerData.GetOrSet(context, new AdsPersistence());
+            AdsPersistence persistence = await Player.GetOrSet(context, new AdsPersistence());
             AdsConfig config = await remoteConfig.Get(context, new AdsConfig());
             return new AdData(persistence, config);
         }
 
         [CloudCodeFunction(nameof(WatchAdRequest))]
-        public async Task<WatchAdResponse> WatchAd(IExecutionContext context, IPlayerData playerData, IRemoteConfig remoteConfig, WatchAdRequest request)
+        public async Task<WatchAdResponse> WatchAd(IExecutionContext context, IPlayerData Player, IRemoteConfig remoteConfig, WatchAdRequest request)
         {
             _logger.LogInformation("[WatchAdRequest] Starting");
             AdsConfig config = await remoteConfig.Get(context, new AdsConfig());
-            AdsPersistence persistence = await playerData.GetOrSet(context, new AdsPersistence());
+            AdsPersistence persistence = await Player.GetOrSet(context, new AdsPersistence());
 
             if (persistence.IsCooldownElapsed(config.Cooldown))
             {
                 persistence.RecordAdWatched();
-                playerData.AddToCache(persistence);
+                Player.AddToCache(persistence);
                 _logger.LogInformation("[AdsService] Ad watched successfully.");
             }
             else

@@ -13,7 +13,7 @@ namespace Madbox.Level.Container
     {
         public void Install(IContainerBuilder builder)
         {
-            builder.Register<LevelService>(Lifetime.Scoped)
+            builder.Register<LevelService>(Lifetime.Singleton)
                 .AsSelf()
                 .As<ILevelService>()
                 .As<IGameClientModule>()

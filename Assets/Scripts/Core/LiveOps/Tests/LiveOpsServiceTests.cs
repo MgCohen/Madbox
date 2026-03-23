@@ -75,7 +75,7 @@ namespace Madbox.LiveOps.Tests
         {
             ContainerBuilder builder = new ContainerBuilder();
             builder.RegisterInstance(cloudCode).As<ICloudCodeModuleService>();
-            builder.Register<LiveOpsService>(Lifetime.Scoped);
+            builder.Register<LiveOpsService>(Lifetime.Singleton);
             IObjectResolver container = builder.Build();
             return container.Resolve<LiveOpsService>();
         }
@@ -91,7 +91,7 @@ namespace Madbox.LiveOps.Tests
             ContainerBuilder builder = new ContainerBuilder();
             builder.RegisterInstance(cloudCode).As<ICloudCodeModuleService>();
             builder.RegisterInstance(handler).AsImplementedInterfaces();
-            builder.Register<LiveOpsService>(Lifetime.Scoped);
+            builder.Register<LiveOpsService>(Lifetime.Singleton);
             using (IObjectResolver container = builder.Build())
             {
                 LiveOpsService sut = container.Resolve<LiveOpsService>();
@@ -114,7 +114,7 @@ namespace Madbox.LiveOps.Tests
             ContainerBuilder builder = new ContainerBuilder();
             builder.RegisterInstance(cloudCode).As<ICloudCodeModuleService>();
             builder.RegisterInstance(handler).AsImplementedInterfaces();
-            builder.Register<LiveOpsService>(Lifetime.Scoped);
+            builder.Register<LiveOpsService>(Lifetime.Singleton);
             using (IObjectResolver container = builder.Build())
             {
                 LiveOpsService sut = container.Resolve<LiveOpsService>();

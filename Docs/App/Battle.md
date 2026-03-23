@@ -11,7 +11,7 @@ Provides a Unity-native battle slice that runs from `LevelDefinition`: Addressab
 | Type | Role |
 |------|------|
 | `BattleGame` | Mutable battle session: spawn enemies, tick time, evaluate rules, raise `OnCompleted`. |
-| `BattleGameFactory` | Constructs `BattleGame` and loads/spawns enemies from level `AssetReferenceT<EnemyActor>` entries. |
+| `BattleGameFactory` | Constructs `BattleGame` and loads/spawns enemies from level `AssetReferenceT<Enemy>` entries. |
 | `BattleBootstrap` | One-call orchestration: load level scene, create `BattleGame`, spawn enemies, `Start()`. |
 | `BattleBootstrapResult` | Holds `Game` and the Addressables `SceneInstance` load handle (caller must release when done). |
 | `RuleHandlerRegistry` | Maps `LevelRuleDefinition` asset types to `RuleHandler<TRule>` implementations. |

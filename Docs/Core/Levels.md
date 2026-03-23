@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Authoring-time level data: Addressables scene reference, enemy spawn entries (`AssetReferenceT<EnemyActor>`), and serialized rule assets consumed by `Madbox.Battle`.
+Authoring-time level data: Addressables scene reference, enemy spawn entries (`AssetReferenceT<Enemy>` from **`Madbox.Enemies`**), and serialized rule assets consumed by `Madbox.Battle`.
 
 ## Public API
 
@@ -18,7 +18,7 @@ Authoring-time level data: Addressables scene reference, enemy spawn entries (`A
 3. Assign `SceneAssetReference` and populate `enemyEntries` with Addressable enemy prefabs.
 4. Add rule assets under **Create > Madbox > Levels > Rules** and reference them from the level’s `gameRules` list.
 5. For main-menu listing, add the Addressables label **`MadboxLevels`** to each `LevelDefinition` asset that should appear after bootstrap preload (see `MainMenuLevelsIntegration-ExecPlan.md`).
-6. Optional: create **Create > Madbox > Levels > Player Loadout** for Addressables player + weapon prefab list; add the asset to Addressables with address **`Player Loadout`** so **`PlayerLoadoutAssetProvider`** preloads it and **`PlayerService`** receives **`PlayerLoadoutDefinition`** by injection before **`PlayerFactory.CreateReadyPlayerAsync`** (see `Docs/App/GameView.md`).
+6. Optional: create **Create > Madbox > Player > PlayerLoadout** for Addressables player + weapon prefab list; add the asset to Addressables with address **`Player Loadout`** so **`PlayerLoadoutAssetProvider`** preloads it and **`PlayerService`** receives **`PlayerLoadoutDefinition`** by injection before **`PlayerFactory.CreateReadyPlayerAsync`** (see `Docs/App/GameView.md`).
 
 ## Design notes
 

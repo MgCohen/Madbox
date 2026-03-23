@@ -2,15 +2,14 @@
 
 ## Purpose
 
-Unity-side enemy actors for the battle slice (`EnemyActor`, `EnemyService`). Behaviors are evaluated each frame through a small priority runner so higher-priority actions win for that frame, matching the player-side “first winning behavior” pattern.
+Unity-side enemy actors for the battle slice (`Enemy`, `EnemyService`, AI behaviors). Behaviors are evaluated each frame through a small priority runner so higher-priority actions win for that frame, matching the player-side “first winning behavior” pattern.
 
 ## Public API
 
 | Type | Role |
 |------|------|
-| `Enemy` | Marker on the hit target for presentation (e.g. projectile `OnTriggerEnter`); place on the GameObject that owns the collider you expect hits against. |
-| `EnemyActor` | Spawn marker and `Initialize()` gate for pooled/Addressables instances. |
-| `EnemyService` / `EnemyFactory` | Spawn and track alive `EnemyActor` instances. |
+| `Enemy` | `Entity` on the enemy root: hit detection, stats, and `Initialize()` after spawn/pool get; used by `EnemyService` / `EnemyFactory`. See **`Docs/Core/Entities.md`**. |
+| `EnemyService` / `EnemyFactory` | Spawn and track alive `Enemy` instances. |
 | `PrefabPool<T>` | Lightweight per-prefab pool with `WarmUp`, `Get`, `Release`, and `Unload`. |
 | `IEnemyActorBehavior` | One step of prioritized enemy logic; return `true` to claim the current frame. |
 | `EnemyBehaviorRunner` | Walks a behavior list in order and runs the first behavior that claims the frame. |
@@ -25,12 +24,12 @@ Unity-side enemy actors for the battle slice (`EnemyActor`, `EnemyService`). Beh
 Object pool example:
 
 ```csharp
-var pool = new PrefabPool<EnemyActor>(
+var pool = new PrefabPool<Enemy>(
     enemyPrefab,
     onGet: enemy => enemy.Initialize());
 
 pool.WarmUp(8);
-EnemyActor enemy = pool.Get();
+Enemy enemy = pool.Get();
 // ... gameplay usage ...
 pool.Release(enemy);
 pool.Unload();

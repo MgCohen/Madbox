@@ -25,18 +25,18 @@ namespace GameModule.Modules.Level
             _moduleRequestHandler = moduleRequestHandler;
         }
 
-        public override async Task<IGameModuleData> Initialize(IExecutionContext context, IPlayerData playerData, IGameState gameState, IRemoteConfig remoteConfig)
+        public override async Task<IGameModuleData> Initialize(IExecutionContext context, IPlayerData Player, IGameState gameState, IRemoteConfig remoteConfig)
         {
-            LevelPersistence persistence = await playerData.GetOrSet(context, new LevelPersistence());
+            LevelPersistence persistence = await Player.GetOrSet(context, new LevelPersistence());
             LevelConfig config = await remoteConfig.Get(context, new LevelConfig());
             return new LevelGameData(persistence, config);
         }
 
         [CloudCodeFunction(nameof(CompleteLevelRequest))]
-        public async Task<CompleteLevelResponse> CompleteLevel(IExecutionContext context, IPlayerData playerData, IRemoteConfig remoteConfig, CompleteLevelRequest request)
+        public async Task<CompleteLevelResponse> CompleteLevel(IExecutionContext context, IPlayerData Player, IRemoteConfig remoteConfig, CompleteLevelRequest request)
         {
             LevelConfig config = await remoteConfig.Get(context, new LevelConfig());
-            LevelPersistence persistence = await playerData.GetOrSet(context, new LevelPersistence());
+            LevelPersistence persistence = await Player.GetOrSet(context, new LevelPersistence());
 
             IReadOnlyList<int> levels = config.Levels;
             int index = IndexOfLevelId(levels, request.LevelId);
@@ -64,7 +64,7 @@ namespace GameModule.Modules.Level
             }
 
             persistence.AddCompletedLevel(request.LevelId);
-            playerData.AddToCache(persistence);
+            Player.AddToCache(persistence);
 
             _logger.LogInformation("[LevelService] Level {LevelId} completed successfully for player {PlayerId}", request.LevelId, context.PlayerId);
 

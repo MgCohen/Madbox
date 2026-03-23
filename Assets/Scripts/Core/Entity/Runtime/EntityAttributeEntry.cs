@@ -3,10 +3,10 @@ using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.Serialization;
 
-namespace Madbox.Entity
+namespace Madbox.Entities
 {
     /// <summary>
-    /// One named attribute on <see cref="EntityData"/>; <see cref="Value"/> is base plus modifiers.
+    /// One named attribute on <see cref="Entity"/>; <see cref="Value"/> is base plus modifiers.
     /// Optional inspector callback when the effective value changes.
     /// </summary>
     [Serializable]
@@ -18,7 +18,7 @@ namespace Madbox.Entity
         private EntityAttribute attribute;
 
         /// <summary>
-        /// Serialized base stat; <see cref="Value"/> includes <see cref="EntityData"/> modifiers.
+        /// Serialized base stat; <see cref="Value"/> includes <see cref="Entity"/> modifiers.
         /// </summary>
         public float BaseValue => baseValue;
 

@@ -1,4 +1,4 @@
-using Madbox.Entity;
+using Madbox.Entities;
 using UnityEngine;
 
 namespace Madbox.App.GameView.Projectile

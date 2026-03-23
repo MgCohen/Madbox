@@ -8,7 +8,7 @@ namespace Madbox.CloudCode.Container
     {
         public void Install(IContainerBuilder builder)
         {
-            builder.Register<ICloudCodeModuleService, CloudCodeModuleService>(Lifetime.Scoped);
+            builder.Register<ICloudCodeModuleService, CloudCodeModuleService>(Lifetime.Singleton);
         }
     }
 }

@@ -2,19 +2,19 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Serialization;
 
-namespace Madbox.Entity
+namespace Madbox.Entities
 {
     /// <summary>
     /// Runs ordered <see cref="IEntityBehavior{TData,TInput}"/> components; first accepting behavior wins each frame.
     /// Tracks the active flow and calls <see cref="IEntityBehavior{TData,TInput}.OnQuit"/> when it ends or when switching to another flow.
     /// </summary>
     public class EntityBehaviorRunner<TData, TInput> : MonoBehaviour
-        where TData : EntityData
+        where TData : Entity
     {
         [SerializeField]
         [FormerlySerializedAs("playerCore")]
-        [FormerlySerializedAs("playerData")]
-        private TData entityData;
+        [FormerlySerializedAs("Player")]
+        private TData Entity;
 
         [SerializeField]
         [FormerlySerializedAs("inputProvider")]
@@ -45,7 +45,7 @@ namespace Madbox.Entity
 
         private void Update()
         {
-            if (entityData == null)
+            if (Entity == null)
             {
                 return;
             }
@@ -55,7 +55,7 @@ namespace Madbox.Entity
             IEntityBehavior<TData, TInput> winner = null;
             for (int i = 0; i < behaviors.Count; i++)
             {
-                if (behaviors[i].TryAcceptControl(entityData, in input))
+                if (behaviors[i].TryAcceptControl(Entity, in input))
                 {
                     winner = behaviors[i];
                     break;
@@ -64,13 +64,13 @@ namespace Madbox.Entity
 
             if (winner != lastExecutedBehavior)
             {
-                lastExecutedBehavior?.OnQuit(entityData);
+                lastExecutedBehavior?.OnQuit(Entity);
                 lastExecutedBehavior = winner;
             }
 
             if (winner != null)
             {
-                winner.Execute(entityData, in input, dt);
+                winner.Execute(Entity, in input, dt);
             }
         }
     }

@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Madbox.Addressables.Contracts;
 using Madbox.App.GameView.Player;
+using Madbox.Player;
 using Madbox.Levels;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
@@ -22,7 +23,7 @@ namespace Madbox.App.Bootstrap.Player
 
         private readonly IAddressablesGateway gateway;
 
-        public async Task<PlayerData> CreateReadyPlayerAsync(Transform parent, Vector3 position, Quaternion rotation, CancellationToken cancellationToken = default)
+        public async Task<Player> CreateReadyPlayerAsync(Transform parent, Vector3 position, Quaternion rotation, CancellationToken cancellationToken = default)
         {
             PlayerLoadoutDefinition loadout = playerService.Loadout;
             GameObject playerInstance = null;
@@ -30,10 +31,10 @@ namespace Madbox.App.Bootstrap.Player
             {
                 playerInstance = await InstantiatePlayerFromReferenceAsync(loadout.PlayerPrefab, parent, position, rotation, cancellationToken);
                 await AttachWeaponsAsync(loadout, playerInstance, cancellationToken);
-                PlayerData data = playerInstance.GetComponentInChildren<PlayerData>(true);
+                Player data = playerInstance.GetComponentInChildren<Player>(true);
                 if (data == null)
                 {
-                    throw new InvalidOperationException("Player prefab must contain a PlayerData (including inactive children).");
+                    throw new InvalidOperationException("Player prefab must contain a Player (including inactive children).");
                 }
 
                 return data;

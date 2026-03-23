@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Madbox.Enemies;
+using Madbox.Enemies;
 using Madbox.Levels;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
@@ -69,7 +70,7 @@ namespace Madbox.Battle
 
         private async Task SpawnFromLoadedEntryAsync(BattleGame game, LevelEnemySpawnEntry entry, int entryIndex, Vector3 origin, float spacingPerIndex)
         {
-            AsyncOperationHandle<EnemyActor> handle = entry.EnemyAssetReference.LoadAssetAsync<EnemyActor>();
+            AsyncOperationHandle<Enemy> handle = entry.EnemyAssetReference.LoadAssetAsync<Enemy>();
             try
             {
                 await CompleteLoadAndSpawnForEntryAsync(game, entry, entryIndex, origin, spacingPerIndex, handle);
@@ -83,14 +84,14 @@ namespace Madbox.Battle
             }
         }
 
-        private async Task CompleteLoadAndSpawnForEntryAsync(BattleGame game, LevelEnemySpawnEntry entry, int entryIndex, Vector3 origin, float spacingPerIndex, AsyncOperationHandle<EnemyActor> handle)
+        private async Task CompleteLoadAndSpawnForEntryAsync(BattleGame game, LevelEnemySpawnEntry entry, int entryIndex, Vector3 origin, float spacingPerIndex, AsyncOperationHandle<Enemy> handle)
         {
             await handle.Task;
             ThrowIfEnemyLoadFailed(handle, entryIndex);
             game.SpawnEnemyCopies(handle.Result, entry.Count, origin, spacingPerIndex);
         }
 
-        private void ThrowIfEnemyLoadFailed(AsyncOperationHandle<EnemyActor> handle, int entryIndex)
+        private void ThrowIfEnemyLoadFailed(AsyncOperationHandle<Enemy> handle, int entryIndex)
         {
             if (handle.Status != AsyncOperationStatus.Succeeded)
             {

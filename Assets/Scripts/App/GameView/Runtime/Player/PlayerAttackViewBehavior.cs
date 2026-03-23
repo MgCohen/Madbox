@@ -5,7 +5,7 @@ using UnityEngine;
 namespace Madbox.App.GameView.Player
 {
     /// <summary>
-    /// Overlap sphere using attack range for colliders with <see cref="Enemies"/>; drives the attack animator bool while a target is held.
+    /// Overlap sphere using attack range for colliders with <see cref="Enemy"/>; drives the attack animator bool while a target is held.
     /// Facing runs in <see cref="Execute"/> while a target is held.
     /// </summary>
     public sealed class PlayerAttackViewBehavior : MonoBehaviour, IPlayerBehavior
@@ -35,7 +35,7 @@ namespace Madbox.App.GameView.Player
             }
         }
 
-        public bool TryAcceptControl(PlayerData data, in PlayerInputContext _)
+        public bool TryAcceptControl(Player data, in PlayerInputContext _)
         {
             if (data == null || !data.IsAlive)
             {
@@ -72,7 +72,7 @@ namespace Madbox.App.GameView.Player
             return false;
         }
 
-        public void Execute(PlayerData data, in PlayerInputContext _, float deltaTime)
+        public void Execute(Player data, in PlayerInputContext _, float deltaTime)
         {
             if (currentAttackTarget != null)
             {
@@ -80,7 +80,7 @@ namespace Madbox.App.GameView.Player
             }
         }
 
-        public void OnQuit(PlayerData data)
+        public void OnQuit(Player data)
         {
             currentAttackTarget = null;
             SetAttacking(false);

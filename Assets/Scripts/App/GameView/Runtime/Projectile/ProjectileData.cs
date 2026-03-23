@@ -1,4 +1,4 @@
-using Madbox.Entity;
+using Madbox.Entities;
 using UnityEngine;
 
 namespace Madbox.App.GameView.Projectile
@@ -6,7 +6,7 @@ namespace Madbox.App.GameView.Projectile
     /// <summary>
     /// Projectile stats as attributes (damage, speed); list matching <see cref="ProjectileAttribute"/> entries on the component.
     /// </summary>
-    public sealed class ProjectileData : EntityData
+    public sealed class ProjectileData : Entity
     {
         [SerializeField]
         private ProjectileAttribute damageAttribute;

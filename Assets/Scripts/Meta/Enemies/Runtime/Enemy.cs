@@ -1,11 +1,21 @@
+using Madbox.Entities;
 using UnityEngine;
 
 namespace Madbox.Enemies
 {
     /// <summary>
-    /// Marker for hit detection (e.g. projectiles). Place on the GameObject that owns the collider you expect hits against.
+    /// Enemy entity <see cref="Entity"/> (stats via <see cref="EnemyAttribute"/>). Place on the enemy root for hit collider resolution, spawn/tracking, and call <see cref="Initialize"/> after instantiate or pool get.
     /// </summary>
-    public sealed class Enemy : MonoBehaviour
+    public sealed class Enemy : Entity
     {
+        public bool IsInitialized { get; private set; }
+
+        /// <summary>
+        /// Call after cloning the prefab or when taking a pooled instance so spawn registration and enemy brain behaviors can run.
+        /// </summary>
+        public void Initialize()
+        {
+            IsInitialized = true;
+        }
     }
 }

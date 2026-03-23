@@ -1,11 +1,11 @@
-using Madbox.Entity;
+using Madbox.Entities;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
 
-namespace Madbox.Entity.Tests
+namespace Madbox.Entities.Tests
 {
-    public sealed class EntityDataAttributeTests
+    public sealed class EntityAttributeTests
     {
         [Test]
         public void GetFloatAttribute_ReturnsEntryValue()
@@ -14,7 +14,7 @@ namespace Madbox.Entity.Tests
             attr.name = "TestAttr";
 
             GameObject go = new GameObject("ed");
-            var data = go.AddComponent<EntityData>();
+            var data = go.AddComponent<Entity>();
             SerializedObject dataSo = new SerializedObject(data);
             SerializedProperty list = dataSo.FindProperty("attributeEntries");
             list.arraySize = 1;
@@ -36,7 +36,7 @@ namespace Madbox.Entity.Tests
             attr.name = "TestAttr";
 
             GameObject go = new GameObject("ed");
-            var data = go.AddComponent<EntityData>();
+            var data = go.AddComponent<Entity>();
             SerializedObject dataSo = new SerializedObject(data);
             SerializedProperty list = dataSo.FindProperty("attributeEntries");
             list.arraySize = 1;
@@ -70,7 +70,7 @@ namespace Madbox.Entity.Tests
             attr.name = "TestAttr";
 
             GameObject go = new GameObject("ed");
-            var data = go.AddComponent<EntityData>();
+            var data = go.AddComponent<Entity>();
             SerializedObject dataSo = new SerializedObject(data);
             SerializedProperty list = dataSo.FindProperty("attributeEntries");
             list.arraySize = 1;
@@ -94,7 +94,7 @@ namespace Madbox.Entity.Tests
             attr.name = "TestAttr";
 
             GameObject go = new GameObject("ed");
-            var data = go.AddComponent<EntityData>();
+            var data = go.AddComponent<Entity>();
             SerializedObject dataSo = new SerializedObject(data);
             SerializedProperty list = dataSo.FindProperty("attributeEntries");
             list.arraySize = 1;
@@ -120,7 +120,7 @@ namespace Madbox.Entity.Tests
             attr.name = "TestAttr";
 
             GameObject go = new GameObject("ed");
-            var data = go.AddComponent<EntityData>();
+            var data = go.AddComponent<Entity>();
             SerializedObject dataSo = new SerializedObject(data);
             SerializedProperty list = dataSo.FindProperty("attributeEntries");
             list.arraySize = 1;
@@ -145,7 +145,7 @@ namespace Madbox.Entity.Tests
             attr.name = "TestAttr";
 
             GameObject go = new GameObject("ed");
-            var data = go.AddComponent<EntityData>();
+            var data = go.AddComponent<Entity>();
             SerializedObject dataSo = new SerializedObject(data);
             SerializedProperty list = dataSo.FindProperty("attributeEntries");
             list.arraySize = 1;

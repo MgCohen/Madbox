@@ -30,7 +30,7 @@ namespace Madbox.App.GameView.Player
         [SerializeField]
         private float rotateLerpSpeed = 12f;
 
-        public bool TryAcceptControl(PlayerData data, in PlayerInputContext input)
+        public bool TryAcceptControl(Player data, in PlayerInputContext input)
         {
             if (data == null || !data.CanMove || !data.IsAlive)
             {
@@ -46,7 +46,7 @@ namespace Madbox.App.GameView.Player
             return true;
         }
 
-        public void Execute(PlayerData data, in PlayerInputContext input, float deltaTime)
+        public void Execute(Player data, in PlayerInputContext input, float deltaTime)
         {
             Vector2 move = input.MoveDirection;
             if (invertMovementInput)
@@ -63,7 +63,7 @@ namespace Madbox.App.GameView.Player
             }
         }
 
-        private void Move(PlayerData data, float deltaTime, Vector3 world)
+        private void Move(Player data, float deltaTime, Vector3 world)
         {
             float speed = data.GetFloatAttribute(moveSpeedAttribute);
             transform.position += world * (speed * deltaTime);
@@ -81,7 +81,7 @@ namespace Madbox.App.GameView.Player
             transform.rotation = Quaternion.Slerp(transform.rotation, target, 1f - Mathf.Exp(-rotateLerpSpeed * deltaTime));
         }
 
-        public void OnQuit(PlayerData data)
+        public void OnQuit(Player data)
         {
             if (animationController != null && movingParameter != null)
             {

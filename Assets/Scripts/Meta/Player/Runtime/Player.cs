@@ -1,12 +1,12 @@
-using Madbox.Entity;
+using Madbox.Entities;
 using UnityEngine;
 
-namespace Madbox.App.GameView.Player
+namespace Madbox.Player
 {
     /// <summary>
     /// Player entity data: <see cref="IsAlive"/> and <see cref="CanMove"/> use dedicated attributes and must have matching entries in the inherited list.
     /// </summary>
-    public sealed class PlayerData : EntityData
+    public sealed class Player : Entity
     {
         [SerializeField]
         private PlayerAttribute isAliveAttribute;

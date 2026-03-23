@@ -20,7 +20,7 @@ namespace GameModule.Modules.Global
             _logger = logger;
         }
 
-        public override async Task<IGameModuleData> Initialize(IExecutionContext context, IPlayerData playerData, IGameState gameState, IRemoteConfig remoteConfig)
+        public override async Task<IGameModuleData> Initialize(IExecutionContext context, IPlayerData Player, IGameState gameState, IRemoteConfig remoteConfig)
         {
             _logger.LogInformation("Initializing GlobalConfigModule");
             return await remoteConfig.Get(context, new GlobalConfigData());

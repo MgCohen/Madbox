@@ -37,7 +37,7 @@ namespace Madbox.Levels.Tests
             ContainerBuilder builder = new ContainerBuilder();
             builder.RegisterInstance(new StubLiveOps(expected)).As<ILiveOpsService>();
             builder.RegisterInstance<IAssetGroupProvider<LevelDefinition>>(new EmptyGroupProvider());
-            builder.Register<TestLevelService>(Lifetime.Scoped).AsSelf().As<IAsyncLayerInitializable>();
+            builder.Register<TestLevelService>(Lifetime.Singleton).AsSelf().As<IAsyncLayerInitializable>();
 
             using (IObjectResolver container = builder.Build())
             {
@@ -58,7 +58,7 @@ namespace Madbox.Levels.Tests
             ContainerBuilder builder = new ContainerBuilder();
             builder.RegisterInstance(new StubLiveOps(data)).As<ILiveOpsService>();
             builder.RegisterInstance<IAssetGroupProvider<LevelDefinition>>(provider);
-            builder.Register<LevelService>(Lifetime.Scoped).AsSelf().As<IAsyncLayerInitializable>();
+            builder.Register<LevelService>(Lifetime.Singleton).AsSelf().As<IAsyncLayerInitializable>();
 
             using (IObjectResolver container = builder.Build())
             {

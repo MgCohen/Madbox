@@ -27,17 +27,17 @@ namespace GameModule.GameModule
         /// </summary>
         /// <param name="logger">Core logging subsystem dependency.</param>
         /// <param name="moduleRequestHandler">Active handler execution instance natively.</param>
-        /// <param name="playerData">The targeted executing player logic state component.</param>
+        /// <param name="Player">The targeted executing player logic state component.</param>
         /// <param name="remoteConfig">The server remote configurations parameters element structure execution target parameter configuration object format.</param>
         public GameModulesController(
             ILogger<GameModulesController> logger,
             ModuleRequestHandler moduleRequestHandler,
-            IPlayerData playerData,
+            IPlayerData Player,
             IRemoteConfig remoteConfig)
         {
             _logger = logger;
             _moduleRequestHandler = moduleRequestHandler;
-            _playerData = playerData;
+            _playerData = Player;
             _remoteConfig = remoteConfig;
         }
 

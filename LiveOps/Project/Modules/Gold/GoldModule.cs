@@ -25,25 +25,25 @@ namespace GameModule.Modules.Gold
             _handler = handler;
         }
 
-        public override async Task<IGameModuleData> Initialize(IExecutionContext context, IPlayerData playerData, IGameState gameState, IRemoteConfig remoteConfig)
+        public override async Task<IGameModuleData> Initialize(IExecutionContext context, IPlayerData Player, IGameState gameState, IRemoteConfig remoteConfig)
         {
             _logger.LogInformation("Initializing GoldModule");
 
             GoldConfig config = await remoteConfig.Get(context, new GoldConfig());
             GoldRewardModuleData rewardConfig = await remoteConfig.Get(context, new GoldRewardModuleData());
-            GoldPersistence persistence = await playerData.GetOrSet(context, new GoldPersistence());
+            GoldPersistence persistence = await Player.GetOrSet(context, new GoldPersistence());
 
             long clamped = Math.Clamp(persistence.Current, config.Min, config.Max);
             if (clamped != persistence.Current)
             {
                 persistence.SetCurrent(clamped);
-                await playerData.Set(context, persistence);
+                await Player.Set(context, persistence);
             }
 
             return new GoldGameData(persistence, config, rewardConfig);
         }
 
-        public async Task AddGoldToPlayer(IExecutionContext context, IPlayerData playerData, IRemoteConfig remoteConfig, long amount = 0)
+        public async Task AddGoldToPlayer(IExecutionContext context, IPlayerData Player, IRemoteConfig remoteConfig, long amount = 0)
         {
             _logger.LogInformation("[GoldModule] Rewarding player {PlayerId}", context.PlayerId);
 
@@ -54,10 +54,10 @@ namespace GameModule.Modules.Gold
             }
 
             GoldConfig config = await remoteConfig.Get(context, new GoldConfig());
-            GoldPersistence goldPersistence = await playerData.GetOrSet(context, new GoldPersistence());
+            GoldPersistence goldPersistence = await Player.GetOrSet(context, new GoldPersistence());
             long next = goldPersistence.Current + amount;
             goldPersistence.SetCurrent(Math.Clamp(next, config.Min, config.Max));
-            playerData.AddToCache(goldPersistence);
+            Player.AddToCache(goldPersistence);
 
             _handler.AddResponse(new GoldResponse(amount));
             _logger.LogInformation("[GoldModule] Added {Amount} gold to player {PlayerId}. New total: {Total}", amount, context.PlayerId, goldPersistence.Current);

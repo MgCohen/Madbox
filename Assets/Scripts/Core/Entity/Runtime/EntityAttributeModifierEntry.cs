@@ -1,10 +1,10 @@
 using System;
 using UnityEngine;
 
-namespace Madbox.Entity
+namespace Madbox.Entities
 {
     /// <summary>
-    /// Adds <see cref="Delta"/> to the effective value of <see cref="Attribute"/> on <see cref="EntityData"/>.
+    /// Adds <see cref="Delta"/> to the effective value of <see cref="Attribute"/> on <see cref="Entity"/>.
     /// </summary>
     [Serializable]
     public sealed class EntityAttributeModifierEntry

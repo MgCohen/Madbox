@@ -37,7 +37,7 @@ namespace GameModule.ModuleFetchData.Unity
         {
             try
             {
-                _logger.LogInformation($"[PlayerData.GameState] --- Starting paginated fetch for key '{_key}'. ---");
+                _logger.LogInformation($"[Player.GameState] --- Starting paginated fetch for key '{_key}'. ---");
 
                 Dictionary<string, string> allFetchedData = new Dictionary<string, string>();
                 string after = null;
@@ -59,7 +59,7 @@ namespace GameModule.ModuleFetchData.Unity
                         }
                     }
 
-                    _logger.LogInformation($"[PlayerData.GameState] Page {pageNumber}: Fetched {itemsThisPage} items. Total so far: {allFetchedData.Count}.");
+                    _logger.LogInformation($"[Player.GameState] Page {pageNumber}: Fetched {itemsThisPage} items. Total so far: {allFetchedData.Count}.");
 
                     string nextUrl = result.Data?.Links?.Next;
                     after = null;
@@ -76,12 +76,12 @@ namespace GameModule.ModuleFetchData.Unity
                     }
                 }
                 while (!string.IsNullOrEmpty(after));
-                _logger.LogInformation($"[PlayerData.GameState] --- Pagination complete for key '{_key}'. Total items fetched: {allFetchedData.Count}. ---");
+                _logger.LogInformation($"[Player.GameState] --- Pagination complete for key '{_key}'. Total items fetched: {allFetchedData.Count}. ---");
                 return allFetchedData;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"[PlayerData.GameState] An error occurred while fetching data for key '{_key}': {ex.Message}");
+                _logger.LogError(ex, $"[Player.GameState] An error occurred while fetching data for key '{_key}': {ex.Message}");
                 throw;
             }
         }

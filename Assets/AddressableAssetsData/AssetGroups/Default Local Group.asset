@@ -22,6 +22,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 89de4008f8cc87d4a8e2924ba9d12eb7
+    m_Address: Assets/Prefabs/Heroes/Hero.prefab
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: bde157de4617a8c4ebbb38b96b5234ce
     m_Address: Navigation/BaseUIView
     m_ReadOnly: 0

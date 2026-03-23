@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Madbox.Addressables.Contracts;
 using Madbox.App.Bootstrap.Player;
 using Madbox.App.GameView.Player;
+using Madbox.Player;
 using Madbox.Levels;
 using NUnit.Framework;
 using UnityEngine;
@@ -40,8 +41,8 @@ namespace Madbox.App.Bootstrap.Tests
             var playerService = new PlayerService(loadout);
             var factory = new PlayerFactory(playerService, fake);
 
-            Task<PlayerData> task = factory.CreateReadyPlayerAsync(null, Vector3.zero, Quaternion.identity);
-            PlayerData player = task.GetAwaiter().GetResult();
+            Task<Player> task = factory.CreateReadyPlayerAsync(null, Vector3.zero, Quaternion.identity);
+            Player player = task.GetAwaiter().GetResult();
 
             Assert.IsNotNull(player);
             WeaponVisualController visual = player.GetComponentInChildren<WeaponVisualController>(true);
@@ -63,7 +64,7 @@ namespace Madbox.App.Bootstrap.Tests
         private static GameObject BuildPlayerPrefabWithSockets(int socketCount)
         {
             GameObject root = new GameObject("playerPrefab");
-            root.AddComponent<PlayerData>();
+            root.AddComponent<Player>();
             WeaponVisualController visual = root.AddComponent<WeaponVisualController>();
             var sockets = new List<Transform>();
             for (int i = 0; i < socketCount; i++)

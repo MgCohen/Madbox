@@ -13,10 +13,10 @@ namespace GameModule.Response
     /// </summary>
     public class ModuleRequestHandler
     {
-        public ModuleRequestHandler(SignalModule signalModule, IPlayerData playerData) //TODO: Add gameData
+        public ModuleRequestHandler(SignalModule signalModule, IPlayerData Player) //TODO: Add gameData
         {
             _signalModule = signalModule;
-            _playerData = playerData;
+            _playerData = Player;
         }
 
         private readonly SignalModule _signalModule;
@@ -38,7 +38,7 @@ namespace GameModule.Response
             _signalModule.Push(request);
         }
 
-        public async Task<T> ResolveResponse<T>(IExecutionContext context, ModuleRequest<T> request, T response, IPlayerData playerData = null) where T : ModuleResponse
+        public async Task<T> ResolveResponse<T>(IExecutionContext context, ModuleRequest<T> request, T response, IPlayerData Player = null) where T : ModuleResponse
         {
             if (request == null || context == null)
             {
@@ -46,9 +46,9 @@ namespace GameModule.Response
             }
 
             NotifyRequestResolve(request);
-            if (playerData != null)
+            if (Player != null)
             {
-                await playerData.SaveCache(context);
+                await Player.SaveCache(context);
             }
             else
             {

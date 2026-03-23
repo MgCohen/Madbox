@@ -1,7 +1,9 @@
 {
     "name": "Madbox.Enemies",
     "rootNamespace": "Madbox.Enemies",
-    "references": [],
+    "references": [
+        "Madbox.Entities"
+    ],
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,

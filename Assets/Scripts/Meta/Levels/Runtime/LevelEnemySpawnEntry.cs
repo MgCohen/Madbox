@@ -1,5 +1,4 @@
 using System;
-using Madbox.Enemies;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 

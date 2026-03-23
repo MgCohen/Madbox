@@ -1,12 +1,12 @@
-using Madbox.Entity;
-using Madbox.App.GameView.Player;
+using Madbox.Entities;
+using Madbox.Player;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
 
-namespace Madbox.App.GameView.Tests
+namespace Madbox.Player.Tests
 {
-    public sealed class PlayerDataAttributeTests
+    public sealed class PlayerAttributeTests
     {
         [Test]
         public void GetFloatAttribute_ReturnsEntryValue()
@@ -15,7 +15,7 @@ namespace Madbox.App.GameView.Tests
             attr.name = "TestAttr";
 
             GameObject go = new GameObject("pd");
-            var data = go.AddComponent<PlayerData>();
+            var data = go.AddComponent<Player>();
             SerializedObject dataSo = new SerializedObject(data);
             SerializedProperty list = dataSo.FindProperty("attributeEntries");
             list.arraySize = 1;
@@ -37,7 +37,7 @@ namespace Madbox.App.GameView.Tests
             attr.name = "TestAttr";
 
             GameObject go = new GameObject("pd");
-            var data = go.AddComponent<PlayerData>();
+            var data = go.AddComponent<Player>();
             SerializedObject dataSo = new SerializedObject(data);
             SerializedProperty list = dataSo.FindProperty("attributeEntries");
             list.arraySize = 1;
@@ -71,7 +71,7 @@ namespace Madbox.App.GameView.Tests
             attr.name = "Flag";
 
             GameObject go = new GameObject("pd");
-            var data = go.AddComponent<PlayerData>();
+            var data = go.AddComponent<Player>();
             SerializedObject dataSo = new SerializedObject(data);
             SerializedProperty list = dataSo.FindProperty("attributeEntries");
             list.arraySize = 1;
