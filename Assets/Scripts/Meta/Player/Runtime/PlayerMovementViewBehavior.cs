@@ -1,9 +1,8 @@
 using Madbox.App.Animation;
-using Madbox.Players;
 using PlayerAttribute = Madbox.Players.PlayerAttribute;
 using UnityEngine;
 
-namespace Madbox.App.GameView.Players
+namespace Madbox.Players
 {
     /// <summary>
     /// Moves the player root from resolved move input; sets the animator locomotion bool so transitions can drive idle/run.

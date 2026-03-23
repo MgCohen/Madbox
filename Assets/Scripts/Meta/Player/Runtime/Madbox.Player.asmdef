@@ -2,7 +2,9 @@
     "name": "Madbox.Player",
     "rootNamespace": "Madbox.Players",
     "references": [
-        "Madbox.Entities"
+        "Madbox.Entities",
+        "Madbox.Animation",
+        "Madbox.Enemies"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
