@@ -46,6 +46,16 @@ namespace Madbox.App.MainMenu.Tests
         }
 
         [Test]
+        public void View_Bind_AppliesConfiguredTitleAndSubtitleText()
+        {
+            FakeGoldService service = new FakeGoldService(0);
+            MainMenuViewModel viewModel = CreateBoundViewModel(service);
+            using ViewFixture fixture = CreateViewFixture(viewModel);
+            Assert.AreEqual("Fuleiro", fixture.TitleLabel.text);
+            Assert.AreEqual("(Its a brazilian pun)", fixture.SubtitleLabel.text);
+        }
+
+        [Test]
         public void View_Bind_WhenLevelServiceHasEntries_CreatesLevelButton()
         {
             FakeGoldService gold = new FakeGoldService(0);
@@ -159,13 +169,23 @@ namespace Madbox.App.MainMenu.Tests
             SetPrivateField(levelHandler, "levelButtonPrefab", levelPrefab.GetComponent<MainMenuLevelListItem>());
             SetPrivateField(levelHandler, "levelListContainer", levelList.transform);
 
+            GameObject titleGo = new GameObject("TitleText", typeof(RectTransform));
+            titleGo.transform.SetParent(root.transform, false);
+            TMPro.TextMeshProUGUI titleLabel = titleGo.AddComponent<TMPro.TextMeshProUGUI>();
+
+            GameObject subtitleGo = new GameObject("SubtitleText", typeof(RectTransform));
+            subtitleGo.transform.SetParent(root.transform, false);
+            TMPro.TextMeshProUGUI subtitleLabel = subtitleGo.AddComponent<TMPro.TextMeshProUGUI>();
+
             MainMenuView view = root.AddComponent<MainMenuView>();
             SetMainMenuViewSerializedField(view, "goldLabel", goldLabel);
             SetMainMenuViewSerializedField(view, "addGoldButton", addGoldButton);
             SetMainMenuViewSerializedField(view, "levelButtonCollectionHandler", levelHandler);
+            SetMainMenuViewSerializedField(view, "titleLabel", titleLabel);
+            SetMainMenuViewSerializedField(view, "subtitleLabel", subtitleLabel);
 
             view.Bind(viewModel);
-            return new ViewFixture(root);
+            return new ViewFixture(root, titleLabel, subtitleLabel);
         }
 
         private static void SetMainMenuViewSerializedField(MainMenuView view, string fieldName, object value)
@@ -251,12 +271,16 @@ namespace Madbox.App.MainMenu.Tests
 
         private sealed class ViewFixture : IDisposable
         {
-            public ViewFixture(GameObject root)
+            public ViewFixture(GameObject root, TMPro.TextMeshProUGUI titleLabel, TMPro.TextMeshProUGUI subtitleLabel)
             {
                 Root = root;
+                TitleLabel = titleLabel;
+                SubtitleLabel = subtitleLabel;
             }
 
             public GameObject Root { get; }
+            public TMPro.TextMeshProUGUI TitleLabel { get; }
+            public TMPro.TextMeshProUGUI SubtitleLabel { get; }
 
             public void Dispose()
             {

@@ -21,7 +21,7 @@
 - `MainMenuViewModel.AddOneGold()`: increments gold through injected `IGoldService`.
 - `MainMenuViewModel.PlayLevel(AvailableLevel)`: forwards to injected `IGameFlowService`.
 - `MainMenuViewModel.AvailableLevels`: read-only list from `ILevelService` for UI.
-- `MainMenuView`: binds `viewModel.Gold` to TextMeshPro text, Add Gold to `AddOneGold`, and builds level buttons from `AvailableLevels`.
+- `MainMenuView`: binds `viewModel.Gold` to TextMeshPro text, Add Gold to `AddOneGold`, builds level buttons from `AvailableLevels`, and applies editor-configured title/subtitle text with a subtle hover loop animation.
 
 ## Testing
 
@@ -35,4 +35,5 @@
 ## Notes
 
 - All menu text uses `TextMeshProUGUI`.
+- Menu title text defaults to `Fuleiro` and subtitle defaults to `(Its a brazilian pun)`; both are serialized fields and can be overridden per prefab in the editor.
 - Main menu is opened by `BootstrapScope.OnBootstrapCompleted(...)`.
