@@ -63,7 +63,7 @@ namespace Madbox.App.MainMenu.Tests
             FakeLevelMenu menu = new FakeLevelMenu(entry);
             MainMenuViewModel viewModel = CreateBoundViewModel(gold, menu);
             using ViewFixture fixture = CreateViewFixture(viewModel);
-            Transform levelList = fixture.Root.transform.Find("LevelList");
+            Transform levelList = fixture.Root.transform.Find("LevelButtonCollectionHandler/LevelList");
             Assert.IsNotNull(levelList);
             MainMenuLevelListItem[] items = levelList.GetComponentsInChildren<MainMenuLevelListItem>(true);
             Assert.AreEqual(1, items.Length);
@@ -79,7 +79,7 @@ namespace Madbox.App.MainMenu.Tests
             FakeGameFlowService flow = new FakeGameFlowService();
             MainMenuViewModel viewModel = CreateBoundViewModel(gold, menu, flow);
             using ViewFixture fixture = CreateViewFixture(viewModel);
-            Transform levelList = fixture.Root.transform.Find("LevelList");
+            Transform levelList = fixture.Root.transform.Find("LevelButtonCollectionHandler/LevelList");
             MainMenuLevelListItem item = levelList.GetComponentInChildren<MainMenuLevelListItem>(true);
             Assert.IsNotNull(item);
             Button levelButton = item.GetComponent<Button>();
@@ -158,17 +158,25 @@ namespace Madbox.App.MainMenu.Tests
             addGoldGo.transform.SetParent(root.transform, false);
             Button addGoldButton = addGoldGo.GetComponent<Button>();
 
+            GameObject levelHandlerGo = new GameObject("LevelButtonCollectionHandler", typeof(RectTransform));
+            levelHandlerGo.transform.SetParent(root.transform, false);
+            LevelButtonCollectionHandlerBehaviour levelHandler = levelHandlerGo.AddComponent<LevelButtonCollectionHandlerBehaviour>();
+
             GameObject levelList = new GameObject("LevelList", typeof(RectTransform));
-            levelList.transform.SetParent(root.transform, false);
+            levelList.transform.SetParent(levelHandlerGo.transform, false);
 
             GameObject levelPrefab = new GameObject("LevelButtonPrefab", typeof(RectTransform), typeof(Image), typeof(Button), typeof(MainMenuLevelListItem));
             levelPrefab.transform.SetParent(root.transform, false);
             levelPrefab.SetActive(false);
+            Button levelItemButton = levelPrefab.GetComponent<Button>();
+            GameObject levelLabelGo = new GameObject("LevelLabel", typeof(RectTransform));
+            levelLabelGo.transform.SetParent(levelPrefab.transform, false);
+            TMPro.TextMeshProUGUI levelLabel = levelLabelGo.AddComponent<TMPro.TextMeshProUGUI>();
+            MainMenuLevelListItem levelListItem = levelPrefab.GetComponent<MainMenuLevelListItem>();
+            SetPrivateField(levelListItem, "button", levelItemButton);
+            SetPrivateField(levelListItem, "label", levelLabel);
 
-            GameObject levelHandlerGo = new GameObject("LevelButtonCollectionHandler", typeof(RectTransform));
-            levelHandlerGo.transform.SetParent(root.transform, false);
-            LevelButtonCollectionHandlerBehaviour levelHandler = levelHandlerGo.AddComponent<LevelButtonCollectionHandlerBehaviour>();
-            SetPrivateField(levelHandler, "levelButtonPrefab", levelPrefab.GetComponent<MainMenuLevelListItem>());
+            SetPrivateField(levelHandler, "levelButtonPrefab", levelListItem);
             SetPrivateField(levelHandler, "levelListContainer", levelList.transform);
 
             GameObject titleGo = new GameObject("TitleText", typeof(RectTransform));

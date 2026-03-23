@@ -6,7 +6,9 @@
         "Madbox.Animation",
         "Madbox.Enemies",
         "Madbox.Addressables",
-        "Madbox.Levels"
+        "Madbox.Levels",
+        "Unity.Addressables",
+        "Unity.ResourceManager"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
