@@ -1,4 +1,5 @@
 using Madbox.Levels;
+using Scaffold.MVVM;
 using Scaffold.MVVM.Binding;
 using System;
 using UnityEngine;
@@ -17,6 +18,16 @@ namespace Madbox.App.MainMenu
 
         private Action<AvailableLevel> onLevelSelected;
 
+        private void OnEnable()
+        {
+            ViewEvents.Register<LevelClickedViewEvent>(this, HandleLevelClicked);
+        }
+
+        private void HandleLevelClicked(LevelClickedViewEvent @event)
+        {
+            onLevelSelected?.Invoke(@event.Level);
+        }
+
         public void SetLevelSelectHandler(Action<AvailableLevel> handler)
         {
             onLevelSelected = handler;
@@ -25,10 +36,9 @@ namespace Madbox.App.MainMenu
         public MainMenuLevelListItem Add(AvailableLevel source)
         {
             MainMenuLevelListItem instance = Instantiate(levelButtonPrefab, levelListContainer);
-            instance?.SetLabel(source);
             if (instance != null)
             {
-                WireLevelClick(instance.Button, source);
+                instance.Set(source);
             }
 
             return instance;
@@ -41,22 +51,6 @@ namespace Madbox.App.MainMenu
                 return;
             }
             Destroy(item.gameObject);
-        }
-
-        private void WireLevelClick(Button button, AvailableLevel source)
-        {
-            AvailableLevel captured = source;
-            button.onClick.AddListener(() => HandleLevelClicked(captured));
-        }
-
-        internal void HandleLevelClicked(AvailableLevel entry)
-        {
-            if (entry?.Definition == null)
-            {
-                return;
-            }
-
-            onLevelSelected?.Invoke(entry);
         }
     }
 }

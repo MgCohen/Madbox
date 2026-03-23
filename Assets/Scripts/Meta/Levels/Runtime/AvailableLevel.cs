@@ -16,19 +16,5 @@ namespace Madbox.Levels
         public LevelDefinition Definition { get; }
 
         public LevelAvailabilityState AvailabilityState { get; }
-
-        /// <summary>Label for main-menu buttons without pulling DTO types into UI assemblies.</summary>
-        public string MenuButtonLabel
-        {
-            get
-            {
-                if (Definition == null)
-                {
-                    return AvailabilityState.ToString();
-                }
-                string name = string.IsNullOrEmpty(Definition.name) ? $"Level {Definition.LevelId}" : Definition.name;
-                return $"{name} ({AvailabilityState})";
-            }
-        }
     }
 }

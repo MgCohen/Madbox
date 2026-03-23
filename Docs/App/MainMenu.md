@@ -21,7 +21,7 @@
 - `MainMenuViewModel.AddOneGold()`: increments gold through injected `IGoldService`.
 - `MainMenuViewModel.PlayLevel(AvailableLevel)`: forwards to injected `IGameFlowService`.
 - `MainMenuViewModel.AvailableLevels`: read-only list from `ILevelService` for UI.
-- `MainMenuView`: binds `viewModel.Gold` to TextMeshPro text, Add Gold to `AddOneGold`, builds level buttons from `AvailableLevels`, and applies editor-configured title/subtitle text with a subtle hover loop animation.
+- `MainMenuView`: binds wallet gold to `TextMeshProUGUI`, wires Add Gold to `AddOneGold`, and builds level buttons from `AvailableLevels` (see `LevelButtonCollectionHandlerBehaviour`). Title copy and float animation live in prefab wiring (`MainMenuFloatingTitle` + TMP labels), not in `MainMenuView` code.
 
 ## Testing
 
@@ -34,6 +34,6 @@
 
 ## Notes
 
-- All menu text uses `TextMeshProUGUI`.
-- Menu title text defaults to `Fuleiro` and subtitle defaults to `(Its a brazilian pun)`; both are serialized fields and can be overridden per prefab in the editor.
+- All menu text uses `TextMeshProUGUI` with the default TMP font asset `LiberationSans SDF` (`Assets/TextMesh Pro/Resources/Fonts & Materials/LiberationSans SDF.asset`).
+- Prefabs: `Assets/Prefabs/MainMenu/Main Menu View.prefab` (main screen), `Main Menu Title.prefab` (optional reusable title block), `Main Menu Level List Item.prefab` (level row; `Main Menu Level Button.prefab` is the same layout with a different asset name for reuse).
 - Main menu is opened by `BootstrapScope.OnBootstrapCompleted(...)`.

@@ -21,7 +21,8 @@ namespace Madbox.App.MainMenu
         protected override void Initialize()
         {
             AvailableLevels.Clear();
-            foreach (AvailableLevel level in levelService.GetAvailableLevels())
+            var levels = levelService.GetAvailableLevels();
+            foreach (AvailableLevel level in levels)
             {
                 if (level?.Definition != null)
                 {

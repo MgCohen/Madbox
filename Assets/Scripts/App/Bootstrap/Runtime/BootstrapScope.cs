@@ -1,9 +1,10 @@
-using System.Threading.Tasks;
+using System;
 using Madbox.Ads;
 using Madbox.App.MainMenu;
 using Madbox.LiveOps;
 using Madbox.Scope;
 using Madbox.Scope.Contracts;
+using Scaffold.Events.Contracts;
 using Scaffold.Navigation;
 using Scaffold.Navigation.Contracts;
 using UnityEngine;
@@ -31,9 +32,8 @@ namespace Madbox.App.Bootstrap
             return asset;
         }
 
-        protected override async void OnBootstrapCompleted(LifetimeScope finalScope)  
+        protected override void OnBootstrapCompleted(LifetimeScope finalScope)  
         {
-            bootstrapLoadingView?.Hide();
             Debug.Log("Bootstrap completed");
 
             //try
@@ -65,8 +65,31 @@ namespace Madbox.App.Bootstrap
             //{
             //    Debug.LogError($"[Test] FAILED to load addressable: {e.Message}");
             //}
-
+            RegisterHideLoadingOnMainMenuOpened(finalScope);
             OpenMainMenu(finalScope);
+        }
+
+        private void RegisterHideLoadingOnMainMenuOpened(LifetimeScope finalScope)
+        {
+            if (bootstrapLoadingView == null || finalScope?.Container == null)
+            {
+                return;
+            }
+
+            IEventBus eventBus = finalScope.Container.Resolve<IEventBus>();
+            Action<AfterViewOpenEvent> onViewOpened = null;
+            onViewOpened = evt =>
+            {
+                if (evt?.ViewType != typeof(MainMenuViewModel))
+                {
+                    return;
+                }
+
+                bootstrapLoadingView.Hide();
+                eventBus.RemoveListener(onViewOpened);
+            };
+
+            eventBus.AddListener(onViewOpened);
         }
 
         private void OpenMainMenu(LifetimeScope finalScope)

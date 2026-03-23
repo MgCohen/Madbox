@@ -10,6 +10,7 @@
         "Scaffold.MVVM.Model",
         "Scaffold.MVVM.ViewModel",
         "VContainer",
+        "Scaffold.Events",
         "Scaffold.Events.Container",
         "Scaffold.Navigation.Container",
         "Madbox.Addressables.Container",

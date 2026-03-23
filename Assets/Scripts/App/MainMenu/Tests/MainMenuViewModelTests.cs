@@ -46,7 +46,7 @@ namespace Madbox.App.MainMenu.Tests
         }
 
         [Test]
-        public void View_Bind_AppliesConfiguredTitleAndSubtitleText()
+        public void View_Bind_KeepsPrefabTitleAndSubtitleText()
         {
             FakeGoldService service = new FakeGoldService(0);
             MainMenuViewModel viewModel = CreateBoundViewModel(service);
@@ -82,7 +82,9 @@ namespace Madbox.App.MainMenu.Tests
             Transform levelList = fixture.Root.transform.Find("LevelList");
             MainMenuLevelListItem item = levelList.GetComponentInChildren<MainMenuLevelListItem>(true);
             Assert.IsNotNull(item);
-            item.Button.onClick.Invoke();
+            Button levelButton = item.GetComponent<Button>();
+            Assert.IsNotNull(levelButton);
+            levelButton.onClick.Invoke();
             Assert.AreSame(def, flow.LastDefinition);
             UnityEngine.Object.DestroyImmediate(def);
         }
@@ -176,13 +178,13 @@ namespace Madbox.App.MainMenu.Tests
             GameObject subtitleGo = new GameObject("SubtitleText", typeof(RectTransform));
             subtitleGo.transform.SetParent(root.transform, false);
             TMPro.TextMeshProUGUI subtitleLabel = subtitleGo.AddComponent<TMPro.TextMeshProUGUI>();
+            titleLabel.text = "Fuleiro";
+            subtitleLabel.text = "(Its a brazilian pun)";
 
             MainMenuView view = root.AddComponent<MainMenuView>();
             SetMainMenuViewSerializedField(view, "goldLabel", goldLabel);
             SetMainMenuViewSerializedField(view, "addGoldButton", addGoldButton);
             SetMainMenuViewSerializedField(view, "levelButtonCollectionHandler", levelHandler);
-            SetMainMenuViewSerializedField(view, "titleLabel", titleLabel);
-            SetMainMenuViewSerializedField(view, "subtitleLabel", subtitleLabel);
 
             view.Bind(viewModel);
             return new ViewFixture(root, titleLabel, subtitleLabel);

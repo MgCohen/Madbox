@@ -1,5 +1,8 @@
 using Madbox.Levels;
+using Scaffold.MVVM;
+using System;
 using System.Reflection;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -10,41 +13,32 @@ namespace Madbox.App.MainMenu
     /// </summary>
     public sealed class MainMenuLevelListItem : MonoBehaviour
     {
-        public Button Button
-        {
-            get
-            {
-                if (button == null)
-                {
-                    button = GetComponent<Button>();
-                }
-
-                return button;
-            }
-        }
-
         [SerializeField] private Button button;
-        [SerializeField] private Component label;
+        [SerializeField] private TextMeshProUGUI label;
+        private AvailableLevel level;
 
-        public void Set(string text)
+        public void Set(AvailableLevel level)
         {
-            if (label == null)
-            {
-                return;
-            }
-
-            PropertyInfo property = label.GetType().GetProperty("text", BindingFlags.Instance | BindingFlags.Public);
-            property?.SetValue(label, text);
+            this.level = level;
+            label.text = $"{level.Definition.LevelId} - {level.AvailabilityState}";
+            button.onClick.RemoveListener(Clicked);
+            button.onClick.AddListener(Clicked);
         }
 
-        internal void SetLabel(AvailableLevel source)
+        private void Clicked()
         {
-            if (source == null)
-            {
-                return;
-            }
-
-            Set(source.MenuButtonLabel);
+            var viewEvent = new LevelClickedViewEvent(level);
+            ViewEvents.Raise(this, viewEvent);
         }
+    }
+
+    public class LevelClickedViewEvent : ViewEvent
+    {
+        public LevelClickedViewEvent(AvailableLevel level)
+        {
+            Level = level;
+        }
+
+        public AvailableLevel Level { get; private set; }
     }
 }
