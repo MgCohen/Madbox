@@ -94,7 +94,7 @@ Throughout implementation, the repo’s **quality loop** stayed in play: Roslyn 
 | Backend vertical (LiveOps / Cloud Code modules)              | 1_h          |
 | Client-facing gameplay                                       | 3_h          |
 | Close-out (polish, documentation, handoff)                   | 2_h          |
-| **Total**                                                    | 16_h         |
+| **Total**                                                    | 17_h         |
 
 
 ---
