@@ -80,9 +80,6 @@ Throughout implementation, the repo’s **quality loop** stayed in play: Roslyn 
 
 ## 2) Time spent per phase
 
-*(Replace the placeholders below with your own numbers; the repository does not record time automatically. Phase names mirror section 1, “Approach to the test.”)*
-
-
 | Phase                                                        | Approx. time |
 | ------------------------------------------------------------ | ------------ |
 | Research (no code, no AI)                                    | 1_h          |
