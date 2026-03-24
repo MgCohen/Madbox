@@ -1,0 +1,18 @@
+{
+    "name": "Madbox.Addressables.Container",
+    "rootNamespace": "Madbox.Addressables.Container",
+    "references": [
+        "Madbox.Addressables",
+        "Madbox.Scope",
+        "VContainer"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

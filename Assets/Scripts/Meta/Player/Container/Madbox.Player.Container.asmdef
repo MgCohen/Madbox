@@ -1,0 +1,18 @@
+{
+    "name": "Madbox.Player.Container",
+    "rootNamespace": "Madbox.Players.Container",
+    "references": [
+        "Madbox.Player",
+        "VContainer",
+        "VContainer.Unity"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

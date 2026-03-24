@@ -1,0 +1,35 @@
+{
+    "name": "Madbox.Gameplay",
+    "rootNamespace": "Madbox.App.Gameplay",
+    "references": [
+        "Scaffold.MVVM.View",
+        "Scaffold.MVVM.ViewModel",
+        "Scaffold.MVVM.Base",
+        "Scaffold.Navigation",
+        "Madbox.Levels",
+        "Madbox.Gold",
+        "Madbox.Battle",
+        "Madbox.SceneFlow",
+        "Madbox.GameView",
+        "Madbox.Enemies",
+        "Unity.Addressables",
+        "VContainer",
+        "Unity.TextMeshPro",
+        "UnityEngine.UI",
+        "Madbox.Scope",
+        "Madbox.Player",
+        "Madbox.Entities",
+        "Madbox.Addressables"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [
+        "DOTween.dll"
+    ],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

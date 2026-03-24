@@ -1,0 +1,40 @@
+{
+    "name":  "Madbox.Bootstrap.Tests",
+    "rootNamespace":  "Madbox.Bootstrap.Tests",
+    "references":  [
+                       "Madbox.Bootstrap.Runtime",
+                       "Madbox.Player.Container",
+                       "Madbox.Entities",
+                       "Madbox.Player",
+                       "Madbox.GameView",
+                       "Madbox.Addressables",
+                       "Madbox.Levels",
+                       "Madbox.SceneFlow",
+                       "Madbox.Scope",
+                       "Unity.Addressables",
+                       "VContainer",
+                       "VContainer.Unity"
+                   ],
+    "includePlatforms":  [
+                             "Editor"
+                         ],
+    "excludePlatforms":  [
+
+                         ],
+    "allowUnsafeCode":  false,
+    "overrideReferences":  false,
+    "precompiledReferences":  [
+
+                              ],
+    "autoReferenced":  false,
+    "defineConstraints":  [
+
+                          ],
+    "versionDefines":  [
+
+                       ],
+    "noEngineReferences":  false,
+    "optionalUnityReferences":  [
+                                    "TestAssemblies"
+                                ]
+}

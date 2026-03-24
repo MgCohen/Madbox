@@ -1,0 +1,18 @@
+{
+    "name": "Madbox.Ugs.Container",
+    "rootNamespace": "Madbox.Ugs.Container",
+    "references": [
+        "Madbox.Scope",
+        "Madbox.Ugs",
+        "VContainer"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

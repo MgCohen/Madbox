@@ -1,0 +1,21 @@
+{
+    "name": "Madbox.CloudCode.Tests",
+    "rootNamespace": "Madbox.CloudCode.Tests",
+    "references": [
+        "Madbox.CloudCode"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false,
+    "optionalUnityReferences": [
+        "TestAssemblies"
+    ]
+}

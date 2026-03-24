@@ -1,0 +1,32 @@
+{
+    "name": "Madbox.Gold.Tests",
+    "rootNamespace": "Madbox.Gold.Tests",
+    "references": [
+        "Madbox.Gold",
+        "Madbox.LiveOps",
+        "Madbox.Scope",
+        "Scaffold.MVVM.Base",
+        "Scaffold.MVVM.Model",
+        "VContainer",
+        "UnityEngine.TestRunner",
+        "UnityEditor.TestRunner"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "CommunityToolkit.Mvvm.dll",
+        "Madbox.LiveOps.DTO.dll",
+        "Newtonsoft.Json.dll",
+        "nunit.framework.dll"
+    ],
+    "autoReferenced": false,
+    "defineConstraints": [
+        "UNITY_INCLUDE_TESTS"
+    ],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

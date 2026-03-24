@@ -1,0 +1,18 @@
+{
+    "name": "Madbox.Ads",
+    "rootNamespace": "Madbox.Ads",
+    "references": [
+        "Madbox.LiveOps"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [
+        "Madbox.LiveOps.DTO.dll"
+    ],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": true
+}

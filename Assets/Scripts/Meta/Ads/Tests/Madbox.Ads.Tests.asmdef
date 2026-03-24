@@ -1,0 +1,24 @@
+{
+    "name": "Madbox.Ads.Tests",
+    "rootNamespace": "Madbox.Ads.Tests",
+    "references": [
+        "Madbox.Ads",
+        "Madbox.LiveOps"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [
+        "Madbox.LiveOps.DTO.dll"
+    ],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false,
+    "optionalUnityReferences": [
+        "TestAssemblies"
+    ]
+}

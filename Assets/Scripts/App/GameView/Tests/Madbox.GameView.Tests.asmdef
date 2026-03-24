@@ -1,0 +1,24 @@
+{
+    "name": "Madbox.GameView.Tests",
+    "rootNamespace": "Madbox.App.GameView.Tests",
+    "references": [
+        "Madbox.Animation",
+        "Madbox.Entities",
+        "Madbox.GameView",
+        "Madbox.Player"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false,
+    "optionalUnityReferences": [
+        "TestAssemblies"
+    ]
+}

@@ -1,0 +1,25 @@
+{
+    "name": "Madbox.Bootstrap.PlayModeTests",
+    "rootNamespace": "Madbox.Bootstrap.Tests.PlayMode",
+    "references": [
+        "Madbox.Bootstrap.Runtime",
+        "Madbox.Scope",
+        "Unity.TextMeshPro",
+        "UnityEngine.TestRunner",
+        "UnityEditor.TestRunner",
+        "VContainer"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "nunit.framework.dll"
+    ],
+    "autoReferenced": false,
+    "defineConstraints": [
+        "UNITY_INCLUDE_TESTS"
+    ],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

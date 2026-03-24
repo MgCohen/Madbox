@@ -1,0 +1,17 @@
+{
+    "name": "Madbox.CloudCode.Container",
+    "rootNamespace": "Madbox.CloudCode.Container",
+    "references": [
+        "Madbox.CloudCode",
+        "VContainer"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

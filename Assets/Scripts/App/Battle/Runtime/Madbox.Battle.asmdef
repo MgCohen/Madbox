@@ -1,0 +1,25 @@
+{
+    "name": "Madbox.Battle",
+    "rootNamespace": "Madbox.Battle",
+    "references": [
+        "Cinemachine",
+        "Madbox.Addressables",
+        "Madbox.Entities",
+        "Madbox.GameView",
+        "Madbox.Levels",
+        "Madbox.Enemies",
+        "Madbox.Player",
+        "Madbox.SceneFlow",
+        "Unity.Addressables",
+        "Unity.ResourceManager"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

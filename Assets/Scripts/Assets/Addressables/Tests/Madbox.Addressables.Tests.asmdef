@@ -1,0 +1,26 @@
+{
+    "name": "Madbox.Addressables.Tests",
+    "rootNamespace": "Madbox.Addressables.Tests",
+    "references": [
+        "Madbox.Addressables.Container",
+        "Madbox.Addressables",
+        "Scaffold.Types",
+        "Madbox.Scope",
+        "VContainer",
+        "Unity.Addressables"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false,
+    "optionalUnityReferences": [
+        "TestAssemblies"
+    ]
+}

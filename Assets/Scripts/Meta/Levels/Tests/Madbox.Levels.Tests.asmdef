@@ -1,0 +1,35 @@
+{
+    "name": "Madbox.Levels.Tests",
+    "rootNamespace": "Madbox.Levels.Tests",
+    "references": [
+        "Madbox.Enemies",
+        "Madbox.Levels",
+        "Madbox.LiveOps",
+        "Madbox.Addressables",
+        "Madbox.Scope",
+        "Scaffold.MVVM.Base",
+        "Scaffold.MVVM.Model",
+        "Unity.Addressables",
+        "VContainer",
+        "UnityEngine.TestRunner",
+        "UnityEditor.TestRunner"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "CommunityToolkit.Mvvm.dll",
+        "Madbox.LiveOps.DTO.dll",
+        "Newtonsoft.Json.dll",
+        "nunit.framework.dll"
+    ],
+    "autoReferenced": false,
+    "defineConstraints": [
+        "UNITY_INCLUDE_TESTS"
+    ],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

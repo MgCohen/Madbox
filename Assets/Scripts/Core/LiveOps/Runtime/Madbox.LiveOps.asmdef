@@ -1,0 +1,21 @@
+{
+    "name": "Madbox.LiveOps",
+    "rootNamespace": "Madbox.LiveOps",
+    "references": [
+        "Madbox.CloudCode",
+        "Madbox.Scope",
+        "VContainer"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [
+        "Newtonsoft.Json.dll",
+        "Madbox.LiveOps.DTO.dll"
+    ],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

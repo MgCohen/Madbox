@@ -1,0 +1,67 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1001 &7225396209548177803
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 297763066410921876, guid: e4260a643264a84479eee8911d7bd336, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 0.9
+      objectReference: {fileID: 0}
+    - target: {fileID: 297763066410921876, guid: e4260a643264a84479eee8911d7bd336, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 0.9
+      objectReference: {fileID: 0}
+    - target: {fileID: 297763066410921876, guid: e4260a643264a84479eee8911d7bd336, type: 3}
+      propertyPath: m_LocalScale.z
+      value: 0.9
+      objectReference: {fileID: 0}
+    - target: {fileID: 1358921057130329688, guid: e4260a643264a84479eee8911d7bd336, type: 3}
+      propertyPath: m_Name
+      value: BeeEnemy_Amber
+      objectReference: {fileID: 0}
+    - target: {fileID: 1985765257376077449, guid: e4260a643264a84479eee8911d7bd336, type: 3}
+      propertyPath: attributeEntries.Array.data[0].baseValue
+      value: 4.65
+      objectReference: {fileID: 0}
+    - target: {fileID: 1985765257376077449, guid: e4260a643264a84479eee8911d7bd336, type: 3}
+      propertyPath: attributeEntries.Array.data[1].baseValue
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 1985765257376077449, guid: e4260a643264a84479eee8911d7bd336, type: 3}
+      propertyPath: attributeEntries.Array.data[2].baseValue
+      value: 0.28
+      objectReference: {fileID: 0}
+    - target: {fileID: 1985765257376077449, guid: e4260a643264a84479eee8911d7bd336, type: 3}
+      propertyPath: attributeEntries.Array.data[3].baseValue
+      value: 13.25
+      objectReference: {fileID: 0}
+    - target: {fileID: 1985765257376077449, guid: e4260a643264a84479eee8911d7bd336, type: 3}
+      propertyPath: attributeEntries.Array.data[4].baseValue
+      value: 9.25
+      objectReference: {fileID: 0}
+    - target: {fileID: 1985765257376077449, guid: e4260a643264a84479eee8911d7bd336, type: 3}
+      propertyPath: attributeEntries.Array.data[5].baseValue
+      value: 3.05
+      objectReference: {fileID: 0}
+    - target: {fileID: 1985765257376077449, guid: e4260a643264a84479eee8911d7bd336, type: 3}
+      propertyPath: attributeEntries.Array.data[6].baseValue
+      value: 15
+      objectReference: {fileID: 0}
+    - target: {fileID: 1985765257376077449, guid: e4260a643264a84479eee8911d7bd336, type: 3}
+      propertyPath: attributeEntries.Array.data[7].baseValue
+      value: 8.25
+      objectReference: {fileID: 0}
+    - target: {fileID: 6926839794849704639, guid: e4260a643264a84479eee8911d7bd336, type: 3}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: 9fea7938af55458c9effb81c6732b11b, type: 2}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: e4260a643264a84479eee8911d7bd336, type: 3}

@@ -1,0 +1,21 @@
+{
+    "name": "Madbox.Gold",
+    "rootNamespace": "Madbox.Gold",
+    "references": [
+        "Madbox.LiveOps",
+        "Madbox.Scope",
+        "Scaffold.MVVM.Base",
+        "Scaffold.MVVM.Model"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "precompiledReferences": [
+        "Madbox.LiveOps.DTO.dll"
+    ],
+    "noEngineReferences": false
+}

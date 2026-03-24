@@ -1,0 +1,23 @@
+{
+    "name": "Madbox.Enemies.Tests",
+    "rootNamespace": "Madbox.Enemies.Tests",
+    "references": [
+        "Madbox.Enemies",
+        "Madbox.Entities",
+        "Madbox.Player"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false,
+    "optionalUnityReferences": [
+        "TestAssemblies"
+    ]
+}

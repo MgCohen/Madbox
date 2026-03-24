@@ -1,0 +1,165 @@
+using System;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
+using GameModuleDTO.ModuleRequests;
+using GameModuleDTO.Modules.Level;
+using Madbox.Addressables.Contracts;
+using Madbox.LiveOps;
+
+namespace Madbox.Levels
+{
+    /// <summary>
+    /// Client LiveOps level module: <see cref="LevelGameData"/> plus Addressables <see cref="LevelDefinition"/> assets mapped by level id.
+    /// </summary>
+    public class LevelService : GameClientModuleBase<LevelGameData>, ILevelService
+    {
+        public LevelService(ILiveOpsService liveOpsService, IAssetGroupProvider<LevelDefinition> levelAssetProvider)
+        {
+            if (liveOpsService == null)
+            {
+                throw new ArgumentNullException(nameof(liveOpsService));
+            }
+            if (levelAssetProvider == null)
+            {
+                throw new ArgumentNullException(nameof(levelAssetProvider));
+            }
+
+            this.liveOpsService = liveOpsService;
+            this.levelAssetProvider = levelAssetProvider;
+        }
+
+        private readonly ILiveOpsService liveOpsService;
+        private readonly IAssetGroupProvider<LevelDefinition> levelAssetProvider;
+        private IReadOnlyList<AvailableLevel> availableLevels = Array.Empty<AvailableLevel>();
+
+        public event Action AvailableLevelsChanged;
+
+        public IReadOnlyList<AvailableLevel> GetAvailableLevels()
+        {
+            return availableLevels;
+        }
+
+        public bool TryApplyOptimisticCompletion(LevelDefinition levelDefinition, out int goldRewardGranted)
+        {
+            goldRewardGranted = 0;
+            if (data == null || levelDefinition == null)
+            {
+                return false;
+            }
+
+            int levelId = levelDefinition.LevelId;
+            if (levelId <= 0)
+            {
+                return false;
+            }
+
+            foreach (LevelStateEntry entry in data.States)
+            {
+                if (entry.LevelId != levelId)
+                {
+                    continue;
+                }
+
+                if (entry.State != LevelAvailabilityState.Unlocked)
+                {
+                    return false;
+                }
+
+                data.ApplyCompletedLevel(levelId);
+                int reward = data.RewardPerLevel;
+                if (reward > 0)
+                {
+                    goldRewardGranted = reward;
+                }
+
+                BuildAvailableLevels(data);
+                return true;
+            }
+
+            return false;
+        }
+
+        public async Task<CompleteLevelResponse> CompleteLevelAsync(LevelDefinition levelDefinition, CancellationToken cancellationToken = default)
+        {
+            if (levelDefinition == null)
+            {
+                throw new ArgumentNullException(nameof(levelDefinition));
+            }
+
+            int levelId = levelDefinition.LevelId;
+            if (levelId <= 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(levelId));
+            }
+
+            CompleteLevelRequest request = new CompleteLevelRequest(levelId);
+            CompleteLevelResponse response = await liveOpsService.CallAsync(request, cancellationToken);
+            ApplyCompletionResponse(response);
+            return response;
+        }
+
+        private void ApplyCompletionResponse(CompleteLevelResponse response)
+        {
+            if (data == null || response == null || !response.Succeeded)
+            {
+                return;
+            }
+
+            if (!response.CompletedLevelId.HasValue)
+            {
+                return;
+            }
+
+            data.ApplyCompletedLevel(response.CompletedLevelId.Value);
+            BuildAvailableLevels(data);
+        }
+
+        protected override Task OnInitializedAsync(LevelGameData moduleData)
+        {
+            BuildAvailableLevels(moduleData);
+            return Task.CompletedTask;
+        }
+
+        private void BuildAvailableLevels(LevelGameData moduleData)
+        {
+            if (moduleData == null)
+            {
+                availableLevels = Array.Empty<AvailableLevel>();
+                AvailableLevelsChanged?.Invoke();
+                return;
+            }
+
+            if (!levelAssetProvider.TryGet(out IReadOnlyList<LevelDefinition> definitions) || definitions == null || definitions.Count == 0)
+            {
+                availableLevels = Array.Empty<AvailableLevel>();
+                AvailableLevelsChanged?.Invoke();
+                return;
+            }
+
+            Dictionary<int, LevelDefinition> byId = new Dictionary<int, LevelDefinition>();
+            for (int i = 0; i < definitions.Count; i++)
+            {
+                LevelDefinition def = definitions[i];
+                if (def == null)
+                {
+                    continue;
+                }
+                byId[def.LevelId] = def;
+            }
+
+            List<AvailableLevel> list = new List<AvailableLevel>();
+            foreach (LevelStateEntry state in moduleData.States)
+            {
+                if (byId.TryGetValue(state.LevelId, out LevelDefinition definition))
+                {
+                    list.Add(new AvailableLevel(definition, state.State));
+                }
+            }
+
+            availableLevels = list;
+            AvailableLevelsChanged?.Invoke();
+        }
+
+    }
+}

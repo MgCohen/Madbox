@@ -1,0 +1,21 @@
+{
+    "name": "Madbox.GameView",
+    "rootNamespace": "Madbox.App.GameView",
+    "references": [
+        "Cinemachine",
+        "Madbox.Animation",
+        "Madbox.Entities",
+        "Madbox.Player",
+        "Madbox.Enemies"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
+
